@@ -32,20 +32,32 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('admin')
-        ->middleware('role:admin')
-        ->group(function () {
+   /*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')
+    ->middleware('role:admin')
+    ->group(function () {
 
-            Route::get('/dashboard', function () {
-                return view('admin.dashboard');
-            })->name('admin.dashboard');
+        // Dashboard Admin
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('admin.dashboard');
 
-        });
+        // USER MANAGEMENT
+        Route::resource('/users', \App\Http\Controllers\Admin\UserController::class);
+
+        // Reset password for a specific user
+        Route::post('/users/{user}/reset-password', 
+            [\App\Http\Controllers\Admin\UserController::class, 'resetPassword']
+        )->name('users.reset-password');
+
+        // ROLE MANAGEMENT
+        Route::get('/roles', 
+            [\App\Http\Controllers\Admin\RoleController::class, 'index']
+        )->name('roles.index');
+
+    });
 
 
     /*
