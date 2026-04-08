@@ -22,10 +22,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
 
-    // dashboard umum
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD UMUM
+    |--------------------------------------------------------------------------
+    */
     Route::get('/dashboard', function () {
-        return "Dashboard umum";
+        return view('dashboard.index');
     })->name('dashboard');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -37,10 +42,11 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
 
             Route::get('/dashboard', function () {
-                return "Dashboard Admin";
+                return view('admin.dashboard');
             })->name('admin.dashboard');
 
         });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -52,10 +58,11 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
 
             Route::get('/dashboard', function () {
-                return "Dashboard Gudang";
+                return view('gudang.dashboard');
             })->name('gudang.dashboard');
 
         });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -67,10 +74,11 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
 
             Route::get('/dashboard', function () {
-                return "Dashboard Produksi";
+                return view('produksi.dashboard');
             })->name('produksi.dashboard');
 
         });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -82,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
 
             Route::get('/dashboard', function () {
-                return "Dashboard Penjualan";
+                return view('penjualan.dashboard');
             })->name('penjualan.dashboard');
 
         });
@@ -97,5 +105,5 @@ Route::middleware(['auth'])->group(function () {
 */
 
 Route::get('/', function () {
-    return view('landing');
+    return view('landing'); // pastikan file ini ada
 });
