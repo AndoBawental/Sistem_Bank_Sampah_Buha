@@ -2,120 +2,80 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
+
 
 /*
 |--------------------------------------------------------------------------
-| AUTH
+| AUTH ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
 /*
 |--------------------------------------------------------------------------
-| PROTECTED (HARUS LOGIN)
+| PROTECTED ROUTES (HARUS LOGIN)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD UMUM
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/dashboard', function () {
-        return view('dashboard.index');
-    })->name('dashboard');
-
-
-   /*
-|--------------------------------------------------------------------------
-| ADMIN
-|--------------------------------------------------------------------------
-*/
-Route::prefix('admin')
-    ->middleware('role:admin')
-    ->group(function () {
-
-        // Dashboard Admin
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('admin.dashboard');
-
-        // USER MANAGEMENT
-        Route::resource('/users', \App\Http\Controllers\Admin\UserController::class);
-
-        // Reset password for a specific user
-        Route::post('/users/{user}/reset-password', 
-            [\App\Http\Controllers\Admin\UserController::class, 'resetPassword']
-        )->name('users.reset-password');
-
-        // ROLE MANAGEMENT
-        Route::get('/roles', 
-            [\App\Http\Controllers\Admin\RoleController::class, 'index']
-        )->name('roles.index');
-
-    });
-
+    // DASHBOARD UMUM
+    Route::get('/dashboard', fn() => view('dashboard.index'))->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
-    | GUDANG
+    | ADMIN ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::prefix('gudang')
-        ->middleware('role:gudang')
-        ->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
 
-            Route::get('/dashboard', function () {
-                return view('gudang.dashboard');
-            })->name('gudang.dashboard');
+    // Dashboard Admin
+   Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
-        });
+    // User Management
+    Route::resource('users', UserController::class);
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+        ->name('users.reset-password');
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUKSI
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('produksi')
-        ->middleware('role:produksi')
-        ->group(function () {
-
-            Route::get('/dashboard', function () {
-                return view('produksi.dashboard');
-            })->name('produksi.dashboard');
-
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PENJUALAN
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('penjualan')
-        ->middleware('role:penjualan')
-        ->group(function () {
-
-            Route::get('/dashboard', function () {
-                return view('penjualan.dashboard');
-            })->name('penjualan.dashboard');
-
-        });
-
+    // Role Management
+    Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
 });
 
+    /*
+    |--------------------------------------------------------------------------
+    | GUDANG ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('gudang')->middleware('role:gudang')->group(function () {
+        Route::get('/dashboard', fn() => view('dashboard.gudang'))->name('gudang.dashboard');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRODUKSI ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('produksi')->middleware('role:produksi')->group(function () {
+        Route::get('/dashboard', fn() => view('dashboard.produksi'))->name('produksi.dashboard');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | PENJUALAN ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('penjualan')->middleware('role:penjualan')->group(function () {
+        Route::get('/dashboard', fn() => view('dashboard.penjualan'))->name('penjualan.dashboard');
+    });
+
+});
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC
+| PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
-
-Route::get('/', function () {
-    return view('landing'); // pastikan file ini ada
-});
+Route::get('/', fn() => view('landing'))->name('landing');
