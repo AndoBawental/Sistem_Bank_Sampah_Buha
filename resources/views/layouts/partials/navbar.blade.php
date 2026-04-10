@@ -30,14 +30,8 @@
             </a>
 
             <ul class="dropdown-menu dropdown-menu-end shadow animated--grow-in border-0" aria-labelledby="userDropdown">
-                <div class="dropdown-header text-uppercase small fw-bold">Pengaturan Akun</div>
                 
-                <li>
-                    <a class="dropdown-item py-2" href="{{ route('dashboard') }}">
-                        <i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>
-                        Profil Saya
-                    </a>
-                </li>
+               
                 <li>
                     <a class="dropdown-item py-2" href="#">
                         <i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>

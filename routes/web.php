@@ -56,9 +56,7 @@ Route::middleware(['auth'])->group(function () {
     | GUDANG ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::prefix('gudang')->middleware('role:gudang')->group(function () {
-        Route::get('/dashboard', fn() => view('dashboard.gudang'))->name('gudang.dashboard');
-    });
+    Route::get('/dashboard', fn() => view('dashboard.gudang.gudang'))->name('gudang.dashboard');
     // Route untuk gudang
 Route::middleware(['auth', 'role:admin|gudang'])->prefix('gudang')->name('gudang.')->group(function () {
     // Stok routes
