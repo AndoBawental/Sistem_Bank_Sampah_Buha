@@ -94,6 +94,25 @@
             height: 250px;
         }
     }
+    
+    /* User card specific */
+    .user-stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .user-stat-card .stat-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .user-stat-card .stat-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .user-stat-card .stat-value {
+        color: white;
+    }
 </style>
 @endpush
 
@@ -107,7 +126,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h3 class="fw-bold mb-2">Selamat Datang, {{ auth()->user()->name }}!</h3>
-                            <p class="mb-0 opacity-75">Panel kendali utama Sistem Manajemen Sampah Plastik Recycle Manado</p>
+                            <p class="mb-0 opacity-75">Panel kendali utama Sistem Manajemen Sampah Plastik Bank Sampah Buha Recycle Manado</p>
                             <p class="mb-0 small opacity-75 mt-1">
                                 <i class="fas fa-calendar-alt me-1"></i>{{ Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
                             </p>
@@ -123,6 +142,7 @@
 
     {{-- Statistik Cards --}}
     <div class="row g-3 mb-4">
+        {{-- Total Sampah Masuk --}}
         <div class="col-12 col-md-6 col-lg-3">
             <div class="card stat-card shadow-sm h-100">
                 <div class="card-body p-4">
@@ -142,6 +162,7 @@
             </div>
         </div>
 
+        {{-- Total Stok Gudang --}}
         <div class="col-12 col-md-6 col-lg-3">
             <div class="card stat-card shadow-sm h-100">
                 <div class="card-body p-4">
@@ -155,6 +176,7 @@
             </div>
         </div>
 
+        {{-- Total Hasil Produksi --}}
         <div class="col-12 col-md-6 col-lg-3">
             <div class="card stat-card shadow-sm h-100">
                 <div class="card-body p-4">
@@ -168,6 +190,7 @@
             </div>
         </div>
 
+        {{-- Total Penjualan --}}
         <div class="col-12 col-md-6 col-lg-3">
             <div class="card stat-card shadow-sm h-100">
                 <div class="card-body p-4">
@@ -180,6 +203,59 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Second Row - Additional Stats --}}
+    <div class="row g-3 mb-4">
+        {{-- Total Users Card --}}
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card user-stat-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stat-label mb-1 small fw-semibold">TOTAL PENGGUNA</h6>
+                            <h2 class="stat-value fw-bold mb-0">{{ $userCount }}</h2>
+                            <p class="stat-label small mb-0 mt-2">
+                                <i class="fas fa-user-plus me-1"></i>
+                                @if(isset($newUsersThisMonth) && $newUsersThisMonth > 0)
+                                    +{{ $newUsersThisMonth }} bulan ini
+                                @else
+                                    Terdaftar di sistem
+                                @endif
+                            </p>
+                        </div>
+                        <div class="stat-icon bg-white bg-opacity-25">
+                            <i class="fas fa-users fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- User Role Distribution (if data available) --}}
+        @if(isset($userRoles) && $userRoles->count() > 0)
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="stat-icon bg-secondary-light mb-3">
+                        <i class="fas fa-user-tag fa-lg text-secondary"></i>
+                    </div>
+                    <h6 class="text-muted mb-2 small fw-semibold">DISTRIBUSI ROLE</h6>
+                    <div class="space-y-2">
+                        @foreach($userRoles as $role)
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">
+                                <i class="fas fa-circle fa-xs me-2" style="color: {{ $role->color ?? '#6c757d' }}"></i>
+                                {{ $role->name }}
+                            </span>
+                            <span class="fw-semibold">{{ $role->count }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Charts Row --}}
@@ -234,7 +310,7 @@
                 <div class="card-header bg-white border-0 pt-4 px-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="fw-bold mb-0">Distribusi Stok per Jenis Plastik</h5>
-                        <a href="{{ route('stok.index') }}" class="btn btn-sm btn-outline-success rounded-pill">
+                        <a href="{{ route('gudang.stok.index') }}" class="btn btn-sm btn-outline-success rounded-pill">
                             <i class="fas fa-chart-line me-1"></i>Detail
                         </a>
                     </div>

@@ -17,22 +17,24 @@ class AdminDashboardController extends Controller
 {
     public function index()
     {
-        // ✅ Jumlah User
+        // =========================
+        // 👤 JUMLAH USER
+        // =========================
         $userCount = User::count();
 
         // =========================
-        // 📥 TOTAL SAMPAH MASUK (30 hari terakhir)
+        // 📥 TOTAL SAMPAH MASUK (30 hari)
         // =========================
         $totalSampahMasuk = DetailPenerimaanStok::whereHas('penerimaan', function($q) {
             $q->where('tanggal', '>=', Carbon::now()->subDays(30));
         })->sum('berat');
-        
+
         $totalSampahMasukPrev = DetailPenerimaanStok::whereHas('penerimaan', function($q) {
             $q->whereBetween('tanggal', [Carbon::now()->subDays(60), Carbon::now()->subDays(31)]);
         })->sum('berat');
-        
-        $persenMasuk = $totalSampahMasukPrev > 0 
-            ? (($totalSampahMasuk - $totalSampahMasukPrev) / $totalSampahMasukPrev) * 100 
+
+        $persenMasuk = $totalSampahMasukPrev > 0
+            ? (($totalSampahMasuk - $totalSampahMasukPrev) / $totalSampahMasukPrev) * 100
             : 0;
 
         // =========================
@@ -42,7 +44,7 @@ class AdminDashboardController extends Controller
         $jenisPlastikCount = JenisPlastik::count();
 
         // =========================
-        // 🏭 PRODUKSI
+        // 🏭 PRODUKSI (30 hari)
         // =========================
         $totalProduksi = Produksi::where('tanggal', '>=', Carbon::now()->subDays(30))
             ->with('detailHasilProduksi')
@@ -50,7 +52,7 @@ class AdminDashboardController extends Controller
             ->sum(fn($p) => $p->detailHasilProduksi->sum('jumlah'));
 
         // =========================
-        // 💰 PENJUALAN
+        // 💰 PENJUALAN (30 hari)
         // =========================
         $totalPenjualan = Penjualan::where('tanggal', '>=', Carbon::now()->subDays(30))
             ->sum('total_harga');
@@ -67,6 +69,7 @@ class AdminDashboardController extends Controller
         // 📈 GRAFIK 7 HARI
         // =========================
         $last7Days = collect();
+
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
 
@@ -123,20 +126,22 @@ class AdminDashboardController extends Controller
             ->get();
 
         // =========================
-        // 📅 STATISTIK BULANAN
+        // 📅 STATISTIK BULANAN (6 bulan)
         // =========================
         $monthlyStats = collect();
+
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
+            $start = $month->copy()->startOfMonth();
+            $end = $month->copy()->endOfMonth();
 
             $monthlyStats->push([
                 'month' => $month->format('M Y'),
-                'penerimaan' => DetailPenerimaanStok::whereHas('penerimaan', function($q) use ($month) {
-                    $q->whereBetween('tanggal', [$month->startOfMonth(), $month->endOfMonth()]);
+                'penerimaan' => DetailPenerimaanStok::whereHas('penerimaan', function($q) use ($start, $end) {
+                    $q->whereBetween('tanggal', [$start, $end]);
                 })->sum('berat'),
-                'penjualan' => Penjualan::whereBetween('tanggal', [$month->startOfMonth(), $month->endOfMonth()])
-                    ->sum('total_harga'),
-                'produksi' => Produksi::whereBetween('tanggal', [$month->startOfMonth(), $month->endOfMonth()])
+                'penjualan' => Penjualan::whereBetween('tanggal', [$start, $end])->sum('total_harga'),
+                'produksi' => Produksi::whereBetween('tanggal', [$start, $end])
                     ->with('detailHasilProduksi')
                     ->get()
                     ->sum(fn($p) => $p->detailHasilProduksi->sum('jumlah')),
@@ -144,35 +149,52 @@ class AdminDashboardController extends Controller
         }
 
         // =========================
-        // 🕒 AKTIVITAS TERBARU
+        // 🕒 AKTIVITAS TERBARU (ENHANCED)
         // =========================
         $recentActivities = collect();
 
-        $recentActivities = Penerimaan::with('supplier', 'user')->latest('tanggal')->limit(5)->get()
+        $recentPenerimaan = Penerimaan::with('supplier', 'user')
+            ->latest('tanggal')
+            ->limit(5)
+            ->get()
             ->map(fn($item) => [
                 'type' => 'penerimaan',
                 'date' => $item->tanggal,
                 'description' => "Penerimaan dari {$item->supplier->nama}",
                 'user' => $item->user->name,
-            ])
-            ->concat(
-                Produksi::with('jenisProduk', 'user')->latest('tanggal')->limit(5)->get()
-                ->map(fn($item) => [
-                    'type' => 'produksi',
-                    'date' => $item->tanggal,
-                    'description' => "Produksi {$item->jenisProduk->nama}",
-                    'user' => $item->user->name,
-                ])
-            )
-            ->concat(
-                Penjualan::with('pembeli', 'user')->latest('tanggal')->limit(5)->get()
-                ->map(fn($item) => [
-                    'type' => 'penjualan',
-                    'date' => $item->tanggal,
-                    'description' => "Penjualan ke {$item->pembeli->nama}",
-                    'user' => $item->user->name,
-                ])
-            )
+                'icon' => 'truck-loading',
+                'color' => 'success'
+            ]);
+
+        $recentProduksi = Produksi::with('jenisProduk', 'user')
+            ->latest('tanggal')
+            ->limit(5)
+            ->get()
+            ->map(fn($item) => [
+                'type' => 'produksi',
+                'date' => $item->tanggal,
+                'description' => "Produksi {$item->jenisProduk->nama}",
+                'user' => $item->user->name,
+                'icon' => 'industry',
+                'color' => 'info'
+            ]);
+
+        $recentPenjualan = Penjualan::with('pembeli', 'user')
+            ->latest('tanggal')
+            ->limit(5)
+            ->get()
+            ->map(fn($item) => [
+                'type' => 'penjualan',
+                'date' => $item->tanggal,
+                'description' => "Penjualan ke {$item->pembeli->nama} - Rp " . number_format($item->total_harga, 0, ',', '.'),
+                'user' => $item->user->name,
+                'icon' => 'shopping-cart',
+                'color' => 'primary'
+            ]);
+
+        $recentActivities = $recentPenerimaan
+            ->concat($recentProduksi)
+            ->concat($recentPenjualan)
             ->sortByDesc('date')
             ->take(10);
 
