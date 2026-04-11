@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Gudang/PenerimaanController.php
 
 namespace App\Http\Controllers\Gudang;
 
@@ -15,15 +14,55 @@ use Illuminate\Support\Facades\DB;
 class PenerimaanController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with statistics and filters.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $penerimaan = Penerimaan::with(['supplier', 'user', 'detailPenerimaanStok.jenisPlastik'])
-            ->orderBy('tanggal', 'desc')
-            ->paginate(10);
+        $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaanStok.jenisPlastik']);
         
-        return view('dashboard.gudang.penerimaan.index', compact('penerimaan'));
+        // --- Logika Filter ---
+        if ($request->dari_tanggal) {
+            $query->whereDate('tanggal', '>=', $request->dari_tanggal);
+        }
+        if ($request->sampai_tanggal) {
+            $query->whereDate('tanggal', '<=', $request->sampai_tanggal);
+        }
+        if ($request->supplier_id) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+        
+        $penerimaan = $query->orderBy('tanggal', 'desc')->paginate(10)->withQueryString();
+        
+        // --- Data Statistik untuk Dashboard Penerimaan ---
+        $supplierCount = Supplier::count();
+        $totalBerat = DetailPenerimaanStok::sum('berat');
+        
+        // Data Berat Bulan Ini
+        $bulanIni = DetailPenerimaanStok::whereHas('penerimaan', function($q) {
+            $q->whereMonth('tanggal', now()->month)
+              ->whereYear('tanggal', now()->year);
+        })->sum('berat');
+        
+        // Data Berat Bulan Lalu (untuk perbandingan)
+        $bulanLalu = DetailPenerimaanStok::whereHas('penerimaan', function($q) {
+            $q->whereMonth('tanggal', now()->subMonth()->month)
+              ->whereYear('tanggal', now()->subMonth()->year);
+        })->sum('berat');
+        
+        // Hitung Persentase Kenaikan/Penurunan
+        $persenKenaikan = $bulanLalu > 0 ? (($bulanIni - $bulanLalu) / $bulanLalu) * 100 : ($bulanIni > 0 ? 100 : 0);
+        
+        // Data pendukung untuk dropdown filter
+        $suppliers = Supplier::orderBy('nama')->get(); 
+        
+        return view('dashboard.gudang.penerimaan.index', compact(
+            'penerimaan', 
+            'supplierCount', 
+            'totalBerat', 
+            'bulanIni', 
+            'persenKenaikan', 
+            'suppliers'
+        ));
     }
 
     /**
@@ -55,7 +94,6 @@ class PenerimaanController extends Controller
         DB::beginTransaction();
         
         try {
-            // Create penerimaan
             $penerimaan = Penerimaan::create([
                 'tanggal' => $request->tanggal,
                 'supplier_id' => $request->supplier_id,
@@ -63,7 +101,6 @@ class PenerimaanController extends Controller
                 'keterangan' => $request->keterangan
             ]);
 
-            // Create details and update stock
             foreach ($request->items as $item) {
                 DetailPenerimaanStok::create([
                     'penerimaan_id' => $penerimaan->id,
@@ -72,7 +109,7 @@ class PenerimaanController extends Controller
                     'harga' => $item['harga'] ?? 0
                 ]);
 
-                // Update stock
+                // Update stok di gudang secara otomatis
                 Stok::updateStok($item['jenis_plastik_id'], $item['berat'], true);
             }
 
@@ -108,7 +145,7 @@ class PenerimaanController extends Controller
         try {
             $penerimaan = Penerimaan::findOrFail($id);
             
-            // Reverse stock updates
+            // Balikkan (Reverse) update stok sebelum data dihapus
             foreach ($penerimaan->detailPenerimaanStok as $detail) {
                 Stok::updateStok($detail->jenis_plastik_id, $detail->berat, false);
             }
