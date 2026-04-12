@@ -64,6 +64,9 @@ Route::middleware(['auth', 'role:admin|gudang'])->prefix('gudang')->name('gudang
     
     // Penerimaan routes
     Route::resource('penerimaan', PenerimaanController::class);
+
+    Route::get('penerimaan/{id}/sortir', [PenerimaanController::class, 'sortir'])
+    ->name('penerimaan.sortir');
     
     // Supplier routes
     Route::resource('supplier', SupplierController::class);

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\DetailPenerimaan; // Tambahkan ini
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Penerimaan extends Model
 {
@@ -63,8 +64,8 @@ class Penerimaan extends Model
     }
 
     // Relasi ke pembayaran_penerimaan
-    public function pembayaran(): HasMany
+     public function pembayaran(): HasOne
     {
-        return $this->hasMany(PembayaranPenerimaan::class, 'penerimaan_id');
+        return $this->hasOne(PembayaranPenerimaan::class, 'penerimaan_id');
     }
 }

@@ -1,5 +1,4 @@
 <?php
-// app/Models/Stok.php
 
 namespace App\Models;
 
@@ -7,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\JenisPlastik;
+
 class Stok extends Model
 {
     use HasFactory;
@@ -27,25 +27,28 @@ class Stok extends Model
         return $this->belongsTo(JenisPlastik::class, 'jenis_plastik_id');
     }
 
-    // Update stok berdasarkan jenis plastik
-    public static function updateStok($jenisPlastikId, $berat, $isAddition = true)
+    /**
+     * Update stok untuk jenis plastik tertentu secara dinamis.
+     * * @param int $jenisPlastikId
+     * @param float $berat
+     * @param bool $isTambah true untuk tambah stok (hasil sortir), false untuk kurangi (produksi)
+     * @return void
+     */
+    public static function updateStok($jenisPlastikId, $berat, $isTambah = true)
     {
-        $stok = self::where('jenis_plastik_id', $jenisPlastikId)->first();
-        
-        if ($stok) {
-            if ($isAddition) {
-                $stok->total_berat += $berat;
-            } else {
-                $stok->total_berat -= $berat;
-            }
-            $stok->save();
+        // Mencari data stok, jika belum ada untuk jenis_plastik_id tersebut, otomatis buat baru dengan berat 0
+        $stok = self::firstOrCreate(
+            ['jenis_plastik_id' => $jenisPlastikId],
+            ['total_berat' => 0]
+        );
+
+        if ($isTambah) {
+            $stok->total_berat += $berat;
         } else {
-            self::create([
-                'jenis_plastik_id' => $jenisPlastikId,
-                'total_berat' => $isAddition ? $berat : 0
-            ]);
+            // max() mencegah nilai stok menjadi negatif jika $berat pengurang lebih besar dari stok saat ini
+            $stok->total_berat = max(0, $stok->total_berat - $berat);
         }
-        
-        return $stok;
+
+        $stok->save();
     }
 }

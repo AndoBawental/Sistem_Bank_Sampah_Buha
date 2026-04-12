@@ -29,6 +29,26 @@
         transform: translateY(-3px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
+    .badge-tipe-beli {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge-tipe-donasi {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+    .badge-sortir-belum {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+    .badge-sortir-proses {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge-sortir-selesai {
+        background: #dcfce7;
+        color: #166534;
+    }
 </style>
 @endpush
 
@@ -77,8 +97,8 @@
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-muted small mb-0">Total Berat</p>
-                            <h4 class="fw-bold mb-0">{{ number_format($totalBerat ?? 0, 0, ',', '.') }} <small class="h6">Kg</small></h4>
+                            <p class="text-muted small mb-0">Total Berat Kotor</p>
+                            <h4 class="fw-bold mb-0">{{ number_format($totalBerat ?? 0, 2, ',', '.') }} <small class="h6">Kg</small></h4>
                             <small class="text-muted">
                                 <i class="fas fa-weight-hanging me-1"></i>Semua waktu
                             </small>
@@ -96,13 +116,69 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted small mb-0">Bulan Ini</p>
-                            <h4 class="fw-bold mb-0">{{ number_format($bulanIni ?? 0, 0, ',', '.') }} <small class="h6">Kg</small></h4>
-                            <small class="text-success">
-                                <i class="fas fa-chart-line me-1"></i>{{ $persenKenaikan ?? 0 }}%
+                            <h4 class="fw-bold mb-0">{{ number_format($bulanIni ?? 0, 2, ',', '.') }} <small class="h6">Kg</small></h4>
+                            <small class="{{ ($persenKenaikan ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
+                                <i class="fas fa-{{ ($persenKenaikan ?? 0) >= 0 ? 'arrow-up' : 'arrow-down' }} me-1"></i>
+                                {{ number_format(abs($persenKenaikan ?? 0), 1) }}%
                             </small>
                         </div>
                         <div class="bg-primary-light p-3 rounded-circle">
                             <i class="fas fa-chart-line fa-lg text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Statistik Tambahan --}}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-success-light p-3 rounded-circle">
+                            <i class="fas fa-shopping-cart text-success"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Pembelian Bulan Ini</p>
+                            <h5 class="fw-bold mb-0">Rp {{ number_format($totalBeliBulanIni ?? 0, 0, ',', '.') }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-warning-light p-3 rounded-circle">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Perlu Sortir</p>
+                            <h5 class="fw-bold mb-0">{{ $perluSortir ?? 0 }} <small class="h6">Transaksi</small></h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-info-light p-3 rounded-circle">
+                            <i class="fas fa-hand-holding-heart text-info"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Donasi Bulan Ini</p>
+                            @php
+                                $totalDonasi = \App\Models\Penerimaan::where('tipe', 'Donasi')
+                                    ->whereMonth('tanggal', now()->month)
+                                    ->whereYear('tanggal', now()->year)
+                                    ->sum('total_berat_kotor_kg');
+                            @endphp
+                            <h5 class="fw-bold mb-0">{{ number_format($totalDonasi, 2, ',', '.') }} <small class="h6">Kg</small></h5>
                         </div>
                     </div>
                 </div>
@@ -135,8 +211,10 @@
                             <th class="border-0 rounded-start">No</th>
                             <th class="border-0">Tanggal</th>
                             <th class="border-0">Supplier</th>
+                            <th class="border-0">Tipe</th>
                             <th class="border-0">Jenis Plastik</th>
-                            <th class="border-0 text-end">Berat (Kg)</th>
+                            <th class="border-0 text-end">Berat Kotor (Kg)</th>
+                            <th class="border-0">Status Sortir</th>
                             <th class="border-0">User</th>
                             <th class="border-0 rounded-end text-center">Aksi</th>
                         </tr>
@@ -155,15 +233,45 @@
                                     {{ $item->supplier->nama }}
                                 </td>
                                 <td>
-                                    @foreach($item->detailPenerimaanStok as $detail)
-                                        <span class="badge bg-secondary-soft text-dark mb-1">
-                                            {{ $detail->jenisPlastik->nama }}: {{ number_format($detail->berat, 0, ',', '.') }} Kg
+                                    @if($item->tipe == 'Beli')
+                                        <span class="badge badge-tipe-beli rounded-pill">
+                                            <i class="fas fa-shopping-cart me-1"></i>Beli
+                                        </span>
+                                    @else
+                                        <span class="badge badge-tipe-donasi rounded-pill">
+                                            <i class="fas fa-hand-holding-heart me-1"></i>Donasi
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @foreach($item->detailPenerimaan as $detail)
+                                        <span class="badge bg-light text-dark mb-1">
+                                            {{ $detail->jenisPlastik->nama }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg
                                         </span>
                                         <br>
                                     @endforeach
                                 </td>
                                 <td class="text-end fw-bold">
-                                    {{ number_format($item->detailPenerimaanStok->sum('berat'), 0, ',', '.') }} Kg
+                                    {{ number_format($item->total_berat_kotor_kg, 2, ',', '.') }} Kg
+                                    @if($item->tipe == 'Beli' && $item->total_bayar > 0)
+                                        <br>
+                                        <small class="text-primary">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</small>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($item->status_sortir == 'Belum')
+                                        <span class="badge badge-sortir-belum rounded-pill">
+                                            <i class="fas fa-clock me-1"></i>Belum
+                                        </span>
+                                    @elseif($item->status_sortir == 'Proses')
+                                        <span class="badge badge-sortir-proses rounded-pill">
+                                            <i class="fas fa-spinner me-1"></i>Proses
+                                        </span>
+                                    @else
+                                        <span class="badge badge-sortir-selesai rounded-pill">
+                                            <i class="fas fa-check-circle me-1"></i>Selesai
+                                        </span>
+                                    @endif
                                 </td>
                                 <td>
                                     <i class="fas fa-user-circle text-muted me-1"></i>
@@ -171,10 +279,15 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="action-buttons" onclick="event.stopPropagation()">
-                                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn btn-sm btn-info text-white rounded-pill">
+                                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn btn-sm btn-info text-white rounded-pill" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}">
+                                        @if($item->status_sortir != 'Selesai')
+                                        <a href="{{ route('gudang.penerimaan.sortir', $item->id) }}" class="btn btn-sm btn-warning rounded-pill" title="Sortir">
+                                            <i class="fas fa-filter"></i>
+                                        </a>
+                                        @endif
+                                        <button type="button" class="btn btn-sm btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -189,10 +302,17 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <p>Apakah Anda yakin ingin menghapus data penerimaan dari supplier <strong>{{ $item->supplier->nama }}</strong> tanggal <strong>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</strong>?</p>
-                                                    <p class="text-danger small mb-0">
-                                                        <i class="fas fa-exclamation-triangle me-1"></i>
-                                                        Tindakan ini akan menghapus data stok terkait dan tidak dapat dibatalkan!
-                                                    </p>
+                                                    @if($item->status_sortir == 'Selesai')
+                                                        <p class="text-danger small mb-0">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                                            Data sudah disortir. Menghapus data ini akan mengurangi stok gudang!
+                                                        </p>
+                                                    @else
+                                                        <p class="text-warning small mb-0">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Tindakan ini tidak dapat dibatalkan!
+                                                        </p>
+                                                    @endif
                                                 </div>
                                                 <div class="modal-footer">
                                                     <form action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST">
@@ -209,7 +329,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                                     <p class="text-muted mb-0">Belum ada data penerimaan</p>
                                     <a href="{{ route('gudang.penerimaan.create') }}" class="btn btn-success mt-3 rounded-pill">
@@ -257,6 +377,23 @@
                                     {{ $supplier->nama }}
                                 </option>
                             @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipe</label>
+                        <select name="tipe" class="form-select">
+                            <option value="">Semua Tipe</option>
+                            <option value="Beli" {{ request('tipe') == 'Beli' ? 'selected' : '' }}>Pembelian</option>
+                            <option value="Donasi" {{ request('tipe') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status Sortir</label>
+                        <select name="status_sortir" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="Belum" {{ request('status_sortir') == 'Belum' ? 'selected' : '' }}>Belum</option>
+                            <option value="Proses" {{ request('status_sortir') == 'Proses' ? 'selected' : '' }}>Proses</option>
+                            <option value="Selesai" {{ request('status_sortir') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                         </select>
                     </div>
                 </div>
