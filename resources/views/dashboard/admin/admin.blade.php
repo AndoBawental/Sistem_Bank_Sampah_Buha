@@ -355,6 +355,43 @@
     }
     .table tbody tr:last-child td { border-bottom: none !important; }
     .table tbody tr:hover td { background: var(--surface-2); }
+
+    .badge-sortir-belum {
+        background: var(--danger-light);
+        color: #b91c1c;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .badge-sortir-proses {
+        background: var(--warning-light);
+        color: #92400e;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .badge-sortir-selesai {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    /* Animasi untuk spinner */
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 @endpush
 
@@ -377,9 +414,17 @@
                     </div>
                     <div class="d-none d-md-flex align-items-center gap-3">
                         <div class="text-center text-white opacity-75">
-                            <div class="fw-bold" style="font-size:1.6rem;">{{ number_format($totalSampahMasuk, 0, ',', '.') }}</div>
+                            <div class="fw-bold" style="font-size:1.6rem;">{{ number_format($totalSampahMasuk, 2, ',', '.') }}</div>
                             <div style="font-size:0.7rem;">Kg Masuk (30 Hari)</div>
                         </div>
+                        @if(isset($sortirPending) && $sortirPending > 0)
+                        <div style="width:1px;height:40px;background:rgba(255,255,255,0.2)"></div>
+                        <div class="text-center text-white">
+                            <div class="fw-bold" style="font-size:1.2rem;">{{ $sortirPending }}</div>
+                            <div style="font-size:0.7rem;">Perlu Sortir</div>
+                            <span class="badge bg-warning text-dark mt-1" style="font-size:0.6rem;">Pending</span>
+                        </div>
+                        @endif
                         <div style="width:1px;height:40px;background:rgba(255,255,255,0.2)"></div>
                         <i class="fas fa-recycle fa-3x text-white opacity-25"></i>
                     </div>
@@ -403,7 +448,7 @@
                         </span>
                     </div>
                     <div class="text-muted fw-semibold mb-1" style="font-size:0.68rem;letter-spacing:.5px;">SAMPAH MASUK</div>
-                    <div class="fw-bold text-dark" style="font-size:1.4rem;line-height:1.1;">{{ number_format($totalSampahMasuk, 0, ',', '.') }} <span class="text-muted fw-normal" style="font-size:0.8rem;">Kg</span></div>
+                    <div class="fw-bold text-dark" style="font-size:1.4rem;line-height:1.1;">{{ number_format($totalSampahMasuk, 2, ',', '.') }} <span class="text-muted fw-normal" style="font-size:0.8rem;">Kg</span></div>
                     <div class="text-muted mt-1" style="font-size:0.72rem;">30 hari terakhir</div>
                 </div>
             </div>
@@ -453,6 +498,61 @@
                     <div class="text-muted fw-semibold mb-1" style="font-size:0.68rem;letter-spacing:.5px;">PENJUALAN</div>
                     <div class="fw-bold text-dark" style="font-size:1.15rem;line-height:1.2;">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</div>
                     <div class="text-muted mt-1" style="font-size:0.72rem;">30 hari terakhir</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Statistik Penerimaan ── --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="section-card">
+                <div class="card-header">
+                    <h6 class="section-title"><i class="fas fa-chart-pie me-2 text-success"></i>Statistik Penerimaan 30 Hari Terakhir</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        @if(isset($penerimaanStats) && $penerimaanStats->count() > 0)
+                            @foreach($penerimaanStats as $stat)
+                            <div class="col-md-6">
+                                <div class="stat-card p-3 h-100">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="stat-icon" style="background: {{ $stat->tipe == 'Beli' ? 'var(--warning-light)' : 'var(--info-light)' }}">
+                                            <i class="fas {{ $stat->tipe == 'Beli' ? 'fa-shopping-cart text-warning' : 'fa-hand-holding-heart text-info' }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark mb-1" style="font-size:1rem;">
+                                                {{ $stat->tipe == 'Beli' ? 'Pembelian' : 'Donasi' }}
+                                            </div>
+                                            <div class="text-muted small mb-2">
+                                                {{ $stat->total_transaksi }} transaksi
+                                            </div>
+                                            <div class="d-flex gap-3">
+                                                <div>
+                                                    <span class="text-muted d-block" style="font-size:0.65rem;">Total Berat</span>
+                                                    <span class="fw-bold text-success">{{ number_format($stat->total_berat, 2, ',', '.') }} Kg</span>
+                                                </div>
+                                                @if($stat->tipe == 'Beli')
+                                                <div>
+                                                    <span class="text-muted d-block" style="font-size:0.65rem;">Total Nilai</span>
+                                                    <span class="fw-bold text-primary">Rp {{ number_format($stat->total_nilai, 0, ',', '.') }}</span>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="col-12">
+                                <div class="text-center py-3">
+                                    <i class="fas fa-chart-bar fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">Belum ada data penerimaan</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -597,7 +697,6 @@
                                     @php
                                         $pct = $item->total_berat > 0 ? min(100, ($item->total_berat / 500) * 100) : 0;
                                         $pctRound = number_format($pct, 1);
-                                        $statusClass = $pct >= 70 ? 'success' : ($pct >= 30 ? 'warning' : 'danger');
                                         $statusText  = $pct >= 70 ? 'Aman'    : ($pct >= 30 ? 'Menipis' : 'Kritis');
                                         $barColor    = $pct >= 70 ? '#16a34a' : ($pct >= 30 ? '#f59e0b' : '#ef4444');
                                         $badgeClass  = $pct >= 70 ? 'badge-aman' : ($pct >= 30 ? 'badge-menipis' : 'badge-kritis');
@@ -648,7 +747,9 @@
                                 </span>
                                 <span class="fw-semibold text-truncate" style="font-size:0.86rem;">{{ $supplier->nama }}</span>
                             </div>
-                            <span class="fw-bold text-success ms-2" style="font-size:0.84rem;white-space:nowrap;">{{ number_format($supplier->total_berat, 0, ',', '.') }} Kg</span>
+                            <span class="fw-bold text-success ms-2" style="font-size:0.84rem;white-space:nowrap;">
+                                {{ number_format($supplier->total_berat, 2, ',', '.') }} Kg
+                            </span>
                         </div>
                         @endforeach
                     @else
@@ -703,7 +804,6 @@
                         <button class="filter-tab" data-filter="penerimaan">Penerimaan</button>
                         <button class="filter-tab" data-filter="produksi">Produksi</button>
                         <button class="filter-tab" data-filter="penjualan">Penjualan</button>
-                        <button class="filter-tab" data-filter="stok">Stok</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -713,10 +813,12 @@
                                 @php
                                     $desc = strtolower($activity['description'] ?? '');
                                     $filterKey = 'lainnya';
-                                    if (str_contains($desc, 'terima') || str_contains($desc, 'masuk') || str_contains($desc, 'penerimaan')) $filterKey = 'penerimaan';
+                                    if (str_contains($desc, 'terima') || str_contains($desc, 'masuk') || str_contains($desc, 'penerimaan') || str_contains($desc, 'pembelian') || str_contains($desc, 'donasi')) $filterKey = 'penerimaan';
                                     elseif (str_contains($desc, 'produksi') || str_contains($desc, 'produk')) $filterKey = 'produksi';
                                     elseif (str_contains($desc, 'jual') || str_contains($desc, 'penjualan')) $filterKey = 'penjualan';
-                                    elseif (str_contains($desc, 'stok') || str_contains($desc, 'gudang')) $filterKey = 'stok';
+                        
+                                    
+                                    $hasSortirStatus = str_contains($desc, 'status sortir');
                                 @endphp
                                 <div class="activity-item" data-filter="{{ $filterKey }}">
                                     <div class="activity-dot text-{{ $activity['color'] }}">
@@ -724,9 +826,29 @@
                                     </div>
                                     <div class="activity-body">
                                         <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-                                            <div>
-                                                <p class="mb-0 fw-semibold" style="font-size:0.84rem;color:var(--text-primary);">{{ $activity['description'] }}</p>
-                                                <small class="text-muted"><i class="fas fa-user fa-xs me-1"></i>{{ $activity['user'] }}</small>
+                                            <div class="flex-grow-1">
+                                                <p class="mb-1 fw-semibold" style="font-size:0.84rem;color:var(--text-primary);">
+                                                    {{ $activity['description'] }}
+                                                </p>
+                                                @if($hasSortirStatus)
+                                                    @php
+                                                        $statusSortir = '';
+                                                        if (str_contains($desc, 'belum')) $statusSortir = 'Belum';
+                                                        elseif (str_contains($desc, 'proses')) $statusSortir = 'Proses';
+                                                        elseif (str_contains($desc, 'selesai')) $statusSortir = 'Selesai';
+                                                    @endphp
+                                                    @if($statusSortir)
+                                                        <span class="badge mt-1" style="background: {{ $statusSortir == 'Selesai' ? 'var(--primary-light)' : ($statusSortir == 'Proses' ? 'var(--warning-light)' : 'var(--danger-light)') }}; 
+                                                                                      color: {{ $statusSortir == 'Selesai' ? 'var(--primary-dark)' : ($statusSortir == 'Proses' ? '#92400e' : '#b91c1c') }}; 
+                                                                                      font-size:0.65rem;">
+                                                            <i class="fas fa-{{ $statusSortir == 'Selesai' ? 'check-circle' : ($statusSortir == 'Proses' ? 'spinner' : 'clock') }} me-1"></i>
+                                                            Sortir: {{ $statusSortir }}
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                                <div class="mt-1">
+                                                    <small class="text-muted"><i class="fas fa-user fa-xs me-1"></i>{{ $activity['user'] }}</small>
+                                                </div>
                                             </div>
                                             <small class="text-muted flex-shrink-0" style="font-size:0.72rem;">
                                                 {{ \Carbon\Carbon::parse($activity['date'])->diffForHumans() }}
@@ -824,10 +946,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     callbacks: {
                         label: function(ctx) {
                             const v = ctx.raw;
-                            const fmt = new Intl.NumberFormat('id-ID').format(v);
-                            if (ctx.dataset.label === 'Penjualan (Rp)') return ' ' + ctx.dataset.label + ': Rp ' + fmt;
-                            if (ctx.dataset.label === 'Penerimaan (Kg)') return ' ' + ctx.dataset.label + ': ' + fmt + ' Kg';
-                            return ' ' + ctx.dataset.label + ': ' + fmt + ' Unit';
+                            let fmt;
+                            if (ctx.dataset.label === 'Penerimaan (Kg)') {
+                                fmt = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+                                return ' ' + ctx.dataset.label + ': ' + fmt + ' Kg';
+                            } else if (ctx.dataset.label === 'Penjualan (Rp)') {
+                                fmt = new Intl.NumberFormat('id-ID').format(v);
+                                return ' ' + ctx.dataset.label + ': Rp ' + fmt;
+                            } else {
+                                fmt = new Intl.NumberFormat('id-ID').format(v);
+                                return ' ' + ctx.dataset.label + ': ' + fmt + ' Unit';
+                            }
                         }
                     }
                 }
@@ -843,7 +972,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     ticks: {
                         color: '#94a3b8',
                         font: { size: 11 },
-                        callback: v => new Intl.NumberFormat('id-ID').format(v)
+                        callback: function(value) {
+                            if (value >= 1000) {
+                                return new Intl.NumberFormat('id-ID').format(value);
+                            }
+                            return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+                        }
                     },
                     title: { display: true, text: 'Kg / Unit', color: '#94a3b8', font: { size: 11 } },
                     beginAtZero: true
@@ -890,7 +1024,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 item.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
-            // Show empty state if none visible
             const emptyEl = document.getElementById('activityEmpty');
             if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
         });

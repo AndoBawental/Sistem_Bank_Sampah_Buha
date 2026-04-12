@@ -1,29 +1,27 @@
 <?php
-// app/Models/DetailPenerimaanStok.php
+// app/Models/HasilSortir.php
 
 namespace App\Models;
-use App\Models\Penerimaan;
-use App\Models\JenisPlastik;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class DetailPenerimaanStok extends Model
+class HasilSortir extends Model
 {
     use HasFactory;
 
-    protected $table = 'detail_penerimaan_stok';
+    protected $table = 'hasil_sortir';
     
     protected $fillable = [
         'penerimaan_id',
         'jenis_plastik_id',
-        'berat',
-        'harga'
+        'berat_bersih_kg',
+        'catatan'
     ];
 
     protected $casts = [
-        'berat' => 'float',
-        'harga' => 'decimal:2'
+        'berat_bersih_kg' => 'float'
     ];
 
     public function penerimaan(): BelongsTo

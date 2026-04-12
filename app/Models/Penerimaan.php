@@ -1,7 +1,6 @@
 <?php
 // app/Models/Penerimaan.php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Supplier;
+use App\Models\User;
+use App\Models\DetailPenerimaan; // Tambahkan ini
+
 class Penerimaan extends Model
 {
     use HasFactory;
@@ -19,11 +21,17 @@ class Penerimaan extends Model
         'tanggal',
         'supplier_id',
         'user_id',
+        'tipe',
+        'status_sortir',
+        'total_berat_kotor_kg',
+        'total_bayar',
         'keterangan'
     ];
 
     protected $casts = [
-        'tanggal' => 'date'
+        'tanggal' => 'date',
+        'total_berat_kotor_kg' => 'float',
+        'total_bayar' => 'decimal:2'
     ];
 
     public function supplier(): BelongsTo
@@ -36,8 +44,27 @@ class Penerimaan extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Relasi ke detail_penerimaan (tabel baru)
+    public function detailPenerimaan(): HasMany
+    {
+        return $this->hasMany(DetailPenerimaan::class, 'penerimaan_id');
+    }
+
+    // Relasi ke detail_penerimaan_stok (tabel lama - untuk backward compatibility)
     public function detailPenerimaanStok(): HasMany
     {
-        return $this->hasMany(DetailPenerimaanStok::class, 'penerimaan_id');
+        return $this->hasMany(DetailPenerimaan::class, 'penerimaan_id');
+    }
+
+    // Relasi ke hasil_sortir
+    public function hasilSortir(): HasMany
+    {
+        return $this->hasMany(HasilSortir::class, 'penerimaan_id');
+    }
+
+    // Relasi ke pembayaran_penerimaan
+    public function pembayaran(): HasMany
+    {
+        return $this->hasMany(PembayaranPenerimaan::class, 'penerimaan_id');
     }
 }

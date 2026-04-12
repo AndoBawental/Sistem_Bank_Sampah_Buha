@@ -18,17 +18,17 @@ class AdminDashboardController extends Controller
     public function index()
     {
         // ==================== SAMPAH MASUK ====================
-        // Query manual dengan JOIN untuk 30 hari terakhir
-        $totalSampahMasuk = DB::table('detail_penerimaan_stok')
-            ->join('penerimaan', 'detail_penerimaan_stok.penerimaan_id', '=', 'penerimaan.id')
+        // Query manual dengan JOIN untuk 30 hari terakhir (menggunakan detail_penerimaan)
+        $totalSampahMasuk = DB::table('detail_penerimaan')
+            ->join('penerimaan', 'detail_penerimaan.penerimaan_id', '=', 'penerimaan.id')
             ->where('penerimaan.tanggal', '>=', Carbon::now()->subDays(30))
-            ->sum('detail_penerimaan_stok.berat');
+            ->sum('detail_penerimaan.berat_datang_kg');
         
         // Untuk perbandingan (periode sebelumnya)
-        $totalSampahMasukPrev = DB::table('detail_penerimaan_stok')
-            ->join('penerimaan', 'detail_penerimaan_stok.penerimaan_id', '=', 'penerimaan.id')
+        $totalSampahMasukPrev = DB::table('detail_penerimaan')
+            ->join('penerimaan', 'detail_penerimaan.penerimaan_id', '=', 'penerimaan.id')
             ->whereBetween('penerimaan.tanggal', [Carbon::now()->subDays(60), Carbon::now()->subDays(31)])
-            ->sum('detail_penerimaan_stok.berat');
+            ->sum('detail_penerimaan.berat_datang_kg');
         
         $persenMasuk = $totalSampahMasukPrev > 0 
             ? (($totalSampahMasuk - $totalSampahMasukPrev) / $totalSampahMasukPrev) * 100 
@@ -60,11 +60,11 @@ class AdminDashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             
-            // Penerimaan per hari
-            $penerimaanHarian = DB::table('detail_penerimaan_stok')
-                ->join('penerimaan', 'detail_penerimaan_stok.penerimaan_id', '=', 'penerimaan.id')
+            // Penerimaan per hari (menggunakan detail_penerimaan)
+            $penerimaanHarian = DB::table('detail_penerimaan')
+                ->join('penerimaan', 'detail_penerimaan.penerimaan_id', '=', 'penerimaan.id')
                 ->whereDate('penerimaan.tanggal', $date)
-                ->sum('detail_penerimaan_stok.berat');
+                ->sum('detail_penerimaan.berat_datang_kg');
             
             // Produksi per hari
             $produksiHarian = DB::table('detail_hasil_produksi')
@@ -87,8 +87,8 @@ class AdminDashboardController extends Controller
         // ==================== TOP SUPPLIER ====================
         $topSuppliers = DB::table('supplier')
             ->join('penerimaan', 'supplier.id', '=', 'penerimaan.supplier_id')
-            ->join('detail_penerimaan_stok', 'penerimaan.id', '=', 'detail_penerimaan_stok.penerimaan_id')
-            ->select('supplier.nama', DB::raw('SUM(detail_penerimaan_stok.berat) as total_berat'))
+            ->join('detail_penerimaan', 'penerimaan.id', '=', 'detail_penerimaan.penerimaan_id')
+            ->select('supplier.nama', DB::raw('SUM(detail_penerimaan.berat_datang_kg) as total_berat'))
             ->groupBy('supplier.id', 'supplier.nama')
             ->orderBy('total_berat', 'desc')
             ->limit(5)
@@ -122,10 +122,10 @@ class AdminDashboardController extends Controller
             $monthStart = $month->copy()->startOfMonth();
             $monthEnd = $month->copy()->endOfMonth();
             
-            $penerimaanBulanan = DB::table('detail_penerimaan_stok')
-                ->join('penerimaan', 'detail_penerimaan_stok.penerimaan_id', '=', 'penerimaan.id')
+            $penerimaanBulanan = DB::table('detail_penerimaan')
+                ->join('penerimaan', 'detail_penerimaan.penerimaan_id', '=', 'penerimaan.id')
                 ->whereBetween('penerimaan.tanggal', [$monthStart, $monthEnd])
-                ->sum('detail_penerimaan_stok.berat');
+                ->sum('detail_penerimaan.berat_datang_kg');
             
             $produksiBulanan = DB::table('detail_hasil_produksi')
                 ->join('produksi', 'detail_hasil_produksi.produksi_id', '=', 'produksi.id')
@@ -146,17 +146,20 @@ class AdminDashboardController extends Controller
         // ==================== AKTIVITAS TERBARU ====================
         $recentActivities = collect();
         
-        // Recent Penerimaan
-        $recentPenerimaan = Penerimaan::with('supplier', 'user', 'detailPenerimaanStok')
+        // Recent Penerimaan (menggunakan detail_penerimaan)
+        $recentPenerimaan = Penerimaan::with(['supplier', 'user', 'detailPenerimaan'])
             ->orderBy('tanggal', 'desc')
             ->limit(5)
             ->get()
             ->map(function($item) {
-                $totalBerat = $item->detailPenerimaanStok->sum('berat');
+                $totalBerat = $item->detailPenerimaan->sum('berat_datang_kg');
+                $tipeLabel = $item->tipe == 'Beli' ? 'Pembelian' : 'Donasi';
+                $statusSortir = $item->status_sortir;
+                
                 return [
                     'type' => 'penerimaan',
                     'date' => $item->tanggal,
-                    'description' => "Penerimaan sampah dari {$item->supplier->nama} - " . number_format($totalBerat, 0, ',', '.') . " Kg",
+                    'description' => "{$tipeLabel} sampah dari {$item->supplier->nama} - " . number_format($totalBerat, 2, ',', '.') . " Kg (Status Sortir: {$statusSortir})",
                     'user' => $item->user->name ?? 'System',
                     'icon' => 'truck-loading',
                     'color' => 'success'
@@ -228,6 +231,23 @@ class AdminDashboardController extends Controller
                 return $role->count > 0;
             });
 
+        // ==================== STATISTIK PENERIMAAN ====================
+        // Perbandingan tipe penerimaan (Beli vs Donasi)
+        $penerimaanStats = DB::table('penerimaan')
+            ->select(
+                'tipe',
+                DB::raw('COUNT(*) as total_transaksi'),
+                DB::raw('SUM(total_berat_kotor_kg) as total_berat'),
+                DB::raw('SUM(total_bayar) as total_nilai')
+            )
+            ->where('tanggal', '>=', Carbon::now()->subDays(30))
+            ->groupBy('tipe')
+            ->get();
+
+        // Status sortir pending
+        $sortirPending = Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])
+            ->count();
+
         return view('dashboard.admin.admin', compact(
             'totalSampahMasuk',
             'persenMasuk',
@@ -244,7 +264,9 @@ class AdminDashboardController extends Controller
             'recentActivities',
             'userCount',
             'newUsersThisMonth',
-            'userRoles'
+            'userRoles',
+            'penerimaanStats',
+            'sortirPending'
         ));
     }
 }
