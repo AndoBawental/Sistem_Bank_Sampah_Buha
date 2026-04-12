@@ -6,22 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-       Schema::create('stok', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('jenis_plastik_id')->constrained('jenis_plastik')->cascadeOnDelete();
-    $table->double('total_berat')->default(0);
-    $table->timestamps();
-});
+        Schema::create('stok', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('jenis_plastik_id')->constrained('jenis_plastik')->cascadeOnDelete();
+            $table->double('total_berat')->default(0); // dalam Kg
+            $table->timestamps();
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('stok');
