@@ -1,431 +1,471 @@
 {{-- resources/views/dashboard/gudang/penerimaan/index.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Data Penerimaan Sampah')
+@section('title', 'Data Penerimaan')
 @section('page-title', 'Data Penerimaan Sampah')
 
 @push('styles')
 <style>
-    .status-badge {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    .table-hover tbody tr:hover {
-        background-color: rgba(46, 125, 50, 0.05);
-        cursor: pointer;
-    }
-    .action-buttons .btn {
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        margin: 0 2px;
-    }
-    .card-stats {
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
         border-left: 4px solid #2e7d32;
-        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        height: 100%;
     }
-    .card-stats:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    .stats-card.warning {
+        border-left-color: #f59e0b;
     }
-    .badge-tipe-beli {
+    .stats-card.info {
+        border-left-color: #0ea5e9;
+    }
+    .stats-card.danger {
+        border-left-color: #ef4444;
+    }
+    .stats-card .label {
+        font-size: 0.75rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .stats-card .value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        line-height: 1.2;
+    }
+    .stats-card .sub-value {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    .stats-card .trend {
+        font-size: 0.7rem;
+    }
+    .trend.up { color: #10b981; }
+    .trend.down { color: #ef4444; }
+    
+    .badge-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    .badge-beli {
         background: #fef3c7;
         color: #92400e;
     }
-    .badge-tipe-donasi {
+    .badge-donasi {
         background: #e0f2fe;
         color: #0369a1;
     }
-    .badge-sortir-belum {
+    .badge-belum {
         background: #fee2e2;
         color: #b91c1c;
     }
-    .badge-sortir-proses {
+    .badge-proses {
         background: #fef3c7;
         color: #92400e;
     }
-    .badge-sortir-selesai {
+    .badge-selesai {
         background: #dcfce7;
         color: #166534;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #555;
+        background: #f8f9fa;
+        white-space: nowrap;
+    }
+    .table td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+    }
+    
+    .action-link {
+        font-size: 0.75rem;
+        text-decoration: none;
+        margin: 0 5px;
+    }
+    .action-link:hover {
+        text-decoration: underline;
+    }
+    
+    .filter-bar {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .page-size-select {
+        width: 80px;
+        display: inline-block;
+        margin: 0 10px;
+    }
+    
+    .berat-info {
+        display: flex;
+        gap: 15px;
+        margin-top: 8px;
+    }
+    .berat-item {
+        flex: 1;
+    }
+    .berat-item .label {
+        font-size: 0.65rem;
+        color: #888;
+    }
+    .berat-item .value {
+        font-size: 1rem;
+        font-weight: 600;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-   {{-- Filter dan Ringkasan --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card card-stats border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-0">Total Penerimaan</p>
-                        <h4 class="fw-bold mb-0">{{ number_format($penerimaan->count(), 0, ',', '.') }}</h4>
-                        <small class="text-success">
-                            <i class="fas fa-calendar-alt me-1"></i>Transaksi
-                        </small>
-                    </div>
-                    <div class="bg-success-light p-3 rounded-circle">
-                        <i class="fas fa-truck-loading fa-lg text-success"></i>
-                    </div>
-                </div>
+<div class="container-fluid px-3">
+    
+    {{-- Statistik Baris 1 --}}
+    <div class="row g-3 mb-3">
+        {{-- Total Penerimaan --}}
+        <div class="col-6 col-md-3">
+            <div class="stats-card">
+                <div class="label">Total Penerimaan</div>
+                <div class="value">{{ $penerimaan->total() }}</div>
+                <small class="text-muted">Transaksi</small>
+            </div>
+        </div>
+        
+        {{-- Total Supplier --}}
+        <div class="col-6 col-md-3">
+            <div class="stats-card info">
+                <div class="label">Total Supplier</div>
+                <div class="value">{{ $supplierCount ?? 0 }}</div>
+                <small class="text-muted">Supplier aktif</small>
+            </div>
+        </div>
+        
+        {{-- Total Berat Kotor (Belum Tersortir) --}}
+        <div class="col-6 col-md-3">
+            <div class="stats-card warning">
+                <div class="label">Berat Kotor</div>
+                <div class="value">{{ number_format($totalBeratKotor ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
+                <small class="text-muted">Belum Tersortir</small>
+            </div>
+        </div>
+        
+        {{-- Total Berat Bersih (Sudah Tersortir) --}}
+        <div class="col-6 col-md-3">
+            <div class="stats-card" style="border-left-color: #10b981;">
+                <div class="label">Berat Bersih</div>
+                <div class="value">{{ number_format($totalBeratBersih ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
+                <small class="text-muted">Sudah Tersortir</small>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-stats border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-0">Total Supplier</p>
-                        <h4 class="fw-bold mb-0">{{ $supplierCount ?? 0 }}</h4>
-                        <small class="text-muted">
-                            <i class="fas fa-truck me-1"></i>Supplier aktif
-                        </small>
-                    </div>
-                    <div class="bg-info-light p-3 rounded-circle">
-                        <i class="fas fa-truck fa-lg text-info"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stats border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-0">Total Berat Kotor</p>
-                        <h4 class="fw-bold mb-0">{{ number_format($totalBerat ?? 0, 2, ',', '.') }} <small class="h6">Kg</small></h4>
-                        <small class="text-muted">
-                            <i class="fas fa-weight-hanging me-1"></i>Semua waktu
-                        </small>
-                    </div>
-                    <div class="bg-warning-light p-3 rounded-circle">
-                        <i class="fas fa-weight-hanging fa-lg text-warning"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stats border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-0">Bulan Ini</p>
-                        <h4 class="fw-bold mb-0">{{ number_format($bulanIni ?? 0, 2, ',', '.') }} <small class="h6">Kg</small></h4>
-                        <small class="{{ ($persenKenaikan ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
-                            <i class="fas fa-{{ ($persenKenaikan ?? 0) >= 0 ? 'arrow-up' : 'arrow-down' }} me-1"></i>
-                            {{ number_format(abs($persenKenaikan ?? 0), 1) }}%
-                        </small>
-                    </div>
-                    <div class="bg-primary-light p-3 rounded-circle">
-                        <i class="fas fa-chart-line fa-lg text-primary"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-{{-- Statistik Tambahan --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-success-light p-3 rounded-circle">
-                        <i class="fas fa-shopping-cart text-success"></i>
+    {{-- Statistik Baris 2 --}}
+    <div class="row g-3 mb-4">
+        {{-- Bulan Ini (Berat Kotor + Bersih) --}}
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="label">Total Bulan Ini</div>
+                <div class="value">{{ number_format($bulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
+                <div class="berat-info">
+                    <div class="berat-item">
+                        <span class="label">Kotor</span>
+                        <div class="value">{{ number_format($bulanIniKotor ?? 0, 0, ',', '.') }} Kg</div>
                     </div>
-                    <div>
-                        <p class="text-muted small mb-0">Total Pembelian Bulan Ini</p>
-                        <h5 class="fw-bold mb-0">Rp {{ number_format($totalBeliBulanIni ?? 0, 0, ',', '.') }}</h5>
+                    <div class="berat-item">
+                        <span class="label">Bersih</span>
+                        <div class="value">{{ number_format($bulanIniBersih ?? 0, 0, ',', '.') }} Kg</div>
                     </div>
                 </div>
+                <small class="trend {{ ($persenKenaikan ?? 0) >= 0 ? 'up' : 'down' }}">
+                    <i class="fas fa-{{ ($persenKenaikan ?? 0) >= 0 ? 'arrow-up' : 'arrow-down' }} me-1"></i>
+                    {{ number_format(abs($persenKenaikan ?? 0), 1) }}% dari bulan lalu
+                </small>
+            </div>
+        </div>
+        
+        {{-- Total Pembelian Bulan Ini --}}
+        <div class="col-md-3">
+            <div class="stats-card info">
+                <div class="label">Pembelian Bulan Ini</div>
+                <div class="value">Rp {{ number_format($totalBeliBulanIni ?? 0, 0, ',', '.') }}</div>
+                <small class="text-muted">{{ $totalBeliTransaksi ?? 0 }} transaksi</small>
+            </div>
+        </div>
+        
+        {{-- Perlu Sortir --}}
+        <div class="col-md-2">
+            <div class="stats-card danger">
+                <div class="label">Perlu Sortir</div>
+                <div class="value">{{ $perluSortir ?? 0 }}</div>
+                <small class="text-muted">Transaksi</small>
+            </div>
+        </div>
+        
+        {{-- Total Donasi Bulan Ini --}}
+        <div class="col-md-3">
+            <div class="stats-card" style="border-left-color: #8b5cf6;">
+                <div class="label">Donasi Bulan Ini</div>
+                <div class="value">{{ number_format($totalDonasiBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
+                <small class="text-muted">{{ $totalDonasiTransaksi ?? 0 }} transaksi</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-warning-light p-3 rounded-circle">
-                        <i class="fas fa-clock text-warning"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted small mb-0">Perlu Sortir</p>
-                        <h5 class="fw-bold mb-0">{{ $perluSortir ?? 0 }} <small class="h6">Transaksi</small></h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-info-light p-3 rounded-circle">
-                        <i class="fas fa-hand-holding-heart text-info"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted small mb-0">Total Donasi Bulan Ini</p>
-                        <h5 class="fw-bold mb-0">{{ number_format($totalDonasiBulanIni ?? 0, 2, ',', '.') }} <small class="h6">Kg</small></h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-    {{-- Tabel Data Penerimaan --}}
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fas fa-list-alt text-success me-2"></i>Daftar Penerimaan Sampah
-                </h5>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('gudang.penerimaan.create') }}" class="btn btn-success rounded-pill">
-                        <i class="fas fa-plus-circle me-1"></i>Tambah Penerimaan
-                    </a>
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#filterModal">
-                        <i class="fas fa-filter me-1"></i>Filter
+    {{-- Filter Bar --}}
+    <div class="filter-bar">
+        <form method="GET" action="{{ route('gudang.penerimaan.index') }}" id="filterForm">
+            <div class="row g-2 align-items-end">
+                {{-- Supplier --}}
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Supplier</label>
+                    <select name="supplier_id" class="form-select form-select-sm">
+                        <option value="">Semua Supplier</option>
+                        @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                {{ $supplier->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                {{-- Tanggal --}}
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Dari</label>
+                    <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ request('dari_tanggal') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Sampai</label>
+                    <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ request('sampai_tanggal') }}">
+                </div>
+                
+                {{-- Tipe --}}
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Tipe</label>
+                    <select name="tipe" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        <option value="Beli" {{ request('tipe') == 'Beli' ? 'selected' : '' }}>Pembelian</option>
+                        <option value="Donasi" {{ request('tipe') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
+                    </select>
+                </div>
+                
+                {{-- Status Sortir --}}
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status_sortir" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        <option value="Belum" {{ request('status_sortir') == 'Belum' ? 'selected' : '' }}>Belum</option>
+                        <option value="Proses" {{ request('status_sortir') == 'Proses' ? 'selected' : '' }}>Proses</option>
+                        <option value="Selesai" {{ request('status_sortir') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                    </select>
+                </div>
+                
+                {{-- Tombol --}}
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-filter"></i>
                     </button>
                 </div>
             </div>
-        </div>
-        
-        {{-- Filter Aktif --}}
-        @if(request('dari_tanggal') || request('sampai_tanggal') || request('supplier_id') || request('tipe') || request('status_sortir'))
-        <div class="px-4 pt-2">
-            <div class="alert alert-light border mb-0 d-flex align-items-center">
-                <i class="fas fa-filter text-success me-2"></i>
-                <span>Filter Aktif:</span>
-                @if(request('dari_tanggal'))
-                    <span class="badge bg-success ms-2">Dari: {{ request('dari_tanggal') }}</span>
-                @endif
-                @if(request('sampai_tanggal'))
-                    <span class="badge bg-success ms-2">Sampai: {{ request('sampai_tanggal') }}</span>
-                @endif
+            
+            {{-- Filter Aktif --}}
+            @if(request('supplier_id') || request('dari_tanggal') || request('sampai_tanggal') || request('tipe') || request('status_sortir'))
+            <div class="mt-2">
+                <small class="text-muted">Filter aktif:</small>
                 @if(request('supplier_id'))
-                    @php $selectedSupplier = $suppliers->find(request('supplier_id')); @endphp
-                    <span class="badge bg-info ms-2">{{ $selectedSupplier->nama ?? '' }}</span>
+                    @php 
+                        $selectedSupplier = $suppliers->where('id', request('supplier_id'))->first();
+                    @endphp
+                    <span class="badge bg-light text-dark me-1">
+                        <i class="fas fa-truck me-1"></i>{{ $selectedSupplier->nama ?? '' }}
+                    </span>
+                @endif
+                @if(request('dari_tanggal') || request('sampai_tanggal'))
+                    <span class="badge bg-light text-dark me-1">
+                        <i class="far fa-calendar me-1"></i>
+                        {{ request('dari_tanggal', 'Awal') }} - {{ request('sampai_tanggal', 'Akhir') }}
+                    </span>
                 @endif
                 @if(request('tipe'))
-                    <span class="badge bg-warning ms-2">{{ request('tipe') == 'Beli' ? 'Pembelian' : 'Donasi' }}</span>
+                    <span class="badge bg-light text-dark me-1">
+                        {{ request('tipe') == 'Beli' ? 'Pembelian' : 'Donasi' }}
+                    </span>
                 @endif
                 @if(request('status_sortir'))
-                    <span class="badge bg-secondary ms-2">Status: {{ request('status_sortir') }}</span>
+                    <span class="badge bg-light text-dark me-1">
+                        Status: {{ request('status_sortir') }}
+                    </span>
                 @endif
-                <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-sm btn-link text-danger ms-auto">
+                <a href="{{ route('gudang.penerimaan.index') }}" class="text-danger small text-decoration-none">
                     <i class="fas fa-times"></i> Reset
                 </a>
             </div>
+            @endif
+        </form>
+    </div>
+
+    {{-- Tabel Data --}}
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-0 py-3 px-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="text-muted small me-2">Tampilkan</span>
+                    <select class="form-select form-select-sm page-size-select" id="perPageSelect">
+                        <option value="5" {{ request('per_page', 10) == 5 ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                    <span class="text-muted small ms-2">data</span>
+                </div>
+                <a href="{{ route('gudang.penerimaan.create') }}" class="btn btn-success btn-sm rounded-pill">
+                    <i class="fas fa-plus me-1"></i>Tambah
+                </a>
+            </div>
         </div>
-        @endif
         
-        <div class="card-body p-4">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="dataTable">
-                    <thead class="bg-light">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <th class="border-0 rounded-start">No</th>
-                            <th class="border-0">Tanggal</th>
-                            <th class="border-0">Supplier</th>
-                            <th class="border-0">Tipe</th>
-                            <th class="border-0">Jenis Plastik</th>
-                            <th class="border-0 text-end">Berat (Kg)</th>
-                            <th class="border-0">Status</th>
-                            <th class="border-0">User</th>
-                            <th class="border-0 rounded-end text-center">Aksi</th>
+                            <th class="ps-3">#</th>
+                            <th>Tanggal</th>
+                            <th>Supplier</th>
+                            <th>Tipe</th>
+                            <th>Detail</th>
+                            <th class="text-end">Berat</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($penerimaan as $index => $item)
-                            <tr onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'" style="cursor: pointer;">
-                                <td>{{ $penerimaan->firstItem() + $index }}</td>
-                                <td>
-                                    <span class="fw-semibold">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</span>
+                        <tr onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'" style="cursor: pointer;">
+                            <td class="ps-3">{{ $penerimaan->firstItem() + $index }}</td>
+                            <td>
+                                {{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}
+                                <br>
+                                <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal)->diffForHumans() }}</small>
+                            </td>
+                            <td>{{ $item->supplier->nama }}</td>
+                            <td>
+                                @if($item->tipe == 'Beli')
+                                    <span class="badge badge-beli">Beli</span>
+                                @else
+                                    <span class="badge badge-donasi">Donasi</span>
+                                @endif
+                            </td>
+                            <td>
+                                @foreach($item->detailPenerimaan->take(2) as $detail)
+                                    <small class="d-block">
+                                        {{ $detail->jenisPlastik->nama }}: 
+                                        {{ number_format($detail->berat_datang_kg, 1, ',', '.') }} Kg
+                                    </small>
+                                @endforeach
+                                @if($item->detailPenerimaan->count() > 2)
+                                    <small class="text-muted">+{{ $item->detailPenerimaan->count() - 2 }} lainnya</small>
+                                @endif
+                            </td>
+                            <td class="text-end fw-semibold">
+                                {{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }} Kg
+                                @if($item->tipe == 'Beli' && $item->total_bayar > 0)
                                     <br>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal)->diffForHumans() }}</small>
-                                </td>
-                                <td>
-                                    <i class="fas fa-truck text-success me-1"></i>
-                                    {{ $item->supplier->nama }}
-                                </td>
-                                <td>
-                                    @if($item->tipe == 'Beli')
-                                        <span class="badge badge-tipe-beli rounded-pill">
-                                            <i class="fas fa-shopping-cart me-1"></i>Beli
-                                        </span>
-                                    @else
-                                        <span class="badge badge-tipe-donasi rounded-pill">
-                                            <i class="fas fa-hand-holding-heart me-1"></i>Donasi
-                                        </span>
+                                    <small class="text-success">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</small>
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->status_sortir == 'Belum')
+                                    <span class="badge badge-belum">Belum</span>
+                                @elseif($item->status_sortir == 'Proses')
+                                    <span class="badge badge-proses">Proses</span>
+                                @else
+                                    <span class="badge badge-selesai">Selesai</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <div onclick="event.stopPropagation()" class="d-flex justify-content-center gap-2">
+                                    <a href="{{ route('gudang.penerimaan.show', $item->id) }}" 
+                                       class="action-link text-info" title="Detail">
+                                        Detail
+                                    </a>
+                                    @if($item->status_sortir != 'Selesai')
+                                    <span class="text-muted">|</span>
+                                    <a href="{{ route('gudang.penerimaan.sortir', $item->id) }}" 
+                                       class="action-link text-warning" title="Sortir">
+                                        Sortir
+                                    </a>
                                     @endif
-                                </td>
-                                <td>
-                                    @foreach($item->detailPenerimaan as $detail)
-                                        <span class="badge bg-light text-dark mb-1">
-                                            {{ $detail->jenisPlastik->nama }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg
-                                        </span>
-                                        <br>
-                                    @endforeach
-                                </td>
-                                <td class="text-end fw-bold">
-                                    {{ number_format($item->total_berat_kotor_kg, 2, ',', '.') }} Kg
-                                    @if($item->tipe == 'Beli' && $item->total_bayar > 0)
-                                        <br>
-                                        <small class="text-primary">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</small>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($item->status_sortir == 'Belum')
-                                        <span class="badge badge-sortir-belum rounded-pill">
-                                            <i class="fas fa-clock me-1"></i>Belum
-                                        </span>
-                                    @elseif($item->status_sortir == 'Proses')
-                                        <span class="badge badge-sortir-proses rounded-pill">
-                                            <i class="fas fa-spinner me-1"></i>Proses
-                                        </span>
-                                    @else
-                                        <span class="badge badge-sortir-selesai rounded-pill">
-                                            <i class="fas fa-check-circle me-1"></i>Selesai
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <i class="fas fa-user-circle text-muted me-1"></i>
-                                    {{ $item->user->name }}
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons" onclick="event.stopPropagation()">
-                                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn btn-sm btn-info text-white rounded-pill" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if($item->status_sortir != 'Selesai')
-                                        <a href="{{ route('gudang.penerimaan.sortir', $item->id) }}" class="btn btn-sm btn-warning rounded-pill" title="Sortir">
-                                            <i class="fas fa-filter"></i>
-                                        </a>
-                                        @endif
-                                        <button type="button" class="btn btn-sm btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}" title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    <span class="text-muted">|</span>
+                                    <a href="#" class="action-link text-danger" 
+                                       data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}" title="Hapus">
+                                        Hapus
+                                    </a>
+                                </div>
 
-                                    {{-- Modal Delete --}}
-                                    <div class="modal fade" id="deleteModal{{ $item->id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Konfirmasi Hapus</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Apakah Anda yakin ingin menghapus data penerimaan dari supplier <strong>{{ $item->supplier->nama }}</strong> tanggal <strong>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</strong>?</p>
-                                                    @if($item->status_sortir == 'Selesai')
-                                                        <p class="text-danger small mb-0">
-                                                            <i class="fas fa-exclamation-triangle me-1"></i>
-                                                            Data sudah disortir. Menghapus data ini akan mengurangi stok gudang!
-                                                        </p>
-                                                    @else
-                                                        <p class="text-warning small mb-0">
-                                                            <i class="fas fa-info-circle me-1"></i>
-                                                            Tindakan ini tidak dapat dibatalkan!
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <form action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-danger rounded-pill">Ya, Hapus</button>
-                                                    </form>
-                                                </div>
+                                {{-- Modal Delete --}}
+                                <div class="modal fade" id="deleteModal{{ $item->id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white py-2">
+                                                <h6 class="modal-title">Konfirmasi Hapus</h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body py-3">
+                                                <p class="mb-1">Hapus data dari <strong>{{ $item->supplier->nama }}</strong>?</p>
+                                                <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</small>
+                                                @if($item->status_sortir == 'Selesai')
+                                                    <p class="text-danger small mt-2 mb-0">
+                                                        <i class="fas fa-exclamation-triangle"></i> Stok akan berkurang!
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            <div class="modal-footer py-2">
+                                                <form action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </td>
+                        </tr>
                         @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-5">
-                                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted mb-0">Belum ada data penerimaan</p>
-                                    <a href="{{ route('gudang.penerimaan.create') }}" class="btn btn-success mt-3 rounded-pill">
-                                        <i class="fas fa-plus-circle me-1"></i>Tambah Penerimaan Pertama
-                                    </a>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Tidak ada data penerimaan</p>
+                                <a href="{{ route('gudang.penerimaan.create') }}" class="btn btn-success btn-sm rounded-pill">
+                                    <i class="fas fa-plus me-1"></i>Tambah Data
+                                </a>
+                            </td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-
-            {{-- Pagination --}}
-            <div class="d-flex justify-content-end mt-4">
-                {{ $penerimaan->links() }}
-            </div>
         </div>
-    </div>
-</div>
-
-{{-- Modal Filter --}}
-<div class="modal fade" id="filterModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fas fa-filter me-2"></i>Filter Data</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        
+        {{-- Pagination Info --}}
+        <div class="card-footer bg-white border-0 py-3 px-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Menampilkan {{ $penerimaan->firstItem() ?? 0 }} - {{ $penerimaan->lastItem() ?? 0 }} 
+                    dari {{ $penerimaan->total() }} data
+                </small>
+                {{ $penerimaan->appends(request()->query())->links() }}
             </div>
-            <form method="GET" action="{{ route('gudang.penerimaan.index') }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Dari Tanggal</label>
-                        <input type="date" name="dari_tanggal" class="form-control" value="{{ request('dari_tanggal') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sampai Tanggal</label>
-                        <input type="date" name="sampai_tanggal" class="form-control" value="{{ request('sampai_tanggal') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Supplier</label>
-                        <select name="supplier_id" class="form-select">
-                            <option value="">Semua Supplier</option>
-                            @foreach($suppliers ?? [] as $supplier)
-                                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                    {{ $supplier->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tipe</label>
-                        <select name="tipe" class="form-select">
-                            <option value="">Semua Tipe</option>
-                            <option value="Beli" {{ request('tipe') == 'Beli' ? 'selected' : '' }}>Pembelian</option>
-                            <option value="Donasi" {{ request('tipe') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status Sortir</label>
-                        <select name="status_sortir" class="form-select">
-                            <option value="">Semua Status</option>
-                            <option value="Belum" {{ request('status_sortir') == 'Belum' ? 'selected' : '' }}>Belum</option>
-                            <option value="Proses" {{ request('status_sortir') == 'Proses' ? 'selected' : '' }}>Proses</option>
-                            <option value="Selesai" {{ request('status_sortir') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-secondary rounded-pill">Reset</a>
-                    <button type="submit" class="btn btn-success rounded-pill">Terapkan</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -433,16 +473,31 @@
 
 @push('scripts')
 <script>
-    // Auto-hide alert after 3 seconds
+    document.getElementById('perPageSelect').addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', this.value);
+        window.location.href = url.toString();
+    });
+    
+    document.querySelectorAll('select[name="supplier_id"], select[name="tipe"], select[name="status_sortir"]').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+    
+    let dateTimeout;
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.addEventListener('change', function() {
+            clearTimeout(dateTimeout);
+            dateTimeout = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 300);
+        });
+    });
+    
     setTimeout(function() {
         let alerts = document.querySelectorAll('.alert:not(.alert-light)');
-        alerts.forEach(function(alert) {
-            alert.style.transition = 'opacity 0.5s';
-            alert.style.opacity = '0';
-            setTimeout(function() {
-                alert.remove();
-            }, 500);
-        });
+        alerts.forEach(alert => alert?.remove());
     }, 3000);
 </script>
 @endpush
