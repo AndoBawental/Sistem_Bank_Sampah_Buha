@@ -20,7 +20,7 @@ class JenisPlastik extends Model
 
     public function detailPenerimaanStok(): HasMany
     {
-        return $this->hasMany(DetailPenerimaanStok::class, 'jenis_plastik_id');
+        return $this->hasMany(DetailPenerimaan::class, 'jenis_plastik_id');
     }
 
     public function stok(): HasMany

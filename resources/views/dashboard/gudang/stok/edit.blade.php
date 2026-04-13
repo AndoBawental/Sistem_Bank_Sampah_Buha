@@ -1,0 +1,1 @@
+//resources/views/dashboard/gudang/stok/edit.blade.php

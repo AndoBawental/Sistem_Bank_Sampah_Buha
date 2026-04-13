@@ -50,12 +50,6 @@ class Penerimaan extends Model
         return $this->hasMany(DetailPenerimaan::class, 'penerimaan_id');
     }
 
-    // Relasi ke detail_penerimaan_stok (tabel lama - untuk backward compatibility)
-    public function detailPenerimaanStok(): HasMany
-    {
-        return $this->hasMany(DetailPenerimaan::class, 'penerimaan_id');
-    }
-
     // Relasi ke hasil_sortir
     public function hasilSortir(): HasMany
     {
