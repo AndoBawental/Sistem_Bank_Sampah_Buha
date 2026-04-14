@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
-
+use App\Http\Controllers\Gudang\SortirController;
 use App\Http\Controllers\Gudang\StokController;
 use App\Http\Controllers\Gudang\PenerimaanController;
 use App\Http\Controllers\Gudang\SupplierController;
@@ -73,6 +73,14 @@ Route::middleware(['auth'])->group(function () {
         // ==================== PENERIMAAN ROUTES ====================
         // Resource penerimaan
         Route::resource('penerimaan', PenerimaanController::class);
+
+        // Sortir Routes (Gudang)
+Route::prefix('sortir')->name('sortir.')->group(function () {
+    Route::get('/', [SortirController::class, 'index'])->name('index');
+    Route::get('/{id}', [SortirController::class, 'show'])->name('show');
+    Route::post('/{id}', [SortirController::class, 'store'])->name('store');
+    Route::put('/{id}', [SortirController::class, 'update'])->name('update');
+});
         
         // Route tambahan untuk penerimaan
         Route::get('penerimaan/{id}/sortir', [PenerimaanController::class, 'sortir'])->name('penerimaan.sortir');
@@ -82,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
         // ==================== SUPPLIER ROUTES ====================
         Route::resource('supplier', SupplierController::class);
     });
+    
 
     /*
     |--------------------------------------------------------------------------

@@ -48,12 +48,28 @@
             <span>Penerimaan Sampah</span>
         </a>
     </li>
+
+    {{-- MENU SORTIR SAMPAH (BARU) --}}
+    <li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.sortir.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
+            <span>Sortir Sampah</span>
+            @php
+                $pendingSortir = \App\Models\Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])->count();
+            @endphp
+            @if($pendingSortir > 0)
+                <span class="badge bg-warning text-dark ms-2 rounded-pill">{{ $pendingSortir }}</span>
+            @endif
+        </a>
+    </li>
+
     <li class="nav-item {{ request()->routeIs('gudang.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.stok.index') }}">
             <div class="icon-box me-3"><i class="fas fa-boxes"></i></div>
             <span>Stok Gudang</span>
         </a>
     </li>
+    
     <li class="nav-item {{ request()->routeIs('gudang.supplier*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.supplier.index') }}">
             <div class="icon-box me-3"><i class="fas fa-truck"></i></div>
@@ -307,7 +323,7 @@
                     icon.classList.add('fa-chevron-left');
                 }
             });
-        }
+        }s
     });
 </script>
 @endpush

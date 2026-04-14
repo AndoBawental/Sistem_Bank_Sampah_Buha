@@ -13,6 +13,11 @@
         border-left: 4px solid #2e7d32;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         height: 100%;
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .stats-card.warning {
         border-left-color: #f59e0b;
@@ -88,9 +93,11 @@
         font-size: 0.75rem;
         text-decoration: none;
         margin: 0 5px;
+        transition: all 0.2s;
     }
     .action-link:hover {
         text-decoration: underline;
+        font-weight: 600;
     }
     
     .filter-bar {
@@ -122,6 +129,10 @@
         font-size: 1rem;
         font-weight: 600;
     }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8fafc;
+    }
 </style>
 @endpush
 
@@ -148,21 +159,21 @@
             </div>
         </div>
         
-        {{-- Total Berat Kotor (Belum Tersortir) --}}
+        {{-- Total Berat Kotor --}}
         <div class="col-6 col-md-3">
             <div class="stats-card warning">
                 <div class="label">Berat Kotor</div>
                 <div class="value">{{ number_format($totalBeratKotor ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
-                <small class="text-muted">Belum Tersortir</small>
+                <small class="text-muted">Total semua penerimaan</small>
             </div>
         </div>
         
-        {{-- Total Berat Bersih (Sudah Tersortir) --}}
+        {{-- Total Berat Bersih --}}
         <div class="col-6 col-md-3">
             <div class="stats-card" style="border-left-color: #10b981;">
                 <div class="label">Berat Bersih</div>
                 <div class="value">{{ number_format($totalBeratBersih ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
-                <small class="text-muted">Sudah Tersortir</small>
+                <small class="text-muted">Setelah sortir</small>
             </div>
         </div>
     </div>
@@ -173,7 +184,7 @@
         <div class="col-md-4">
             <div class="stats-card">
                 <div class="label">Total Bulan Ini</div>
-                <div class="value">{{ number_format($bulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
+                <div class="value">{{ number_format(($bulanIniKotor ?? 0) + ($bulanIniBersih ?? 0), 0, ',', '.') }} <small style="font-size:0.8rem;">Kg</small></div>
                 <div class="berat-info">
                     <div class="berat-item">
                         <span class="label">Kotor</span>
@@ -342,13 +353,17 @@
                             <th>Supplier</th>
                             <th>Tipe</th>
                             <th>Detail</th>
-                            <th class="text-end">Berat</th>
+                            <th class="text-end">Berat (Kotor / Bersih)</th>
                             <th>Status</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($penerimaan as $index => $item)
+                        @php
+                            $totalKotor = $item->total_berat_kotor_kg;
+                            $totalBersih = $item->total_bersih ?? 0;
+                        @endphp
                         <tr onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'" style="cursor: pointer;">
                             <td class="ps-3">{{ $penerimaan->firstItem() + $index }}</td>
                             <td>
@@ -375,11 +390,24 @@
                                     <small class="text-muted">+{{ $item->detailPenerimaan->count() - 2 }} lainnya</small>
                                 @endif
                             </td>
-                            <td class="text-end fw-semibold">
-                                {{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }} Kg
+                            <td class="text-end">
+                                <div class="fw-semibold">
+                                    {{ number_format($totalKotor, 1, ',', '.') }} Kg
+                                </div>
+                                @if($item->status_sortir == 'Selesai' && $totalBersih > 0)
+                                    <div class="text-success small">
+                                        <i class="fas fa-check me-1"></i>
+                                        {{ number_format($totalBersih, 1, ',', '.') }} Kg
+                                    </div>
+                                @else
+                                    <small class="text-muted">
+                                        <i class="far fa-clock me-1"></i>Belum sortir
+                                    </small>
+                                @endif
                                 @if($item->tipe == 'Beli' && $item->total_bayar > 0)
-                                    <br>
-                                    <small class="text-success">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</small>
+                                    <div class="small text-primary mt-1">
+                                        Rp {{ number_format($item->total_bayar, 0, ',', '.') }}
+                                    </div>
                                 @endif
                             </td>
                             <td>
@@ -395,19 +423,21 @@
                                 <div onclick="event.stopPropagation()" class="d-flex justify-content-center gap-2">
                                     <a href="{{ route('gudang.penerimaan.show', $item->id) }}" 
                                        class="action-link text-info" title="Detail">
-                                        Detail
+                                        <i class="fas fa-eye me-1"></i>Detail
                                     </a>
+                                    
                                     @if($item->status_sortir != 'Selesai')
-                                    <span class="text-muted">|</span>
-                                    <a href="{{ route('gudang.penerimaan.sortir', $item->id) }}" 
-                                       class="action-link text-warning" title="Sortir">
-                                        Sortir
-                                    </a>
+                                        <span class="text-muted">|</span>
+                                        <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" 
+                                           class="action-link text-secondary" title="Edit">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </a>
                                     @endif
+                                    
                                     <span class="text-muted">|</span>
                                     <a href="#" class="action-link text-danger" 
                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}" title="Hapus">
-                                        Hapus
+                                        <i class="fas fa-trash me-1"></i>Hapus
                                     </a>
                                 </div>
 
@@ -423,9 +453,10 @@
                                                 <p class="mb-1">Hapus data dari <strong>{{ $item->supplier->nama }}</strong>?</p>
                                                 <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</small>
                                                 @if($item->status_sortir == 'Selesai')
-                                                    <p class="text-danger small mt-2 mb-0">
-                                                        <i class="fas fa-exclamation-triangle"></i> Stok akan berkurang!
-                                                    </p>
+                                                    <div class="alert alert-warning small mt-2 mb-0 p-2">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                                        Stok akan berkurang {{ number_format($totalBersih, 1) }} Kg!
+                                                    </div>
                                                 @endif
                                             </div>
                                             <div class="modal-footer py-2">
@@ -495,9 +526,20 @@
         });
     });
     
+    // Auto-hide alerts after 3 seconds
     setTimeout(function() {
         let alerts = document.querySelectorAll('.alert:not(.alert-light)');
-        alerts.forEach(alert => alert?.remove());
+        alerts.forEach(alert => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert?.remove(), 500);
+        });
     }, 3000);
+    
+    // Tooltip initialization
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
 </script>
 @endpush

@@ -56,6 +56,11 @@ class Penerimaan extends Model
         return $this->hasMany(HasilSortir::class, 'penerimaan_id');
     }
 
+public function getTotalBersihAttribute()
+{
+    return $this->hasilSortir->sum('berat_bersih_kg');
+}
+
     // Relasi ke pembayaran_penerimaan
     public function pembayaran(): HasMany
     {
