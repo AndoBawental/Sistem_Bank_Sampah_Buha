@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Gudang;
 
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
+use App\Models\Penerimaan;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
@@ -12,10 +13,27 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::orderBy('nama')->paginate(10);
-        return view('dashboard.gudang.supplier.index', compact('suppliers'));
+        $query = Supplier::withCount('penerimaan');
+        
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('alamat', 'like', "%{$search}%")
+                  ->orWhere('telepon', 'like', "%{$search}%");
+            });
+        }
+        
+        $perPage = $request->get('per_page', 10);
+        $suppliers = $query->orderBy('nama')->paginate($perPage)->withQueryString();
+        
+        // Total penerimaan
+        $totalPenerimaan = Penerimaan::count();
+        
+        return view('dashboard.gudang.supplier.index', compact('suppliers', 'totalPenerimaan'));
     }
 
     /**
@@ -32,9 +50,11 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => 'required|string|max:255|unique:supplier,nama',
             'alamat' => 'nullable|string',
             'telepon' => 'nullable|string|max:20'
+        ], [
+            'nama.unique' => 'Nama supplier sudah ada, gunakan nama lain.'
         ]);
 
         Supplier::create($request->all());
@@ -58,9 +78,11 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => 'required|string|max:255|unique:supplier,nama,' . $id,
             'alamat' => 'nullable|string',
             'telepon' => 'nullable|string|max:20'
+        ], [
+            'nama.unique' => 'Nama supplier sudah ada, gunakan nama lain.'
         ]);
 
         $supplier = Supplier::findOrFail($id);
@@ -75,7 +97,13 @@ class SupplierController extends Controller
      */
     public function destroy($id)
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier = Supplier::withCount('penerimaan')->findOrFail($id);
+        
+        // Cek apakah supplier punya data penerimaan
+        if ($supplier->penerimaan_count > 0) {
+            return back()->with('error', 'Supplier tidak dapat dihapus karena memiliki data penerimaan.');
+        }
+        
         $supplier->delete();
 
         return redirect()->route('gudang.supplier.index')
