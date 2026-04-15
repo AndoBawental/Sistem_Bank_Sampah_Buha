@@ -14,25 +14,31 @@
     }
     .info-row {
         display: flex;
-        padding: 3px 0;
+        padding: 2px 0;
     }
     .info-label {
-        width: 120px;
+        width: 100px;
         color: #666;
         font-size: 0.85rem;
     }
-    .jenis-item {
-        background: #fafbfc;
-        border-radius: 8px;
+    .jenis-card {
+        background: white;
+        border-radius: 10px;
         padding: 15px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         border: 1px solid #e9ecef;
+    }
+    .progress-sortir {
+        height: 8px;
+        border-radius: 4px;
+        background: #e9ecef;
+        margin: 10px 0;
     }
     .total-box {
         background: #e8f5e9;
         border-radius: 10px;
         padding: 15px;
-        margin: 20px 0;
+        margin-top: 20px;
     }
     .loading-overlay {
         display: none;
@@ -64,22 +70,13 @@
             
             {{-- Info Penerimaan --}}
             <div class="info-box">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h6 class="fw-bold mb-0">#TRX-{{ str_pad($penerimaan->id, 6, '0', STR_PAD_LEFT) }}</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <h6 class="fw-bold">#TRX-{{ str_pad($penerimaan->id, 5, '0', STR_PAD_LEFT) }}</h6>
                     <span class="badge bg-warning">Proses Sortir</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Supplier</span>
-                    <span>: {{ $penerimaan->supplier->nama }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Tanggal</span>
-                    <span>: {{ \Carbon\Carbon::parse($penerimaan->tanggal)->format('d/m/Y') }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Total Berat</span>
-                    <span>: <strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></span>
-                </div>
+                <div class="info-row"><span class="info-label">Supplier</span>: {{ $penerimaan->supplier->nama }}</div>
+                <div class="info-row"><span class="info-label">Tanggal</span>: {{ $penerimaan->tanggal->format('d/m/Y') }}</div>
+                <div class="info-row"><span class="info-label">Total Berat</span>: <strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></div>
             </div>
 
             {{-- Form Sortir --}}
@@ -89,27 +86,42 @@
                 <h6 class="fw-bold mb-3">Hasil Pemilahan</h6>
                 
                 @foreach($penerimaan->detailPenerimaan as $index => $detail)
-                <div class="jenis-item">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <label class="fw-semibold">{{ $detail->jenisPlastik->nama }}</label>
+                @php
+                    $beratDatang = $detail->berat_datang_kg;
+                    $beratInput = old('hasil_sortir.'.$index.'.berat_bersih', $beratDatang);
+                    $persentase = $beratDatang > 0 ? ($beratInput / $beratDatang) * 100 : 0;
+                @endphp
+                <div class="jenis-card" data-index="{{ $index }}" data-berat-datang="{{ $beratDatang }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="fw-semibold">{{ $detail->jenisPlastik->nama }}</span>
                             <br>
-                            <small class="text-muted">Berat datang: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg</small>
+                            <small class="text-muted">Berat datang: {{ number_format($beratDatang, 2, ',', '.') }} Kg</small>
                         </div>
-                        <div class="col-6">
-                            <div class="input-group">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="{{ $detail->berat_datang_kg }}"
-                                       name="hasil_sortir[{{ $index }}][berat_bersih]" 
-                                       class="form-control" 
-                                       placeholder="Berat bersih"
-                                       value="{{ old('hasil_sortir.'.$index.'.berat_bersih', $detail->berat_datang_kg) }}"
-                                       required>
-                                <span class="input-group-text">Kg</span>
+                        <span class="badge bg-info">{{ $detail->jenisPlastik->kode ?? '' }}</span>
+                    </div>
+                    
+                    <div class="row align-items-end g-2">
+                        <div class="col-7">
+                            <label class="form-label small">Berat Bersih (Kg)</label>
+                            <input type="number" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="{{ $beratDatang }}"
+                                   name="hasil_sortir[{{ $index }}][berat_bersih]" 
+                                   class="form-control form-control-sm berat-input"
+                                   value="{{ $beratInput }}"
+                                   required>
+                        </div>
+                        <div class="col-5">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Level</span>
+                                <span class="persentase-text">{{ number_format($persentase, 1) }}%</span>
                             </div>
-                            <input type="hidden" name="hasil_sortir[{{ $index }}][jenis_plastik_id]" value="{{ $detail->jenis_plastik_id }}">
+                            <div class="progress-sortir">
+                                <div class="progress-bar bg-success persentase-bar" 
+                                     style="width: {{ $persentase }}%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,21 +130,26 @@
                 {{-- Total --}}
                 <div class="total-box">
                     <div class="row text-center">
-                        <div class="col-6">
+                        <div class="col-4">
                             <small class="text-muted">Total Bersih</small>
                             <h5 class="mb-0 text-success" id="totalBersih">0.00 Kg</h5>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <small class="text-muted">Total Susut</small>
                             <h5 class="mb-0 text-danger" id="totalSusut">0.00 Kg</h5>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">% Susut</small>
+                            <h5 class="mb-0 text-warning" id="persenSusut">0.0%</h5>
                         </div>
                     </div>
                 </div>
 
                 {{-- Catatan --}}
-                <div class="mb-3">
+                <div class="mb-3 mt-3">
                     <label class="form-label small">Catatan (Opsional)</label>
-                    <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan hasil sortir...">{{ old('catatan') }}</textarea>
+                    <textarea name="catatan" class="form-control form-control-sm" rows="2" 
+                        placeholder="Catatan hasil sortir...">{{ old('catatan') }}</textarea>
                 </div>
 
                 {{-- Tombol --}}
@@ -140,7 +157,7 @@
                     <a href="{{ route('gudang.sortir.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="fas fa-arrow-left me-1"></i>Kembali
                     </a>
-                    <button type="button" class="btn btn-success rounded-pill px-4" onclick="konfirmasiSimpan()">
+                    <button type="submit" class="btn btn-success rounded-pill px-4">
                         <i class="fas fa-check me-1"></i>Selesai Sortir
                     </button>
                 </div>
@@ -153,7 +170,7 @@
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-content">
         <div class="spinner-border text-success mb-3"></div>
-        <h6>Menyimpan...</h6>
+        <h6>Menyimpan data sortir...</h6>
     </div>
 </div>
 
@@ -161,94 +178,87 @@
 
 @push('scripts')
 <script>
-    const totalDatang = {{ $penerimaan->total_berat_kotor_kg }};
-    const inputs = document.querySelectorAll('input[type="number"]');
-    const form = document.getElementById('formSortir');
-    const overlay = document.getElementById('loadingOverlay');
-    const textarea = document.querySelector('textarea');
-
-    let changed = false;
-
-    // Hitung total
-    function hitungTotal() {
-        let totalBersih = 0;
-
-        inputs.forEach(input => {
-            totalBersih += parseFloat(input.value) || 0;
-        });
-
-        const totalSusut = totalDatang - totalBersih;
-
-        document.getElementById('totalBersih').textContent =
-            totalBersih.toFixed(2).replace('.', ',') + ' Kg';
-
-        document.getElementById('totalSusut').textContent =
-            totalSusut.toFixed(2).replace('.', ',') + ' Kg';
-
-        return totalBersih;
-    }
-
-    // Validasi input
-    inputs.forEach(input => {
-        input.addEventListener('input', function () {
-            const max = parseFloat(this.max) || 0;
-
-            if (parseFloat(this.value) > max) this.value = max;
-            if (parseFloat(this.value) < 0) this.value = 0;
-
-            changed = true;
-            hitungTotal();
-        });
-    });
-
-    textarea.addEventListener('input', () => changed = true);
-
-    // Konfirmasi simpan
-    function konfirmasiSimpan() {
-        const totalBersih = hitungTotal();
-
-        if (totalBersih <= 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Perhatian',
-                text: 'Berat bersih tidak boleh 0!'
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalDatang = {{ $penerimaan->total_berat_kotor_kg }};
+        const form = document.getElementById('formSortir');
+        const overlay = document.getElementById('loadingOverlay');
+        const cards = document.querySelectorAll('.jenis-card');
+        
+        // Fungsi hitung total
+        function hitungTotal() {
+            let totalBersih = 0;
+            
+            cards.forEach(card => {
+                const input = card.querySelector('.berat-input');
+                const beratDatang = parseFloat(card.dataset.beratDatang);
+                const berat = parseFloat(input.value) || 0;
+                const persentase = beratDatang > 0 ? (berat / beratDatang) * 100 : 0;
+                
+                totalBersih += berat;
+                
+                // Update tampilan per item
+                card.querySelector('.persentase-text').textContent = persentase.toFixed(1) + '%';
+                const bar = card.querySelector('.persentase-bar');
+                bar.style.width = persentase + '%';
+                
+                // Warna bar sesuai persentase
+                if (persentase >= 80) {
+                    bar.className = 'progress-bar bg-success persentase-bar';
+                } else if (persentase >= 50) {
+                    bar.className = 'progress-bar bg-warning persentase-bar';
+                } else {
+                    bar.className = 'progress-bar bg-danger persentase-bar';
+                }
             });
-            return;
+            
+            const totalSusut = totalDatang - totalBersih;
+            const persenSusut = totalDatang > 0 ? (totalSusut / totalDatang) * 100 : 0;
+            
+            document.getElementById('totalBersih').textContent = totalBersih.toFixed(2).replace('.', ',') + ' Kg';
+            document.getElementById('totalSusut').textContent = totalSusut.toFixed(2).replace('.', ',') + ' Kg';
+            document.getElementById('persenSusut').textContent = persenSusut.toFixed(1) + '%';
+            
+            return totalBersih;
         }
-
-        Swal.fire({
-            title: 'Konfirmasi',
-            text: `Selesai sortir? Stok akan bertambah ${totalBersih.toFixed(2)} Kg.`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Selesai',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                changed = false;
+        
+        // Event listener untuk input
+        cards.forEach(card => {
+            const input = card.querySelector('.berat-input');
+            const beratDatang = parseFloat(card.dataset.beratDatang);
+            
+            input.addEventListener('input', function() {
+                let val = parseFloat(this.value) || 0;
+                
+                if (val > beratDatang) {
+                    this.value = beratDatang;
+                }
+                if (val < 0) {
+                    this.value = 0;
+                }
+                
+                hitungTotal();
+            });
+        });
+        
+        // Submit form
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const totalBersih = hitungTotal();
+            
+            if (totalBersih <= 0) {
+                alert('Berat bersih tidak boleh 0!');
+                return;
+            }
+            
+            if (confirm('Selesai sortir? Stok akan bertambah ' + totalBersih.toFixed(2) + ' Kg.')) {
                 overlay.style.display = 'block';
-                form.submit();
+                this.submit();
             }
         });
-    }
-
-    // Auto hitung awal
-    hitungTotal();
-
-    // Warning saat keluar
-    window.addEventListener('beforeunload', function (e) {
-        if (changed && overlay.style.display !== 'block') {
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
-
-    // Amankan saat submit
-    form.addEventListener('submit', function () {
-        changed = false;
-        overlay.style.display = 'block';
+        
+        // Hitung awal
+        hitungTotal();
     });
 </script>
 @endpush
