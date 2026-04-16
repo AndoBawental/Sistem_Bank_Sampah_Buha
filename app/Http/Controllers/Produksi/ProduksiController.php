@@ -18,14 +18,42 @@ class ProduksiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $produksi = Produksi::with(['jenisProduk', 'user', 'detailBahanProduksi.jenisPlastik', 'detailHasilProduksi'])
-            ->orderBy('tanggal', 'desc')
-            ->paginate(10);
-        
-        return view('dashboard.produksi.index', compact('produksi'));
+    public function index(Request $request)
+{
+    $query = Produksi::with(['jenisProduk', 'detailBahanProduksi', 'detailHasilProduksi']);
+    
+    // Filter
+    if ($request->filled('jenis_produk_id')) {
+        $query->where('jenis_produk_id', $request->jenis_produk_id);
     }
+    if ($request->filled('dari_tanggal')) {
+        $query->whereDate('tanggal', '>=', $request->dari_tanggal);
+    }
+    if ($request->filled('sampai_tanggal')) {
+        $query->whereDate('tanggal', '<=', $request->sampai_tanggal);
+    }
+    
+    $perPage = $request->get('per_page', 10);
+    $produksi = $query->orderBy('tanggal', 'desc')->paginate($perPage)->withQueryString();
+    
+    // Statistik
+    $produksiBulanIni = Produksi::whereMonth('tanggal', now()->month)
+        ->whereYear('tanggal', now()->year)->count();
+    
+    $totalBahan = DetailBahanProduksi::whereHas('produksi', function($q) {
+        $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year);
+    })->sum('berat');
+    
+    $totalHasil = DetailHasilProduksi::whereHas('produksi', function($q) {
+        $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year);
+    })->sum('jumlah');
+    
+    $jenisProduk = JenisProduk::orderBy('nama')->get();
+    
+    return view('dashboard.produksi.index', compact(
+        'produksi', 'produksiBulanIni', 'totalBahan', 'totalHasil', 'jenisProduk'
+    ));
+}
 
     /**
      * Show the form for creating a new resource.

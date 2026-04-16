@@ -3,27 +3,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DetailHasilProduksi extends Model
 {
-    use HasFactory;
-
     protected $table = 'detail_hasil_produksi';
     
     protected $fillable = [
         'produksi_id',
+        'jenis_produk_id',
         'jumlah'
-    ];
-
-    protected $casts = [
-        'jumlah' => 'float'
     ];
 
     public function produksi(): BelongsTo
     {
-        return $this->belongsTo(Produksi::class, 'produksi_id');
+        return $this->belongsTo(Produksi::class);
+    }
+
+    public function jenisProduk(): BelongsTo
+    {
+        return $this->belongsTo(JenisProduk::class);
+    }
+
+    public function detailBahan(): HasMany
+    {
+        return $this->hasMany(DetailBahanProduksi::class, 'detail_hasil_produksi_id');
     }
 }
