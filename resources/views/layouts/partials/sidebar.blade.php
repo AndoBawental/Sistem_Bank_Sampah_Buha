@@ -66,7 +66,7 @@
     <li class="nav-item {{ request()->routeIs('gudang.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.stok.index') }}">
             <div class="icon-box me-3"><i class="fas fa-boxes"></i></div>
-            <span>Stok Gudang</span>
+            <span>Stok Plastik Gudang</span>
         </a>
     </li>
     
@@ -90,13 +90,37 @@
             <span>Proses Produksi</span>
         </a>
     </li>
-    <li class="nav-item {{ request()->routeIs('produksi.jenis-plastik*') ? 'active' : '' }}">
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.jenis-plastik.index') }}">
-            <div class="icon-box me-3"><i class="fas fa-tags"></i></div>
-            <span>Master Jenis Plastik</span>
-        </a>
-    </li>
+        <li class="nav-item {{ request()->routeIs('produksi.stok*') ? 'active' : '' }}">
+            <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.stok.index') }}">
+                <div class="icon-box me-3"><i class="fas fa-boxes"></i></div>
+                <span>Stok Produk Gudang</span>
+            </a>
+        </li>
+
     @endhasanyrole
+
+    @hasanyrole('admin')
+<hr class="sidebar-divider opacity-25 mx-3 my-2">
+<div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold">
+    <i class="fas fa-database me-1"></i> Data Utama
+</div>
+
+<li class="nav-item {{ request()->routeIs('data-utama.jenis-plastik*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('data-utama.jenis-plastik.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-tags"></i></div>
+        <span>Jenis Plastik</span>
+    </a>
+</li>
+
+<li class="nav-item {{ request()->routeIs('data-utama.jenis-produk*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('data-utama.jenis-produk.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-box"></i></div>
+        <span>Jenis Produk</span>
+    </a>
+</li>
+@endhasanyrole
 
     @hasanyrole('admin|penjualan')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">

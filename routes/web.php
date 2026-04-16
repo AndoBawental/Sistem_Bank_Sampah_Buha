@@ -9,8 +9,9 @@ use App\Http\Controllers\Gudang\StokController;
 use App\Http\Controllers\Gudang\PenerimaanController;
 use App\Http\Controllers\Gudang\SupplierController;
 use App\Http\Controllers\Produksi\ProduksiController;
-use App\Http\Controllers\Produksi\JenisPlastikController;
-use App\Http\Controllers\Produksi\JenisProdukController; // Tambahkan ini
+use App\Http\Controllers\Produksi\StokProdukController;
+use App\Http\Controllers\DataUtama\JenisPlastikController;
+use App\Http\Controllers\DataUtama\JenisProdukController;
 use App\Http\Controllers\Penjualan\PenjualanController;
 use App\Http\Controllers\Penjualan\PembeliController;
 
@@ -82,23 +83,38 @@ Route::middleware(['auth'])->group(function () {
     | PRODUKSI ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['auth', 'role:admin|produksi'])->prefix('produksi')->name('produksi.')->group(function () {
-        
-        // PERBAIKAN: Route resource yang benar
+  Route::middleware(['auth', 'role:admin|produksi'])
+    ->prefix('produksi')
+    ->name('produksi.')
+    ->group(function () {
+
         Route::get('/', [ProduksiController::class, 'index'])->name('index');
         Route::get('/create', [ProduksiController::class, 'create'])->name('create');
         Route::post('/', [ProduksiController::class, 'store'])->name('store');
+
+        // penting: taruh stok di atas
+        Route::get('/stok', [StokProdukController::class, 'index'])->name('stok.index');
+
         Route::get('/{id}', [ProduksiController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [ProduksiController::class, 'edit'])->name('edit');
         Route::put('/{id}', [ProduksiController::class, 'update'])->name('update');
         Route::delete('/{id}', [ProduksiController::class, 'destroy'])->name('destroy');
-        
-        // Master Jenis Plastik
-        Route::resource('jenis-plastik', JenisPlastikController::class);
-        
-        // Master Jenis Produk (tambahkan jika ada)
-        // Route::resource('jenis-produk', JenisProdukController::class);
     });
+
+    /*
+|--------------------------------------------------------------------------
+| DATA UTAMA ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin'])->prefix('data-utama')->name('data-utama.')->group(function () {
+
+    // Jenis Plastik
+    Route::resource('jenis-plastik', JenisPlastikController::class);
+
+    // Jenis Produk
+    Route::resource('jenis-produk', JenisProdukController::class);
+
+});
 
     /*
     |--------------------------------------------------------------------------
@@ -112,7 +128,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [PenjualanController::class, 'show'])->name('show');
         Route::get('/{id}/nota', [PenjualanController::class, 'nota'])->name('nota');
         Route::delete('/{id}', [PenjualanController::class, 'destroy'])->name('destroy');
-        
+        Route::get('/{id}/edit', [PenjualanController::class, 'edit'])->name('edit');
+Route::put('/{id}', [PenjualanController::class, 'update'])->name('update');
         Route::resource('pembeli', PembeliController::class);
     });
 
