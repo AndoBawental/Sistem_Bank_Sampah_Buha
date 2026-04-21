@@ -12,9 +12,24 @@ class PembeliController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
     {
-        $pembeli = Pembeli::orderBy('nama')->paginate(10);
+        $query = Pembeli::query();
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('telepon', 'like', "%{$search}%");
+            });
+        }
+        
+        $pembeli = $query->orderBy('nama')->paginate(10);
+        
         return view('dashboard.penjualan.pembeli.index', compact('pembeli'));
     }
 

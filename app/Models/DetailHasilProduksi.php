@@ -5,7 +5,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DetailHasilProduksi extends Model
 {
@@ -17,6 +16,10 @@ class DetailHasilProduksi extends Model
         'jumlah'
     ];
 
+    protected $casts = [
+        'jumlah' => 'float'
+    ];
+
     public function produksi(): BelongsTo
     {
         return $this->belongsTo(Produksi::class);
@@ -25,10 +28,5 @@ class DetailHasilProduksi extends Model
     public function jenisProduk(): BelongsTo
     {
         return $this->belongsTo(JenisProduk::class);
-    }
-
-    public function detailBahan(): HasMany
-    {
-        return $this->hasMany(DetailBahanProduksi::class, 'detail_hasil_produksi_id');
     }
 }

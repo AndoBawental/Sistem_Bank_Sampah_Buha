@@ -144,23 +144,44 @@
 
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <li class="nav-item mt-2">
-        <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
-           href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan">
-            <div class="d-flex align-items-center">
-                <div class="icon-box me-3"><i class="fas fa-chart-pie"></i></div>
-                <span>Laporan</span>
-            </div>
-            <i class="fas fa-chevron-down small text-white-50 transition-icon"></i>
-        </a>
-        <div id="collapseLaporan" class="collapse mt-1" data-bs-parent="#accordionSidebar">
-            <div class="py-2 collapse-inner rounded mx-3 glass-menu">
-                <a class="collapse-item" href="#"><i class="fas fa-circle text-success me-2" style="font-size: 8px;"></i>Penerimaan</a>
-                <a class="collapse-item" href="#"><i class="fas fa-circle text-warning me-2" style="font-size: 8px;"></i>Produksi</a>
-                <a class="collapse-item" href="#"><i class="fas fa-circle text-primary me-2" style="font-size: 8px;"></i>Penjualan</a>
-                <a class="collapse-item" href="#"><i class="fas fa-circle text-info me-2" style="font-size: 8px;"></i>Stok Akhir</a>
-            </div>
+    <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
+       href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan">
+        <div class="d-flex align-items-center">
+            <div class="icon-box me-3"><i class="fas fa-chart-pie"></i></div>
+            <span>Laporan</span>
         </div>
-    </li>
+        <i class="fas fa-chevron-down small"></i>
+    </a>
+    <div class="collapse" id="collapseLaporan">
+        <ul class="nav flex-column ms-3 mt-1">
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.index') }}">
+                    <i class="fas fa-chart-bar me-2"></i>Ringkasan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
+                    <i class="fas fa-truck me-2"></i>Penerimaan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
+                    <i class="fas fa-industry me-2"></i>Produksi
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
+                    <i class="fas fa-shopping-cart me-2"></i>Penjualan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.stok') }}">
+                    <i class="fas fa-boxes me-2"></i>Stok
+                </a>
+            </li>
+        </ul>
+    </div>
+</li>
 
     @role('admin')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
