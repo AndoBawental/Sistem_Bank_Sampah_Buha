@@ -17,6 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LaporanPenerimaanExport;
 use App\Exports\LaporanProduksiExport;
 use App\Exports\LaporanPenjualanExport;
+use App\Exports\LaporanStokExport;
 
 class LaporanController extends Controller
 {
