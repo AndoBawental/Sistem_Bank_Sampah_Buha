@@ -183,29 +183,28 @@
     </div>
 </li>
 
-    @role('admin')
-    <hr class="sidebar-divider opacity-25 mx-3 my-2">
-    <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-shield-alt me-1"></i> Sistem
-    </div>
+   @role('admin')
+<hr class="sidebar-divider opacity-25 mx-3 my-2">
+<div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
+    <i class="fas fa-shield-alt me-1"></i> Sistem
+</div>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
-           href="#" data-bs-toggle="collapse" data-bs-target="#collapseUser">
-            <div class="d-flex align-items-center">
-                <div class="icon-box me-3"><i class="fas fa-users-cog"></i></div>
-                <span>Manajemen User</span>
-            </div>
-            <i class="fas fa-chevron-down small text-white-50 transition-icon"></i>
-        </a>
-        <div id="collapseUser" class="collapse mt-1" data-bs-parent="#accordionSidebar">
-            <div class="py-2 collapse-inner rounded mx-3 glass-menu">
-                <a class="collapse-item" href="#"><i class="fas fa-users me-2"></i>Daftar User</a>
-                <a class="collapse-item" href="#"><i class="fas fa-user-tag me-2"></i>Roles & Permissions</a>
-            </div>
-        </div>
-    </li>
-    @endrole
+<li class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('admin.users.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-users-cog"></i></div>
+        <span>Kelola Pengguna</span>
+    </a>
+</li>
+
+<li class="nav-item {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('admin.roles.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-user-tag"></i></div>
+        <span>Daftar Role</span>
+    </a>
+</li>
+@endrole
 
     <div class="flex-grow-1"></div>
 
@@ -368,7 +367,7 @@
                     icon.classList.add('fa-chevron-left');
                 }
             });
-        }s
+        }
     });
 </script>
 @endpush

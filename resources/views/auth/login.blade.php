@@ -10,7 +10,7 @@
     <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
 
         <h2 class="text-2xl font-bold text-center mb-6">
-            Login Sistem Recycle Manado
+            Login Sistem Bank Sampah Buha Recycle Manado
         </h2>
 
         {{-- ERROR --}}

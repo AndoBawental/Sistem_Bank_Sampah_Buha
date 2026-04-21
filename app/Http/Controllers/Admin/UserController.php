@@ -4,63 +4,92 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class UserController extends Controller
 {
-    // LIST USER
+    use AuthorizesRequests;
+    
+    /**
+     * Menampilkan daftar user
+     */
     public function index()
     {
-        $users = User::with('roles')->latest()->get();
-        return view('admin.users.index', compact('users'));
+        $this->authorize('viewAny', User::class);
+        
+        $users = User::with('roles')->latest()->paginate(10);
+        return view('dashboard.admin.users.index', compact('users'));
     }
 
-    // FORM CREATE
+    /**
+     * Form tambah user
+     */
     public function create()
     {
+        $this->authorize('create', User::class);
+        
         $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        // PERBAIKAN: View yang benar untuk create user
+        return view('dashboard.admin.users.create', compact('roles'));
     }
 
-    // STORE USER
-    public function store(Request $request)
+    /**
+     * Simpan user baru
+     */
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'role' => 'required'
-        ]);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // assign role
         $user->assignRole($request->role);
 
-        return redirect()->route('users.index')
-            ->with('success', 'User berhasil dibuat');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil ditambahkan');
     }
 
-    // FORM EDIT
+    /**
+     * Menampilkan detail user (optional)
+     */
+    public function show(User $user)
+    {
+        $this->authorize('view', $user);
+        
+        return view('dashboard.admin.users.show', compact('user'));
+    }
+
+    /**
+     * Form edit user
+     */
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
+        
         $roles = Role::all();
-        return view('admin.users.edit', compact('user', 'roles'));
+        $userRole = $user->roles->first()?->name;
+        
+        // PERBAIKAN: View yang benar untuk edit user dan kirim data user
+        return view('dashboard.admin.users.edit', compact('user', 'roles', 'userRole'));
     }
 
-    // UPDATE USER
+    /**
+     * Update user
+     */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+        
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required'
+            'role' => 'required|exists:roles,name',
+            'password' => 'nullable|min:6|confirmed'
         ]);
 
         $user->update([
@@ -68,28 +97,47 @@ class UserController extends Controller
             'email' => $request->email,
         ]);
 
-        // sync role (replace role lama)
+        if ($request->filled('password')) {
+            $user->update(['password' => Hash::make($request->password)]);
+        }
+
         $user->syncRoles([$request->role]);
 
-        return redirect()->route('users.index')
+        return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diupdate');
     }
 
-    // DELETE
+    /**
+     * Hapus user
+     */
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
+        
+        // Cegah hapus diri sendiri
+        if (auth()->id() === $user->id) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Anda tidak dapat menghapus akun sendiri!');
+        }
+        
         $user->delete();
 
-        return back()->with('success', 'User dihapus');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil dihapus');
     }
 
-    // RESET PASSWORD
+    /**
+     * Reset password user
+     */
     public function resetPassword(User $user)
     {
+        $this->authorize('update', $user);
+        
+        $newPassword = 'password123';
         $user->update([
-            'password' => Hash::make('password123')
+            'password' => Hash::make($newPassword)
         ]);
 
-        return back()->with('success', 'Password direset ke: password123');
+        return back()->with('success', "Password untuk {$user->name} direset ke: {$newPassword}");
     }
 }
