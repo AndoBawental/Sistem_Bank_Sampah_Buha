@@ -15,6 +15,7 @@ use App\Http\Controllers\DataUtama\JenisProdukController;
 use App\Http\Controllers\Penjualan\PenjualanController;
 use App\Http\Controllers\Penjualan\PembeliController;
 use App\Http\Controllers\Laporan\LaporanController;
+use App\Http\Controllers\Gudang\DashboardController as GudangDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,32 +59,49 @@ Route::middleware(['auth'])->group(function () {
     | GUDANG ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['role:admin|gudang'])->prefix('gudang')->name('gudang.')->group(function () {
-        
-        Route::get('/dashboard', function() {
-            return view('dashboard.gudang.gudang');
-        })->name('dashboard');
-        
-        // Stok routes
+   Route::middleware(['auth', 'role:admin|gudang'])
+    ->prefix('gudang')
+    ->name('gudang.')
+    ->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', [GudangDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // ========================
+        // STOK
+        // ========================
         Route::resource('stok', StokController::class);
-        Route::get('stok/{id}/history', [StokController::class, 'history'])->name('stok.history');
-        Route::get('stok/{id}/adjustment', [StokController::class, 'adjustment'])->name('stok.adjustment');
-        Route::post('stok/{id}/adjustment', [StokController::class, 'storeAdjustment'])->name('stok.store-adjustment');
-        
-        // Penerimaan routes
+
+        Route::prefix('stok/{stok}')->name('stok.')->group(function () {
+            Route::get('/history', [StokController::class, 'history'])->name('history');
+            Route::get('/adjustment', [StokController::class, 'adjustment'])->name('adjustment');
+            Route::post('/adjustment', [StokController::class, 'storeAdjustment'])->name('store-adjustment');
+        });
+
+        // ========================
+        // PENERIMAAN
+        // ========================
         Route::resource('penerimaan', PenerimaanController::class);
-        Route::get('penerimaan/{id}/sortir', [PenerimaanController::class, 'sortir'])->name('penerimaan.sortir');
-        Route::post('penerimaan/{id}/sortir', [PenerimaanController::class, 'storeSortir'])->name('penerimaan.store-sortir');
-        
-        // Sortir routes
+
+        Route::prefix('penerimaan/{penerimaan}')->name('penerimaan.')->group(function () {
+            Route::get('/sortir', [PenerimaanController::class, 'sortir'])->name('sortir');
+            Route::post('/sortir', [PenerimaanController::class, 'storeSortir'])->name('store-sortir');
+        });
+
+        // ========================
+        // SORTIR
+        // ========================
         Route::prefix('sortir')->name('sortir.')->group(function () {
             Route::get('/', [SortirController::class, 'index'])->name('index');
-            Route::get('/{id}', [SortirController::class, 'show'])->name('show');
-            Route::post('/{id}', [SortirController::class, 'store'])->name('store');
-            Route::put('/{id}', [SortirController::class, 'update'])->name('update');
+            Route::get('/{sortir}', [SortirController::class, 'show'])->name('show');
+            Route::post('/{sortir}', [SortirController::class, 'store'])->name('store');
+            Route::put('/{sortir}', [SortirController::class, 'update'])->name('update');
         });
-        
-        // Supplier routes
+
+        // ========================
+        // SUPPLIER
+        // ========================
         Route::resource('supplier', SupplierController::class);
     });
 

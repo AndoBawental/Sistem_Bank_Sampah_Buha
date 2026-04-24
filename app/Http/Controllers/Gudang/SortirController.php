@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Penerimaan;
 use App\Models\HasilSortir;
 use App\Models\Stok;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -43,7 +44,7 @@ class SortirController extends Controller
         $totalPerluSortir = Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])->count();
         $totalBeratKotor = Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])->sum('total_berat_kotor_kg');
         
-        $suppliers = \App\Models\Supplier::orderBy('nama')->get();
+        $suppliers = Supplier::orderBy('nama')->get();
         
         return view('dashboard.gudang.sortir.index', compact(
             'penerimaan',
@@ -139,16 +140,14 @@ class SortirController extends Controller
                 HasilSortir::insert($insertData);
             }
 
-            // Update stok - PERBAIKAN: tidak pakai DB::raw di updateOrCreate
+            // Update stok
             foreach ($stokUpdate as $jenisId => $totalBerat) {
                 $stok = Stok::where('jenis_plastik_id', $jenisId)->first();
                 
                 if ($stok) {
-                    // Jika stok sudah ada, tambahkan beratnya
                     $stok->total_berat = $stok->total_berat + $totalBerat;
                     $stok->save();
                 } else {
-                    // Jika stok belum ada, buat baru
                     Stok::create([
                         'jenis_plastik_id' => $jenisId,
                         'total_berat' => $totalBerat
@@ -175,103 +174,6 @@ class SortirController extends Controller
                     $persenSusut
                 ));
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error: ' . $e->getMessage())->withInput();
-        }
-    }
-    
-    /**
-     * Update hasil sortir (jika perlu revisi)
-     */
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'hasil_sortir' => 'required|array|min:1',
-            'hasil_sortir.*.berat_bersih' => 'required|numeric|min:0',
-            'catatan' => 'nullable|string'
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            $penerimaan = Penerimaan::with(['detailPenerimaan', 'hasilSortir'])->findOrFail($id);
-            
-            // Kurangi stok dari hasil sortir lama
-            foreach ($penerimaan->hasilSortir as $hasil) {
-                $stok = Stok::where('jenis_plastik_id', $hasil->jenis_plastik_id)->first();
-                if ($stok) {
-                    $stok->total_berat = $stok->total_berat - $hasil->berat_bersih_kg;
-                    $stok->save();
-                }
-            }
-            
-            // Hapus hasil sortir lama
-            $penerimaan->hasilSortir()->delete();
-            
-            $totalBeratBersih = 0;
-            $totalBeratDatang = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
-            
-            $insertData = [];
-            $stokUpdate = [];
-            
-            foreach ($penerimaan->detailPenerimaan as $index => $detail) {
-                $berat = floatval($request->hasil_sortir[$index]['berat_bersih'] ?? 0);
-                
-                if ($berat <= 0) continue;
-                if ($berat > $detail->berat_datang_kg) {
-                    throw new \Exception('Berat bersih tidak boleh melebihi berat datang');
-                }
-                
-                $totalBeratBersih += $berat;
-                
-                $insertData[] = [
-                    'penerimaan_id' => $penerimaan->id,
-                    'jenis_plastik_id' => $detail->jenis_plastik_id,
-                    'berat_bersih_kg' => $berat,
-                    'catatan' => $request->catatan,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
-                
-                if (!isset($stokUpdate[$detail->jenis_plastik_id])) {
-                    $stokUpdate[$detail->jenis_plastik_id] = 0;
-                }
-                $stokUpdate[$detail->jenis_plastik_id] += $berat;
-            }
-            
-            if ($totalBeratBersih > $totalBeratDatang) {
-                throw new \Exception('Total berat bersih melebihi berat kotor');
-            }
-            
-            if (!empty($insertData)) {
-                HasilSortir::insert($insertData);
-            }
-            
-            // Update stok
-            foreach ($stokUpdate as $jenisId => $totalBerat) {
-                $stok = Stok::where('jenis_plastik_id', $jenisId)->first();
-                
-                if ($stok) {
-                    $stok->total_berat = $stok->total_berat + $totalBerat;
-                    $stok->save();
-                } else {
-                    Stok::create([
-                        'jenis_plastik_id' => $jenisId,
-                        'total_berat' => $totalBerat
-                    ]);
-                }
-            }
-            
-            $penerimaan->update([
-                'catatan_sortir' => $request->catatan,
-            ]);
-            
-            DB::commit();
-            
-            return redirect()->route('gudang.sortir.index')
-                ->with('success', 'Hasil sortir berhasil diperbarui.');
-                
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error: ' . $e->getMessage())->withInput();

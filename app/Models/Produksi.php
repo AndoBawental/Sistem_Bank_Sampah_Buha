@@ -22,7 +22,7 @@ class Produksi extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date'
+         'tanggal' => 'datetime',
     ];
 
     public function jenisProduk(): BelongsTo

@@ -3,9 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use App\Policies\UserPolicy;
+use Spatie\Permission\Models\Role;
+use App\Policies\RolePolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -16,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         User::class => UserPolicy::class,
+        Role::class => RolePolicy::class,
     ];
 
     /**
@@ -24,12 +26,5 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-
-        // Optional: Definisikan Gate tambahan jika perlu
-        Gate::before(function ($user, $ability) {
-            if ($user->hasRole('admin')) {
-                return true; // Admin bisa semua
-            }
-        });
     }
 }

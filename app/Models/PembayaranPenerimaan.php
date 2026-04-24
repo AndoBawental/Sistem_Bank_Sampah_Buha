@@ -22,7 +22,7 @@ class PembayaranPenerimaan extends Model
     ];
 
     protected $casts = [
-        'tanggal_bayar' => 'date'
+         'tanggal' => 'datetime',
     ];
 
     public function penerimaan(): BelongsTo

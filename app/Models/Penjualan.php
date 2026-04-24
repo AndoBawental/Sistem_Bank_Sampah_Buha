@@ -23,7 +23,7 @@ class Penjualan extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+         'tanggal' => 'datetime',
         'total_harga' => 'decimal:2'
     ];
 

@@ -52,8 +52,17 @@
 @section('content')
 <div class="container-fluid px-3">
 
+    {{-- Tampilkan error validasi atau exception dari server --}}
     @if(session('error'))
-        <div class="alert alert-danger rounded-3 mb-3">{{ session('error') }}</div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: '{{ session('error') }}',
+                });
+            });
+        </script>
     @endif
 
     <form id="formPenjualan">
@@ -97,7 +106,7 @@
                                         data-stok="{{ $jp->stok_tersedia }}">
                                     {{ $jp->nama }}
                                     @if($jp->stok_tersedia > 0)
-                                        ({{ number_format($jp->stok_tersedia, 1) }} Kg tersedia)
+                                        ({{ number_format($jp->stok_tersedia, 0) }} Unit tersedia)
                                     @else
                                         (Stok habis)
                                     @endif
@@ -109,27 +118,27 @@
                         <div class="stok-preview" id="stokPreview">
                             <div class="row-item">
                                 <span class="label">Stok tersedia</span>
-                                <span class="val-in" id="previewTersedia">0 Kg</span>
+                                <span class="val-in" id="previewTersedia">0 Unit</span>
                             </div>
                             <div class="row-item">
                                 <span class="label">Akan diambil</span>
-                                <span class="val-out" id="previewDiambil">0 Kg</span>
+                                <span class="val-out" id="previewDiambil">0 Unit</span>
                             </div>
                             <div class="separator"></div>
                             <div class="row-item">
                                 <span class="label">Sisa stok setelah transaksi</span>
-                                <span class="val-sisa" id="previewSisa">0 Kg</span>
+                                <span class="val-sisa" id="previewSisa">0 Unit</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small">Jumlah (Kg)</label>
-                        <input type="number" id="qty" class="form-control" step="0.01"
-                               min="0.01" value="" placeholder="0.00"
+                        <label class="form-label small">Jumlah (Unit)</label>
+                        <input type="number" id="qty" class="form-control" step="1"
+                               min="1" value="" placeholder="0"
                                oninput="onQtyInput()">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small">Harga / Kg (Rp)</label>
+                        <label class="form-label small">Harga / Unit (Rp)</label>
                         <input type="number" id="harga" class="form-control" step="0.01"
                                min="0" value="" placeholder="0">
                     </div>
@@ -151,8 +160,8 @@
                             <tr>
                                 <th class="ps-4">Produk</th>
                                 <th>Tersedia</th>
-                                <th class="text-end">Jumlah (Kg)</th>
-                                <th class="text-end">Harga / Kg</th>
+                                <th class="text-end">Jumlah (Unit)</th>
+                                <th class="text-end">Harga / Unit</th>
                                 <th class="text-end">Subtotal</th>
                                 <th class="text-center" width="50"></th>
                             </tr>
@@ -182,7 +191,7 @@
             <a href="{{ route('penjualan.index') }}" class="btn btn-light rounded-pill px-4">
                 <i class="fas fa-arrow-left me-1"></i>Kembali
             </a>
-            <button type="button" class="btn btn-success rounded-pill px-4" onclick="simpanTransaksi()">
+            <button type="button" class="btn btn-success rounded-pill px-4" onclick="konfirmasiSimpan()">
                 <i class="fas fa-save me-1"></i>Simpan Transaksi
             </button>
         </div>
@@ -191,6 +200,15 @@
 
 @push('scripts')
 <script>
+    // Pastikan SweetAlert2 sudah di-load dari layout utama
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+
     // Data stok dari server — keyed by produk id
     const stokData = {
         @foreach($jenisProduk as $jp)
@@ -223,17 +241,17 @@
         }
 
         const stokTersedia = stokData[produkId]?.stok ?? 0;
-        const diambil      = parseFloat(qtyEl.value) || 0;
+        const diambil      = parseInt(qtyEl.value) || 0;
         const sisa         = stokTersedia - diambil;
 
         document.getElementById('previewTersedia').textContent =
-            stokTersedia.toLocaleString('id-ID', { minimumFractionDigits: 2 }) + ' Kg';
+            stokTersedia.toLocaleString('id-ID') + ' Unit';
         document.getElementById('previewDiambil').textContent =
-            diambil.toLocaleString('id-ID', { minimumFractionDigits: 2 }) + ' Kg';
+            diambil.toLocaleString('id-ID') + ' Unit';
 
         const sisaEl = document.getElementById('previewSisa');
-        sisaEl.textContent = sisa.toLocaleString('id-ID', { minimumFractionDigits: 2 }) + ' Kg';
-        sisaEl.style.color = sisa < 0 ? '#dc3545' : sisa < 100 ? '#f59e0b' : '#198754';
+        sisaEl.textContent = sisa.toLocaleString('id-ID') + ' Unit';
+        sisaEl.style.color = sisa < 0 ? '#dc3545' : sisa < 5 ? '#f59e0b' : '#198754';
 
         preview.classList.add('visible');
     }
@@ -246,17 +264,30 @@
         const hargaEl  = document.getElementById('harga');
 
         const produkId = produkEl.value;
-        if (!produkId) { alert('Pilih produk terlebih dahulu!'); return; }
+        if (!produkId) { 
+            Toast.fire({ icon: 'warning', title: 'Pilih produk terlebih dahulu!' }); 
+            return; 
+        }
 
-        const qty    = parseFloat(qtyEl.value);
+        const qty    = parseInt(qtyEl.value);
         const harga  = parseFloat(hargaEl.value) || 0;
 
-        if (!qty || qty <= 0) { alert('Jumlah harus lebih dari 0'); return; }
-        if (harga < 0)        { alert('Harga tidak boleh negatif'); return; }
+        if (!qty || qty <= 0) { 
+            Toast.fire({ icon: 'warning', title: 'Jumlah harus lebih dari 0' }); 
+            return; 
+        }
+        if (harga < 0) {
+            Toast.fire({ icon: 'warning', title: 'Harga tidak boleh negatif' }); 
+            return; 
+        }
 
         const stokTersedia = stokData[produkId]?.stok ?? 0;
         if (qty > stokTersedia) {
-            alert(`Stok tidak mencukupi!\nTersedia: ${stokTersedia.toLocaleString('id-ID', {minimumFractionDigits:2})} Kg\nDiminta: ${qty.toLocaleString('id-ID', {minimumFractionDigits:2})} Kg`);
+            Swal.fire({
+                icon: 'error',
+                title: 'Stok Tidak Mencukupi',
+                text: `Tersedia: ${stokTersedia.toLocaleString('id-ID')} Unit, Diminta: ${qty.toLocaleString('id-ID')} Unit.`,
+            });
             return;
         }
 
@@ -268,7 +299,11 @@
         if (index >= 0) {
             const totalQtyBaru = daftarProduk[index].qty + qty;
             if (totalQtyBaru > stokTersedia) {
-                alert(`Total ${namaProduk} akan menjadi ${totalQtyBaru.toFixed(2)} Kg, melebihi stok tersedia ${stokTersedia.toFixed(2)} Kg.`);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Stok Tidak Mencukupi',
+                    text: `Total ${namaProduk} akan menjadi ${totalQtyBaru} Unit, melebihi stok tersedia ${stokTersedia} Unit.`,
+                });
                 return;
             }
             daftarProduk[index].qty      = totalQtyBaru;
@@ -278,6 +313,7 @@
         }
 
         tampilkanProduk();
+        Toast.fire({ icon: 'success', title: 'Produk ditambahkan ke daftar.' });
 
         // Reset input
         produkEl.value = '';
@@ -286,13 +322,26 @@
         document.getElementById('stokPreview').classList.remove('visible');
     }
 
-    // ── Hapus produk dari daftar ────────────────────────────────────────────
+    // ── Hapus produk dari daftar dengan SweetAlert ──────────────────────────
 
     function hapusProduk(index) {
-        if (confirm('Hapus produk ini dari daftar?')) {
-            daftarProduk.splice(index, 1);
-            tampilkanProduk();
-        }
+        const produk = daftarProduk[index];
+        Swal.fire({
+            title: 'Hapus Produk?',
+            text: `Anda akan menghapus "${produk.nama}" dari daftar transaksi.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                daftarProduk.splice(index, 1);
+                tampilkanProduk();
+                Toast.fire({ icon: 'info', title: 'Produk dihapus dari daftar.' });
+            }
+        });
     }
 
     // ── Render tabel ────────────────────────────────────────────────────────
@@ -317,17 +366,17 @@
                 let stokBadge;
                 if (sisaSetelah <= 0) {
                     stokBadge = `<span class="stok-badge stok-habis">Habis setelah ini</span>`;
-                } else if (sisaSetelah < 100) {
-                    stokBadge = `<span class="stok-badge stok-menipis">Sisa ${sisaSetelah.toFixed(1)} Kg</span>`;
+                } else if (sisaSetelah < 5) {
+                    stokBadge = `<span class="stok-badge stok-menipis">Sisa ${sisaSetelah} Unit</span>`;
                 } else {
-                    stokBadge = `<span class="stok-badge stok-aman">Sisa ${sisaSetelah.toFixed(1)} Kg</span>`;
+                    stokBadge = `<span class="stok-badge stok-aman">Sisa ${sisaSetelah} Unit</span>`;
                 }
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="ps-4 fw-semibold">${p.nama}</td>
                     <td>${stokBadge}</td>
-                    <td class="text-end">${p.qty.toLocaleString('id-ID', {minimumFractionDigits:2})} Kg</td>
+                    <td class="text-end">${p.qty.toLocaleString('id-ID')} Unit</td>
                     <td class="text-end">Rp ${p.harga.toLocaleString('id-ID')}</td>
                     <td class="text-end fw-semibold">Rp ${p.subtotal.toLocaleString('id-ID')}</td>
                     <td class="text-center">
@@ -344,51 +393,98 @@
             'Rp ' + totalTransaksi.toLocaleString('id-ID');
     }
 
-    // ── Submit ──────────────────────────────────────────────────────────────
+    // ── Konfirmasi Simpan & Submit ─────────────────────────────────────────
+
+    function konfirmasiSimpan() {
+        const tanggal = document.getElementById('tanggal').value;
+        const pembeli = document.getElementById('pembeli_id').value;
+
+        if (!tanggal) {
+            Toast.fire({ icon: 'warning', title: 'Tanggal harus diisi' });
+            return;
+        }
+        if (!pembeli) {
+            Toast.fire({ icon: 'warning', title: 'Pilih pembeli terlebih dahulu' });
+            return;
+        }
+        if (daftarProduk.length === 0) {
+            Toast.fire({ icon: 'warning', title: 'Minimal tambah 1 produk' });
+            return;
+        }
+
+        // Bangun daftar produk untuk ditampilkan
+        const listProdukHtml = daftarProduk.map(p => `• ${p.nama}: ${p.qty.toLocaleString('id-ID')} Unit`).join('<br>');
+
+        Swal.fire({
+            title: 'Konfirmasi Transaksi',
+            html: `<div class="text-start">${listProdukHtml}</div><hr class="my-2"><strong>Total: Rp ${totalTransaksi.toLocaleString('id-ID')}</strong>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, simpan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                simpanTransaksi();
+            }
+        });
+    }
 
     function simpanTransaksi() {
         const tanggal = document.getElementById('tanggal').value;
         const pembeli = document.getElementById('pembeli_id').value;
 
-        if (!tanggal)              { alert('Tanggal harus diisi'); return; }
-        if (!pembeli)              { alert('Pilih pembeli terlebih dahulu'); return; }
-        if (daftarProduk.length === 0) { alert('Minimal tambah 1 produk'); return; }
-
-        const konfirmasi = confirm(
-            `Konfirmasi transaksi:\n\n` +
-            daftarProduk.map(p => `• ${p.nama}: ${p.qty.toFixed(2)} Kg`).join('\n') +
-            `\n\nTotal: Rp ${totalTransaksi.toLocaleString('id-ID')}\n\nLanjutkan?`
-        );
-
-        if (!konfirmasi) return;
-
         // Bangun form data
-        const formData = new FormData();
-        formData.append('_token', document.querySelector('input[name="_token"]').value);
-        formData.append('tanggal', tanggal);
-        formData.append('pembeli_id', pembeli);
-
-        daftarProduk.forEach((p, i) => {
-            formData.append(`items[${i}][jenis_produk_id]`, p.id);
-            formData.append(`items[${i}][qty]`,             p.qty);
-            formData.append(`items[${i}][harga]`,           p.harga);
-        });
-
-        // Submit via hidden form
         const form = document.getElementById('formPenjualan');
         form.innerHTML = '';
         form.action    = "{{ route('penjualan.store') }}";
         form.method    = 'POST';
 
-        for (let [key, val] of formData.entries()) {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = key;
-            input.value = val;
-            form.appendChild(input);
-        }
+        const token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = '{{ csrf_token() }}';
+        form.appendChild(token);
 
+        const inputTanggal = document.createElement('input');
+        inputTanggal.type = 'hidden';
+        inputTanggal.name = 'tanggal';
+        inputTanggal.value = tanggal;
+        form.appendChild(inputTanggal);
+
+        const inputPembeli = document.createElement('input');
+        inputPembeli.type = 'hidden';
+        inputPembeli.name = 'pembeli_id';
+        inputPembeli.value = pembeli;
+        form.appendChild(inputPembeli);
+
+        daftarProduk.forEach((p, i) => {
+            form.appendChild(buatInput(`items[${i}][jenis_produk_id]`, p.id));
+            form.appendChild(buatInput(`items[${i}][qty]`, p.qty));
+            form.appendChild(buatInput(`items[${i}][harga]`, p.harga));
+        });
+
+        // Tampilkan loading
+        Swal.fire({
+            title: 'Menyimpan...',
+            text: 'Harap tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Submit form
         form.submit();
+    }
+
+    function buatInput(name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        return input;
     }
 </script>
 @endpush

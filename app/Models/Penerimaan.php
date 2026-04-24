@@ -29,7 +29,7 @@ class Penerimaan extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+       'tanggal' => 'datetime',
         'total_berat_kotor_kg' => 'float',
         'total_bayar' => 'decimal:2'
     ];

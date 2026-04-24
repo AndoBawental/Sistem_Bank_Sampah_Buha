@@ -13,6 +13,7 @@ use App\Models\Stok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+
 class ProduksiController extends Controller
 {
     public function index(Request $request)
@@ -78,11 +79,11 @@ class ProduksiController extends Controller
         try {
             // Simpan header produksi
             $produksi = Produksi::create([
-                'tanggal'         => $request->tanggal,
-                'jenis_produk_id' => $request->jenis_produk_id,
-                'user_id'         => auth()->id(),
-                'keterangan'      => $request->keterangan,
-            ]);
+    'tanggal' => now(),
+    'jenis_produk_id' => $request->jenis_produk_id,
+    'user_id' => auth()->id(),
+    'keterangan' => $request->keterangan,
+]);
 
             // Simpan bahan & kurangi stok bahan baku
             foreach ($request->bahan as $bahan) {

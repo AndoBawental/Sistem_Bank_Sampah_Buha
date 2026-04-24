@@ -29,6 +29,7 @@
 
     <hr class="sidebar-divider opacity-25 mx-3">
 
+    {{-- Dashboard - Semua Role --}}
     <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-2 custom-hover"
            href="{{ route($dashboardRoute) }}">
@@ -37,6 +38,7 @@
         </a>
     </li>
 
+    {{-- ==================== GUDANG ==================== --}}
     @hasanyrole('admin|gudang')
     <div class="sidebar-heading text-white-50 small px-4 mt-3 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
         <i class="fas fa-warehouse me-1"></i> Gudang
@@ -49,7 +51,6 @@
         </a>
     </li>
 
-    {{-- MENU SORTIR SAMPAH (BARU) --}}
     <li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.sortir.index') }}">
             <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
@@ -69,15 +70,19 @@
             <span>Stok Plastik Gudang</span>
         </a>
     </li>
-    
+    @endhasanyrole
+
+    {{-- Supplier hanya untuk Admin --}}
+    @role('admin')
     <li class="nav-item {{ request()->routeIs('gudang.supplier*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.supplier.index') }}">
             <div class="icon-box me-3"><i class="fas fa-truck"></i></div>
             <span>Data Supplier</span>
         </a>
     </li>
-    @endhasanyrole
+    @endrole
 
+    {{-- ==================== PRODUKSI ==================== --}}
     @hasanyrole('admin|produksi')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
@@ -90,38 +95,40 @@
             <span>Proses Produksi</span>
         </a>
     </li>
-        <li class="nav-item {{ request()->routeIs('produksi.stok*') ? 'active' : '' }}">
-            <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.stok.index') }}">
-                <div class="icon-box me-3"><i class="fas fa-boxes"></i></div>
-                <span>Stok Produk Gudang</span>
-            </a>
-        </li>
 
+    <li class="nav-item {{ request()->routeIs('produksi.stok*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.stok.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-boxes"></i></div>
+            <span>Stok Produk Gudang</span>
+        </a>
+    </li>
     @endhasanyrole
 
-    @hasanyrole('admin')
-<hr class="sidebar-divider opacity-25 mx-3 my-2">
-<div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold">
-    <i class="fas fa-database me-1"></i> Data Utama
-</div>
+    {{-- ==================== DATA UTAMA (Admin Only) ==================== --}}
+    @role('admin')
+    <hr class="sidebar-divider opacity-25 mx-3 my-2">
+    <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold">
+        <i class="fas fa-database me-1"></i> Data Utama
+    </div>
 
-<li class="nav-item {{ request()->routeIs('data-utama.jenis-plastik*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('data-utama.jenis-plastik.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-tags"></i></div>
-        <span>Jenis Plastik</span>
-    </a>
-</li>
+    <li class="nav-item {{ request()->routeIs('data-utama.jenis-plastik*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('data-utama.jenis-plastik.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-tags"></i></div>
+            <span>Jenis Plastik</span>
+        </a>
+    </li>
 
-<li class="nav-item {{ request()->routeIs('data-utama.jenis-produk*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('data-utama.jenis-produk.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-box"></i></div>
-        <span>Jenis Produk</span>
-    </a>
-</li>
-@endhasanyrole
+    <li class="nav-item {{ request()->routeIs('data-utama.jenis-produk*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('data-utama.jenis-produk.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-box"></i></div>
+            <span>Jenis Produk</span>
+        </a>
+    </li>
+    @endrole
 
+    {{-- ==================== PENJUALAN ==================== --}}
     @hasanyrole('admin|penjualan')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
@@ -134,14 +141,20 @@
             <span>Transaksi Penjualan</span>
         </a>
     </li>
+    @endhasanyrole
+
+    {{-- Pembeli hanya untuk Admin --}}
+    @role('admin')
     <li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('penjualan.pembeli.index') }}">
             <div class="icon-box me-3"><i class="fas fa-users"></i></div>
             <span>Data Pembeli</span>
         </a>
     </li>
-    @endhasanyrole
+    @endrole
 
+    {{-- ==================== LAPORAN (Sesuai Role) ==================== --}}
+    @if(auth()->user()->hasAnyRole(['admin', 'gudang', 'produksi', 'penjualan']))
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <li class="nav-item mt-2">
     <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
@@ -154,11 +167,8 @@
     </a>
     <div class="collapse" id="collapseLaporan">
         <ul class="nav flex-column ms-3 mt-1">
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.index') }}">
-                    <i class="fas fa-chart-bar me-2"></i>Ringkasan
-                </a>
-            </li>
+            {{-- Admin lihat semua laporan --}}
+            @role('admin')
             <li class="nav-item">
                 <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
                     <i class="fas fa-truck me-2"></i>Penerimaan
@@ -179,33 +189,64 @@
                     <i class="fas fa-boxes me-2"></i>Stok
                 </a>
             </li>
+            @endrole
+
+            {{-- Gudang hanya lihat laporan Penerimaan --}}
+            @role('gudang')
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
+                    <i class="fas fa-truck me-2"></i>Penerimaan
+                </a>
+            </li>
+            @endrole
+
+            {{-- Produksi hanya lihat laporan Produksi --}}
+            @role('produksi')
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
+                    <i class="fas fa-industry me-2"></i>Produksi
+                </a>
+            </li>
+            @endrole
+
+            {{-- Penjualan hanya lihat laporan Penjualan --}}
+            @role('penjualan')
+            <li class="nav-item">
+                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
+                    <i class="fas fa-shopping-cart me-2"></i>Penjualan
+                </a>
+            </li>
+            @endrole
         </ul>
     </div>
-</li>
+    </li>
+    @endif
 
-   @role('admin')
-<hr class="sidebar-divider opacity-25 mx-3 my-2">
-<div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-    <i class="fas fa-shield-alt me-1"></i> Sistem
-</div>
+    {{-- ==================== SISTEM (Admin Only) ==================== --}}
+    @role('admin')
+    <hr class="sidebar-divider opacity-25 mx-3 my-2">
+    <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
+        <i class="fas fa-shield-alt me-1"></i> Sistem
+    </div>
 
-<li class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('admin.users.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-users-cog"></i></div>
-        <span>Kelola Pengguna</span>
-    </a>
-</li>
+    <li class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('admin.users.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-users-cog"></i></div>
+            <span>Kelola Pengguna</span>
+        </a>
+    </li>
 
-<li class="nav-item {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('admin.roles.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-user-tag"></i></div>
-        <span>Daftar Role</span>
-    </a>
-</li>
-@endrole
+    <li class="nav-item {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('admin.roles.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-user-tag"></i></div>
+            <span>Daftar Role</span>
+        </a>
+    </li>
+    @endrole
 
+    {{-- ==================== PROFILE & LOGOUT ==================== --}}
     <div class="flex-grow-1"></div>
 
     <div class="mx-3 mt-4 mb-4">
@@ -232,12 +273,6 @@
                 </button>
             </form>
         </div>
-    </div>
-
-    <div class="text-center mb-4">
-        <button class="rounded-circle border-0 d-flex justify-content-center align-items-center mx-auto transition-icon" id="sidebarToggle" style="width: 35px; height: 35px; background-color: rgba(255,255,255,0.1); cursor: pointer;">
-            <i class="fas fa-chevron-left text-white-50"></i>
-        </button>
     </div>
 </ul>
 
@@ -267,7 +302,7 @@
 }
 
 .custom-hover:hover .icon-box {
-    color: #ffc107; /* Warning color to pop */
+    color: #ffc107;
 }
 
 .nav-item.active .nav-link {
