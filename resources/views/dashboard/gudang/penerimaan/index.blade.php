@@ -133,6 +133,8 @@
     .table-hover tbody tr:hover {
         background-color: #f8fafc;
     }
+
+    
 </style>
 @endpush
 
@@ -495,7 +497,7 @@
                     Menampilkan {{ $penerimaan->firstItem() ?? 0 }} - {{ $penerimaan->lastItem() ?? 0 }} 
                     dari {{ $penerimaan->total() }} data
                 </small>
-                {{ $penerimaan->appends(request()->query())->links() }}
+                {{ $penerimaan->appends(request()->query())->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
