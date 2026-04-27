@@ -89,12 +89,13 @@
         <i class="fas fa-industry me-1"></i> Produksi
     </div>
 
-    <li class="nav-item {{ request()->routeIs('produksi.index') ? 'active' : '' }}">
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.index') }}">
-            <div class="icon-box me-3"><i class="fas fa-cogs"></i></div>
-            <span>Proses Produksi</span>
-        </a>
-    </li>
+    {{-- Proses Produksi --}}
+<li class="nav-item {{ request()->routeIs('produksi.produksi') || request()->routeIs('produksi.create') || request()->routeIs('produksi.show') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.produksi') }}">
+        <div class="icon-box me-3"><i class="fas fa-cogs"></i></div>
+        <span>Proses Produksi</span>
+    </a>
+</li>
 
     <li class="nav-item {{ request()->routeIs('produksi.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.stok.index') }}">
@@ -135,23 +136,25 @@
         <i class="fas fa-shopping-cart me-1"></i> Penjualan
     </div>
 
-    <li class="nav-item {{ request()->routeIs('penjualan.index') ? 'active' : '' }}">
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('penjualan.index') }}">
-            <div class="icon-box me-3"><i class="fas fa-cash-register"></i></div>
-            <span>Transaksi Penjualan</span>
-        </a>
-    </li>
+    {{-- Transaksi Penjualan --}}
+<li class="nav-item {{ request()->routeIs('penjualan.penjualan') || request()->routeIs('penjualan.create') || request()->routeIs('penjualan.show') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('penjualan.penjualan') }}">
+        <div class="icon-box me-3"><i class="fas fa-cash-register"></i></div>
+        <span>Transaksi Penjualan</span>
+    </a>
+</li>
     @endhasanyrole
 
-    {{-- Pembeli hanya untuk Admin --}}
-    @role('admin')
-    <li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('penjualan.pembeli.index') }}">
-            <div class="icon-box me-3"><i class="fas fa-users"></i></div>
-            <span>Data Pembeli</span>
-        </a>
-    </li>
-    @endrole
+    @hasanyrole('admin|penjualan')
+<li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover"
+       href="{{ route('penjualan.pembeli.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-users"></i></div>
+        <span>Data Pembeli</span>
+    </a>
+</li>
+@endhasanyrole
 
     {{-- ==================== LAPORAN (Sesuai Role) ==================== --}}
     @if(auth()->user()->hasAnyRole(['admin', 'gudang', 'produksi', 'penjualan']))

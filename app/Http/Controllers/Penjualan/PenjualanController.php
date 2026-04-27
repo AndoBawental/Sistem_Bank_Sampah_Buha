@@ -15,18 +15,21 @@ use Illuminate\Support\Facades\DB;
 class PenjualanController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar transaksi penjualan.
      */
-    public function index(Request $request)
+    public function penjualan(Request $request)
     {
         $query = Penjualan::with(['pembeli', 'user', 'detailPenjualan']);
 
+        // Filter tanggal
         if ($request->filled('dari_tanggal')) {
             $query->whereDate('tanggal', '>=', $request->dari_tanggal);
         }
         if ($request->filled('sampai_tanggal')) {
             $query->whereDate('tanggal', '<=', $request->sampai_tanggal);
         }
+        
+        // Filter pembeli
         if ($request->filled('pembeli_id')) {
             $query->where('pembeli_id', $request->pembeli_id);
         }
@@ -36,8 +39,12 @@ class PenjualanController extends Controller
             $perPage = 10;
         }
 
-        $penjualan = $query->orderBy('tanggal', 'desc')->orderBy('id', 'desc')->paginate($perPage);
+        $penjualan = $query->orderBy('tanggal', 'desc')
+                          ->orderBy('id', 'desc')
+                          ->paginate($perPage)
+                          ->withQueryString();
 
+        // Statistik untuk tampilan
         $totalTransaksi    = Penjualan::count();
         $totalPenjualan    = Penjualan::sum('total_harga');
         $transaksiHariIni  = Penjualan::whereDate('tanggal', today())->count();
@@ -46,12 +53,17 @@ class PenjualanController extends Controller
 
         $listPembeli = Pembeli::select('id', 'nama')->orderBy('nama')->get();
 
-        return view('dashboard.penjualan.index', compact(
-            'penjualan', 'totalTransaksi', 'totalPenjualan',
-            'transaksiHariIni', 'transaksiBulanIni', 'listPembeli'
+        return view('dashboard.penjualan.penjualan', compact(
+            'penjualan', 
+            'totalTransaksi', 
+            'totalPenjualan',
+            'transaksiHariIni', 
+            'transaksiBulanIni', 
+            'listPembeli'
         ));
     }
- /**
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -76,7 +88,6 @@ class PenjualanController extends Controller
             ->orderBy('jenis_produk.nama')
             ->get()
             ->map(function ($item) {
-                // Pastikan stok_tersedia integer karena satuan Unit
                 $item->stok_tersedia = max(0, (int)$item->stok_masuk - (int)$item->stok_keluar);
                 return $item;
             });
@@ -84,8 +95,7 @@ class PenjualanController extends Controller
         return view('dashboard.penjualan.create', compact('pembeli', 'jenisProduk'));
     }
 
-
-     /**
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -95,7 +105,6 @@ class PenjualanController extends Controller
             'pembeli_id'                 => 'required|exists:pembeli,id',
             'items'                      => 'required|array|min:1',
             'items.*.jenis_produk_id'    => 'required|exists:jenis_produk,id',
-            // Validasi qty sebagai integer minimal 1 (karena per Unit)
             'items.*.qty'                => 'required|integer|min:1',
             'items.*.harga'              => 'required|numeric|min:0',
         ], [
@@ -112,15 +121,13 @@ class PenjualanController extends Controller
             $totalHarga = 0;
             $details    = [];
 
-            // Hitung stok tersedia saat ini
             $stokTersedia = $this->hitungStokTersedia();
 
             foreach ($request->items as $index => $item) {
                 $produkId = $item['jenis_produk_id'];
-                $qty      = (int) $item['qty']; // Cast ke integer
+                $qty      = (int) $item['qty'];
                 $stok     = $stokTersedia[$produkId] ?? 0;
 
-                // Validasi stok mencukupi
                 if ($qty > $stok) {
                     $produk = JenisProduk::find($produkId);
                     throw new \Exception(
@@ -140,15 +147,13 @@ class PenjualanController extends Controller
                 ];
             }
 
-            // Simpan header penjualan
             $penjualan = Penjualan::create([
-               'tanggal' => $request->tanggal . ' ' . now()->format('H:i:s'),
+                'tanggal'     => $request->tanggal . ' ' . now()->format('H:i:s'),
                 'pembeli_id'  => $request->pembeli_id,
                 'user_id'     => auth()->id(),
                 'total_harga' => $totalHarga,
             ]);
 
-            // Simpan detail penjualan
             foreach ($details as $detail) {
                 $detail['penjualan_id'] = $penjualan->id;
                 DetailPenjualan::create($detail);
@@ -158,102 +163,6 @@ class PenjualanController extends Controller
 
             return redirect()->route('penjualan.show', $penjualan->id)
                 ->with('success', 'Transaksi penjualan berhasil disimpan.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            // Kembalikan dengan error yang akan ditampilkan SweetAlert di view
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        $penjualan   = Penjualan::with(['pembeli', 'detailPenjualan.jenisProduk'])->findOrFail($id);
-        $pembeli     = Pembeli::orderBy('nama')->get();
-
-        // Stok tersedia + tambahkan kembali qty yang sedang diedit (agar bisa diubah ke nilai sama/lebih kecil)
-        $qtyDiedit = $penjualan->detailPenjualan->pluck('qty', 'jenis_produk_id');
-
-        $stokTersedia = $this->hitungStokTersedia();
-
-        $jenisProduk = JenisProduk::orderBy('nama')->get()->map(function ($item) use ($stokTersedia, $qtyDiedit) {
-            // Kembalikan qty yang sedang diedit ke stok agar angka yang ditampilkan akurat
-            $item->stok_tersedia = ($stokTersedia[$item->id] ?? 0) + ($qtyDiedit[$item->id] ?? 0);
-            return $item;
-        });
-
-        return view('dashboard.penjualan.edit', compact('penjualan', 'pembeli', 'jenisProduk'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'tanggal'                    => 'required|date',
-            'pembeli_id'                 => 'required|exists:pembeli,id',
-            'items'                      => 'required|array|min:1',
-            'items.*.jenis_produk_id'    => 'required|exists:jenis_produk,id',
-            'items.*.qty'                => 'required|numeric|min:0.01',
-            'items.*.harga'              => 'required|numeric|min:0',
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            $penjualan = Penjualan::findOrFail($id);
-
-            // Stok tersedia + kembalikan qty lama agar validasi tidak terlalu ketat
-            $qtyLama      = $penjualan->detailPenjualan->pluck('qty', 'jenis_produk_id');
-            $stokTersedia = $this->hitungStokTersedia();
-
-            $totalHarga = 0;
-            $details    = [];
-
-            foreach ($request->items as $item) {
-                $produkId    = $item['jenis_produk_id'];
-                $qty         = (float) $item['qty'];
-                $stokEfektif = ($stokTersedia[$produkId] ?? 0) + ($qtyLama[$produkId] ?? 0);
-
-                if ($qty > $stokEfektif) {
-                    $produk = JenisProduk::find($produkId);
-                    throw new \Exception(
-                        "Stok {$produk->nama} tidak mencukupi. Tersedia: " .
-                        number_format($stokEfektif, 2) . " Kg."
-                    );
-                }
-
-                $subtotal    = $qty * (float) $item['harga'];
-                $totalHarga += $subtotal;
-                $details[]   = [
-                    'jenis_produk_id' => $produkId,
-                    'qty'             => $qty,
-                    'harga'           => (float) $item['harga'],
-                    'subtotal'        => $subtotal,
-                ];
-            }
-
-            $penjualan->update([
-                'tanggal'     => $request->tanggal,
-                'pembeli_id'  => $request->pembeli_id,
-                'total_harga' => $totalHarga,
-            ]);
-
-            // Hapus detail lama, simpan yang baru
-            $penjualan->detailPenjualan()->delete();
-            foreach ($details as $detail) {
-                $detail['penjualan_id'] = $penjualan->id;
-                DetailPenjualan::create($detail);
-            }
-
-            DB::commit();
-
-            return redirect()->route('penjualan.show', $penjualan->id)
-                ->with('success', 'Transaksi penjualan berhasil diupdate.');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -273,14 +182,92 @@ class PenjualanController extends Controller
     }
 
     /**
-     * Print nota.
+     * Show the form for editing the specified resource.
      */
-    public function nota($id)
+    public function edit($id)
     {
-        $penjualan = Penjualan::with(['pembeli', 'user', 'detailPenjualan.jenisProduk'])
-            ->findOrFail($id);
+        $penjualan   = Penjualan::with(['pembeli', 'detailPenjualan.jenisProduk'])->findOrFail($id);
+        $pembeli     = Pembeli::orderBy('nama')->get();
 
-        return view('dashboard.penjualan.nota', compact('penjualan'));
+        $qtyDiedit = $penjualan->detailPenjualan->pluck('qty', 'jenis_produk_id');
+        $stokTersedia = $this->hitungStokTersedia();
+
+        $jenisProduk = JenisProduk::orderBy('nama')->get()->map(function ($item) use ($stokTersedia, $qtyDiedit) {
+            $item->stok_tersedia = ($stokTersedia[$item->id] ?? 0) + ($qtyDiedit[$item->id] ?? 0);
+            return $item;
+        });
+
+        return view('dashboard.penjualan.edit', compact('penjualan', 'pembeli', 'jenisProduk'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal'                    => 'required|date',
+            'pembeli_id'                 => 'required|exists:pembeli,id',
+            'items'                      => 'required|array|min:1',
+            'items.*.jenis_produk_id'    => 'required|exists:jenis_produk,id',
+            'items.*.qty'                => 'required|integer|min:1',
+            'items.*.harga'              => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $penjualan = Penjualan::findOrFail($id);
+            $qtyLama      = $penjualan->detailPenjualan->pluck('qty', 'jenis_produk_id');
+            $stokTersedia = $this->hitungStokTersedia();
+
+            $totalHarga = 0;
+            $details    = [];
+
+            foreach ($request->items as $item) {
+                $produkId    = $item['jenis_produk_id'];
+                $qty         = (int) $item['qty'];
+                $stokEfektif = ($stokTersedia[$produkId] ?? 0) + ($qtyLama[$produkId] ?? 0);
+
+                if ($qty > $stokEfektif) {
+                    $produk = JenisProduk::find($produkId);
+                    throw new \Exception(
+                        "Stok {$produk->nama} tidak mencukupi. Tersedia: " .
+                        number_format($stokEfektif, 0) . " Unit."
+                    );
+                }
+
+                $subtotal    = $qty * (float) $item['harga'];
+                $totalHarga += $subtotal;
+                $details[]   = [
+                    'jenis_produk_id' => $produkId,
+                    'qty'             => $qty,
+                    'harga'           => (float) $item['harga'],
+                    'subtotal'        => $subtotal,
+                ];
+            }
+
+            $penjualan->update([
+                'tanggal'     => $request->tanggal,
+                'pembeli_id'  => $request->pembeli_id,
+                'total_harga' => $totalHarga,
+            ]);
+
+            $penjualan->detailPenjualan()->delete();
+            foreach ($details as $detail) {
+                $detail['penjualan_id'] = $penjualan->id;
+                DetailPenjualan::create($detail);
+            }
+
+            DB::commit();
+
+            return redirect()->route('penjualan.show', $penjualan->id)
+                ->with('success', 'Transaksi penjualan berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -292,29 +279,32 @@ class PenjualanController extends Controller
         $penjualan->detailPenjualan()->delete();
         $penjualan->delete();
 
-        return redirect()->route('penjualan.index')
+        return redirect()->route('penjualan.penjualan')
             ->with('success', 'Data penjualan berhasil dihapus.');
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    /**
+     * Print nota.
+     */
+    public function nota($id)
+    {
+        $penjualan = Penjualan::with(['pembeli', 'user', 'detailPenjualan.jenisProduk'])
+            ->findOrFail($id);
 
-    // Di dalam PenjualanController, tambahkan/update method ini:
+        return view('dashboard.penjualan.nota', compact('penjualan'));
+    }
 
- /**
+    /**
      * Hitung stok tersedia per jenis produk (dalam satuan Unit).
-     *
-     * @return array<int, int>  [ jenis_produk_id => stok_tersedia ]
      */
     private function hitungStokTersedia(): array
     {
-        // Stok masuk dari produksi
         $masuk = DB::table('detail_hasil_produksi')
             ->select('jenis_produk_id', DB::raw('SUM(jumlah) as total'))
             ->groupBy('jenis_produk_id')
             ->pluck('total', 'jenis_produk_id')
             ->toArray();
 
-        // Stok keluar dari penjualan
         $keluar = DB::table('detail_penjualan')
             ->select('jenis_produk_id', DB::raw('SUM(qty) as total'))
             ->groupBy('jenis_produk_id')

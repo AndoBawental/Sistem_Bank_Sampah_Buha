@@ -13,10 +13,10 @@ use App\Models\Stok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
 class ProduksiController extends Controller
 {
-    public function index(Request $request)
+    
+    public function produksi(Request $request)
     {
         $query = Produksi::with(['jenisProduk', 'detailBahanProduksi', 'detailHasilProduksi']);
 
@@ -47,7 +47,7 @@ class ProduksiController extends Controller
 
         $jenisProduk = JenisProduk::orderBy('nama')->get();
 
-        return view('dashboard.produksi.index', compact(
+        return view('dashboard.produksi.produksi', compact(
             'produksi', 'produksiBulanIni', 'totalBahan', 'totalHasil', 'jenisProduk'
         ));
     }
@@ -77,13 +77,13 @@ class ProduksiController extends Controller
         DB::beginTransaction();
 
         try {
-            // Simpan header produksi
+            // Simpan header produksi - FIX: gunakan tanggal dari request
             $produksi = Produksi::create([
-    'tanggal' => now(),
-    'jenis_produk_id' => $request->jenis_produk_id,
-    'user_id' => auth()->id(),
-    'keterangan' => $request->keterangan,
-]);
+                'tanggal' => $request->tanggal,
+                'jenis_produk_id' => $request->jenis_produk_id,
+                'user_id' => auth()->id(),
+                'keterangan' => $request->keterangan,
+            ]);
 
             // Simpan bahan & kurangi stok bahan baku
             foreach ($request->bahan as $bahan) {
@@ -97,11 +97,10 @@ class ProduksiController extends Controller
             }
 
             // Simpan hasil produksi
-            // jenis_produk_id diambil dari header produksi agar stok produk gudang terupdate
             foreach ($request->hasil as $hasil) {
                 DetailHasilProduksi::create([
                     'produksi_id'     => $produksi->id,
-                    'jenis_produk_id' => $request->jenis_produk_id, // ← FIX: wajib diisi
+                    'jenis_produk_id' => $request->jenis_produk_id,
                     'jumlah'          => $hasil['jumlah'],
                 ]);
             }
@@ -123,7 +122,7 @@ class ProduksiController extends Controller
             'jenisProduk',
             'user',
             'detailBahanProduksi.jenisPlastik',
-            'detailHasilProduksi.jenisProduk', // ← load relasi agar bisa ditampilkan di view
+            'detailHasilProduksi.jenisProduk',
         ])->findOrFail($id);
 
         return view('dashboard.produksi.show', compact('produksi'));

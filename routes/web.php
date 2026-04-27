@@ -15,7 +15,9 @@ use App\Http\Controllers\DataUtama\JenisProdukController;
 use App\Http\Controllers\Penjualan\PenjualanController;
 use App\Http\Controllers\Penjualan\PembeliController;
 use App\Http\Controllers\Laporan\LaporanController;
+use App\Http\Controllers\Produksi\DashboardController;
 use App\Http\Controllers\Gudang\DashboardController as GudangDashboardController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -112,11 +114,10 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::middleware(['role:admin|produksi'])->prefix('produksi')->name('produksi.')->group(function () {
         
-        Route::get('/dashboard', function() {
-            return view('dashboard.produksi.produksi');
-        })->name('dashboard');
+       Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->name('dashboard');
         
-        Route::get('/', [ProduksiController::class, 'index'])->name('index');
+        Route::get('/', [ProduksiController::class, 'produksi'])->name('produksi');
         Route::get('/create', [ProduksiController::class, 'create'])->name('create');
         Route::post('/', [ProduksiController::class, 'store'])->name('store');
         
@@ -139,26 +140,41 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('jenis-produk', JenisProdukController::class);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | PENJUALAN ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['role:admin|penjualan'])->prefix('penjualan')->name('penjualan.')->group(function () {
-        
-        Route::get('/dashboard', function() {
-            return view('dashboard.penjualan.penjualan');
-        })->name('dashboard');
-        
+ Route::middleware(['auth', 'role:admin|penjualan'])
+    ->prefix('penjualan')
+    ->name('penjualan.')
+    ->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\Penjualan\DashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // Pembeli
         Route::resource('pembeli', PembeliController::class);
-        Route::get('/', [PenjualanController::class, 'index'])->name('index');
+
+        // Halaman utama transaksi penjualan
+        Route::get('/', [PenjualanController::class, 'penjualan'])->name('penjualan');
+
+        // Tambah transaksi
         Route::get('/create', [PenjualanController::class, 'create'])->name('create');
+
+        // Simpan transaksi
         Route::post('/', [PenjualanController::class, 'store'])->name('store');
+
+        // Detail transaksi
         Route::get('/{id}', [PenjualanController::class, 'show'])->name('show');
-        Route::get('/{id}/nota', [PenjualanController::class, 'nota'])->name('nota');
-        Route::delete('/{id}', [PenjualanController::class, 'destroy'])->name('destroy');
+
+        // Edit transaksi
         Route::get('/{id}/edit', [PenjualanController::class, 'edit'])->name('edit');
+
+        // Update transaksi
         Route::put('/{id}', [PenjualanController::class, 'update'])->name('update');
+
+        // Hapus transaksi
+        Route::delete('/{id}', [PenjualanController::class, 'destroy'])->name('destroy');
+
+        // Nota
+        Route::get('/{id}/nota', [PenjualanController::class, 'nota'])->name('nota');
     });
 
     /*

@@ -371,7 +371,7 @@
                             <td>
                                 {{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}
                                 <br>
-                                <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal)->diffForHumans() }}</small>
+                                <small class="text-muted">{{ str_replace('yang lalu', 'lalu', \Carbon\Carbon::parse($item->tanggal)->diffForHumans()) }}</small>
                             </td>
                             <td>{{ $item->supplier->nama }}</td>
                             <td>

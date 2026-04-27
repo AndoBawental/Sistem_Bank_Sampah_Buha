@@ -192,7 +192,7 @@
 
         {{-- Tombol --}}
         <div class="d-flex gap-2 mb-4">
-            <a href="{{ route('produksi.index') }}" class="btn btn-light rounded-pill px-4">
+            <a href="{{ route('produksi.produksi') }}" class="btn btn-light rounded-pill px-4">
                 <i class="fas fa-arrow-left me-1"></i>Kembali
             </a>
             <button type="button" class="btn btn-success rounded-pill px-4" onclick="simpanProduksi()">

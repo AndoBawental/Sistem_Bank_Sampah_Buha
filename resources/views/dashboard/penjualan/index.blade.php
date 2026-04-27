@@ -1,305 +1,299 @@
+{{-- resources/views/dashboard/penjualan/index.blade.php --}}
 @extends('layouts.app')
 
+@section('title', 'Dashboard Penjualan')
+@section('page-title', 'Dashboard Penjualan')
+
+@push('styles')
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border-radius: 16px;
+        padding: 24px;
+        color: white;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .stat-card.success { border-left-color: #198754; }
+    .stat-card.warning { border-left-color: #f59e0b; }
+    .stat-card.info { border-left-color: #0dcaf0; }
+    .stat-card.purple { border-left-color: #6f42c1; }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    
+    .recent-transaction {
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+    .recent-transaction:hover {
+        border-left-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 250px;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container mt-4 mb-5">
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0 fw-bold text-secondary">
-            <i class="bi bi-cart3"></i> 🛒 Data Penjualan
-        </h4>
-        <a href="{{ route('penjualan.create') }}" class="btn btn-primary shadow-sm">
-            + Tambah Penjualan
-        </a>
+<div class="container-fluid px-3">
+    
+    {{-- Welcome Banner --}}
+    <div class="welcome-banner">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h4 class="mb-1 fw-bold">Selamat Datang, {{ auth()->user()->name }}!</h4>
+                <p class="mb-0 opacity-75">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    {{ now()->translatedFormat('l, d F Y') }}
+                </p>
+            </div>
+            <div class="col-md-4 text-end mt-3 mt-md-0">
+                <a href="{{ route('penjualan.create') }}" class="btn btn-light btn-lg rounded-pill">
+                    <i class="fas fa-plus-circle me-1"></i> Transaksi Baru
+                </a>
+            </div>
+        </div>
     </div>
 
-    {{-- Alert --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-            ✅ {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-            ❌ {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    {{-- Info Ringkas (4 Kolom Utama) --}}
+    {{-- Ringkasan Hari Ini --}}
+    <h6 class="text-muted mb-3 fw-bold">
+        <i class="fas fa-sun me-1"></i> Ringkasan Hari Ini
+    </h6>
     <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <small class="text-muted fw-semibold">Total Transaksi</small>
-                    <h3 class="mb-0 mt-1 fw-bold text-dark">{{ $totalTransaksi }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <small class="text-muted fw-semibold">Hari Ini</small>
-                    <h3 class="mb-0 mt-1 fw-bold text-info">{{ $transaksiHariIni }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <small class="text-muted fw-semibold">Bulan Ini</small>
-                    <h3 class="mb-0 mt-1 fw-bold text-primary">{{ $transaksiBulanIni }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card shadow-sm border-0 h-100 bg-primary text-white">
-                <div class="card-body">
-                    <small class="text-white-50 fw-semibold">Total Penjualan</small>
-                    <h3 class="mb-0 mt-1 fw-bold">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Ringkasan Periode Ini --}}
-    @if($penjualan->count() > 0)
-        <div class="card shadow-sm border-0 mb-4 bg-light">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                    <span class="text-muted fw-bold">
-                        📊 Ringkasan Periode 
-                        @if(request('dari_tanggal') || request('sampai_tanggal'))
-                            <span class="text-primary">Terpilih</span>
-                        @else
-                            <span class="text-primary">Bulan Ini</span>
-                        @endif
-                    </span>
-                </div>
-                <div class="row g-2 text-center">
-                    <div class="col-4 col-md-2 border-end">
-                        <small class="text-muted d-block">Total</small>
-                        <span class="fw-bold fs-5">{{ $penjualan->total() }}</span>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <small class="text-muted d-block">Transaksi Hari Ini</small>
+                        <h3 class="mb-0 fw-bold">{{ $totalTransaksiHariIni }}</h3>
                     </div>
-                    <div class="col-4 col-md-2 border-end">
-                        <small class="text-muted d-block">Rata-rata</small>
-                        <span class="fw-bold fs-5">Rp {{ number_format($penjualan->avg('total_harga') ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="col-4 col-md-2 border-end">
-                        <small class="text-muted d-block">Tertinggi</small>
-                        <span class="fw-bold fs-5 text-success">Rp {{ number_format($penjualan->max('total_harga') ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="col-4 col-md-2 border-end">
-                        <small class="text-muted d-block">Terendah</small>
-                        <span class="fw-bold fs-5 text-danger">Rp {{ number_format($penjualan->min('total_harga') ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                   
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- Filter Section --}}
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body bg-white">
-            <form method="GET" action="{{ route('penjualan.index') }}" id="filterForm">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold">Dari Tanggal</label>
-                        <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ request('dari_tanggal') }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label text-muted small fw-bold">Sampai Tanggal</label>
-                        <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ request('sampai_tanggal') }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted small fw-bold">Pembeli</label>
-                        <select name="pembeli_id" class="form-select form-select-sm">
-                            <option value="">-- Semua Pembeli --</option>
-                            @foreach($listPembeli as $p)
-                                <option value="{{ $p->id }}" {{ request('pembeli_id') == $p->id ? 'selected' : '' }}>
-                                    {{ $p->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100">
-                            🔍 Filter
-                        </button>
-                        <a href="{{ route('penjualan.index') }}" class="btn btn-sm btn-light border w-100">
-                            ✖ Reset
-                        </a>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Info Filter Aktif --}}
-    @if(request('dari_tanggal') || request('sampai_tanggal') || request('pembeli_id'))
-        <div class="alert alert-info py-2 shadow-sm d-flex align-items-center">
-            <i class="bi bi-info-circle me-2"></i>
-            <small class="mb-0">
-                <strong>Filter Aktif:</strong> Menampilkan data 
-                @if(request('dari_tanggal') || request('sampai_tanggal'))
-                    @if(request('dari_tanggal') && request('sampai_tanggal'))
-                        dari <b>{{ date('d/m/Y', strtotime(request('dari_tanggal'))) }}</b> sampai <b>{{ date('d/m/Y', strtotime(request('sampai_tanggal'))) }}</b>
-                    @elseif(request('dari_tanggal'))
-                        dari <b>{{ date('d/m/Y', strtotime(request('dari_tanggal'))) }}</b>
-                    @elseif(request('sampai_tanggal'))
-                        sampai <b>{{ date('d/m/Y', strtotime(request('sampai_tanggal'))) }}</b>
-                    @endif
-                @endif
-                
-                @if(request('pembeli_id'))
-                    @php $pembeliTerpilih = $listPembeli->firstWhere('id', request('pembeli_id')); @endphp
-                    | Pembeli: <b>{{ $pembeliTerpilih->nama ?? '' }}</b>
-                @endif
-                | Total: <b>{{ $penjualan->total() }}</b> transaksi.
-            </small>
-        </div>
-    @endif
-
-    {{-- Tabel Data --}}
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="50" class="text-center">No</th>
-                            <th>Invoice</th>
-                            <th width="120">Tanggal</th>
-                            <th>Pembeli</th>
-                            <th width="150">Total</th>
-                            <th width="120">Kasir</th>
-                            <th width="220" class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($penjualan as $index => $item)
-                            <tr>
-                                <td class="text-center">{{ $penjualan->firstItem() + $index }}</td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">
-                                        INV-{{ str_pad($item->id, 6, '0', STR_PAD_LEFT) }}
-                                    </span>
-                                </td>
-                                <td>{{ date('d/m/Y', strtotime($item->tanggal)) }}</td>
-                                <td>
-                                    <span class="fw-semibold">{{ $item->pembeli->nama ?? 'Umum' }}</span>
-                                    @if($item->pembeli && $item->pembeli->telepon)
-                                        <br><small class="text-muted">{{ $item->pembeli->telepon }}</small>
-                                    @endif
-                                </td>
-                                <td class="fw-bold text-success">
-                                    Rp {{ number_format($item->total_harga, 0, ',', '.') }}
-                                </td>
-                                <td>
-                                    <small class="text-muted">{{ $item->user->name ?? '-' }}</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1 justify-content-center">
-                                        <a href="{{ route('penjualan.show', $item->id) }}" class="btn btn-sm btn-info text-white" title="Detail">
-                                            Detail
-                                        </a>
-                                        <a href="{{ route('penjualan.edit', $item->id) }}" class="btn btn-sm btn-warning text-white" title="Edit">
-                                            Edit
-                                        </a>
-                                        <a href="{{ route('penjualan.nota', $item->id) }}" class="btn btn-sm btn-success" target="_blank" title="Cetak Nota">
-                                            Nota
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="hapusData({{ $item->id }})" title="Hapus">
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <div class="fs-1 mb-2">📋</div>
-                                    <h5>Belum ada data penjualan</h5>
-                                    <p class="mb-3">Silakan tambah data penjualan baru untuk memulai.</p>
-                                    <a href="{{ route('penjualan.create') }}" class="btn btn-primary shadow-sm">
-                                        + Tambah Penjualan
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                    @if($penjualan->count() > 0)
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="4" class="text-end fw-bold">Total Halaman Ini:</td>
-                                <td colspan="3" class="fw-bold text-primary">
-                                    Rp {{ number_format($penjualan->sum('total_harga'), 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    @endif
-                </table>
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>Update real-time
+                </small>
             </div>
         </div>
         
-        {{-- Pagination & Limit --}}
-        @if($penjualan->count() > 0)
-            <div class="card-footer bg-white py-3">
-                <div class="row align-items-center g-2">
-                    <div class="col-12 col-md-4 d-flex justify-content-center justify-content-md-start">
-                        <div class="d-flex align-items-center gap-2">
-                            <small class="text-muted mb-0">Tampilkan:</small>
-                            <select class="form-select form-select-sm w-auto shadow-none" onchange="ubahJumlahData(this.value)">
-                                <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
-                                <option value="10" {{ !request('per_page') || request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                                <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
-                                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                            </select>
-                            <small class="text-muted">data</small>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card success">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <small class="text-muted d-block">Pendapatan Hari Ini</small>
+                        <h4 class="mb-0 fw-bold text-success">
+                            Rp {{ number_format($totalPendapatanHariIni, 0, ',', '.') }}
+                        </h4>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-chart-line me-1"></i>Pendapatan kotor
+                </small>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card info">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <small class="text-muted d-block">Rata-rata Transaksi</small>
+                        <h4 class="mb-0 fw-bold text-info">
+                            Rp {{ number_format($rataRataTransaksi, 0, ',', '.') }}
+                        </h4>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Per transaksi
+                </small>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card purple">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <small class="text-muted d-block">Total Pembeli</small>
+                        <h3 class="mb-0 fw-bold text-purple">{{ $totalPembeli }}</h3>
+                    </div>
+                    <div class="stat-icon bg-purple bg-opacity-10 text-purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-database me-1"></i>Terdaftar
+                </small>
+            </div>
+        </div>
+    </div>
+
+    {{-- Ringkasan Bulan Ini & Keseluruhan --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-calendar-check text-primary me-2"></i>Bulan Ini
+                    </h6>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <small class="text-muted d-block">Total Transaksi</small>
+                            <h4 class="mb-0 fw-bold">{{ $totalTransaksiBulanIni }}</h4>
+                            <small class="text-muted">transaksi</small>
                         </div>
-                    </div>
-                    <div class="col-12 col-md-4 text-center">
-                        <small class="text-muted">
-                            Menampilkan <b>{{ $penjualan->firstItem() }}</b> - <b>{{ $penjualan->lastItem() }}</b> 
-                            dari total <b>{{ $penjualan->total() }}</b> data
-                        </small>
-                    </div>
-                    <div class="col-12 col-md-4 d-flex justify-content-center justify-content-md-end mt-2 mt-md-0">
-                        {{ $penjualan->appends(request()->query())->links('pagination::bootstrap-5') }}
+                        <div class="col-6">
+                            <small class="text-muted d-block">Total Pendapatan</small>
+                            <h4 class="mb-0 fw-bold text-success">
+                                Rp {{ number_format($totalPendapatanBulanIni, 0, ',', '.') }}
+                            </h4>
+                            <small class="text-muted">rupiah</small>
+                        </div>
                     </div>
                 </div>
             </div>
-        @endif
+        </div>
+        
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-globe text-success me-2"></i>Keseluruhan
+                    </h6>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <small class="text-muted d-block">Semua Transaksi</small>
+                            <h4 class="mb-0 fw-bold">{{ $totalSemuaTransaksi }}</h4>
+                            <small class="text-muted">transaksi</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Total Pendapatan</small>
+                            <h4 class="mb-0 fw-bold text-success">
+                                Rp {{ number_format($totalSemuaPendapatan, 0, ',', '.') }}
+                            </h4>
+                            <small class="text-muted">rupiah</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {{-- Transaksi Terbaru --}}
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0">
+                            <i class="fas fa-history text-primary me-2"></i>Transaksi Terbaru
+                        </h6>
+                        <a href="{{ route('penjualan.penjualan') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                            Lihat Semua
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @forelse($transaksiTerbaru as $item)
+                    <div class="recent-transaction p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-light text-dark">
+                                        #{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}
+                                    </span>
+                                    <small class="text-muted">
+                                        {{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y H:i') }}
+                                    </small>
+                                </div>
+                                <span class="fw-semibold">
+                                    {{ $item->pembeli->nama ?? 'Pembeli Umum' }}
+                                </span>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-0 text-success fw-bold">
+                                    Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+                                </h6>
+                                <small class="text-muted">
+                                    Kasir: {{ $item->user->name ?? '-' }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>Belum ada transaksi hari ini</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Produk Terlaris --}}
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <h6 class="fw-bold mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>Produk Terlaris Bulan Ini
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    @forelse($produkTerlaris as $index => $produk)
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning fw-bold" 
+                                 style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                {{ $index + 1 }}
+                            </div>
+                            <div>
+                                <span class="fw-semibold d-block">{{ $produk->nama }}</span>
+                                <small class="text-muted">
+                                    {{ number_format($produk->total_qty, 0) }} Unit terjual
+                                </small>
+                            </div>
+                        </div>
+                        <span class="fw-bold text-success">
+                            Rp {{ number_format($produk->total_pendapatan, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    @empty
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-box-open fa-3x mb-3"></i>
+                        <p>Belum ada data penjualan bulan ini</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-{{-- Form Hapus --}}
-<form id="formHapus" method="POST" style="display: none;">
-    @csrf
-    @method('DELETE')
-</form>
-
 @endsection
-
-@push('scripts')
-<script>
-    function hapusData(id) {
-        if (confirm('Yakin ingin menghapus data penjualan ini? Tindakan ini tidak dapat dibatalkan.')) {
-            const form = document.getElementById('formHapus');
-            form.action = "{{ url('penjualan') }}/" + id;
-            form.submit();
-        }
-    }
-    
-    function ubahJumlahData(perPage) {
-        let url = new URL(window.location.href);
-        url.searchParams.set('per_page', perPage);
-        url.searchParams.set('page', 1); // Reset ke halaman 1
-        window.location.href = url.toString();
-    }
-</script>
-@endpush
