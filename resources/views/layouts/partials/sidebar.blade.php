@@ -1,5 +1,15 @@
 {{-- resources/views/layouts/partials/sidebar.blade.php --}}
 
+{{-- Mobile Toggle Button - Visible only on small screens --}}
+<button class="btn btn-link d-md-none position-fixed top-0 start-0 m-3 z-3 shadow-lg" 
+        id="sidebarToggleMobile" 
+        style="z-index: 1050; background: #115B39; color: white; width: 45px; height: 45px; border-radius: 50%;">
+    <i class="fas fa-bars"></i>
+</button>
+
+{{-- Sidebar Overlay for Mobile --}}
+<div class="sidebar-overlay d-md-none" id="sidebarOverlay" style="display: none;"></div>
+
 <ul class="navbar-nav sidebar accordion shadow-lg" id="accordionSidebar" 
     style="background: linear-gradient(180deg, #115B39 0%, #073520 100%); min-height: 100vh; transition: all 0.3s;">
 
@@ -16,6 +26,13 @@
         }
     @endphp
 
+    {{-- Close button for mobile --}}
+    <div class="d-md-none text-end px-3 pt-3">
+        <button class="btn btn-sm text-white" id="closeSidebarMobile">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+    </div>
+
     <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-4 text-decoration-none"
        href="{{ route($dashboardRoute) }}">
         <div class="sidebar-brand-icon mb-1 premium-icon">
@@ -23,7 +40,7 @@
         </div>
         <div class="sidebar-brand-text text-white fw-bold text-center mt-2">
             <div style="font-size: 1.15rem; letter-spacing: 0.5px;">Bank Sampah Buha</div>
-            <div class="text-warning" style="font-size: 0.8rem; letter-spacing: 1.5px; opacity: 0.9;">RECYCLE MANADO</div>
+            <div style="font-size: 0.75rem; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.75);">Recycle Manado</div>  
         </div>
     </a>
 
@@ -41,7 +58,7 @@
     {{-- ==================== GUDANG ==================== --}}
     @hasanyrole('admin|gudang')
     <div class="sidebar-heading text-white-50 small px-4 mt-3 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-warehouse me-1"></i> Gudang
+        <i class="fas fa-warehouse me-1"></i> <span class="heading-text">Gudang</span>
     </div>
     
     <li class="nav-item {{ request()->routeIs('gudang.penerimaan*') ? 'active' : '' }}">
@@ -86,16 +103,15 @@
     @hasanyrole('admin|produksi')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-industry me-1"></i> Produksi
+        <i class="fas fa-industry me-1"></i> <span class="heading-text">Produksi</span>
     </div>
 
-    {{-- Proses Produksi --}}
-<li class="nav-item {{ request()->routeIs('produksi.produksi') || request()->routeIs('produksi.create') || request()->routeIs('produksi.show') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.produksi') }}">
-        <div class="icon-box me-3"><i class="fas fa-cogs"></i></div>
-        <span>Proses Produksi</span>
-    </a>
-</li>
+    <li class="nav-item {{ request()->routeIs('produksi.produksi') || request()->routeIs('produksi.create') || request()->routeIs('produksi.show') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.produksi') }}">
+            <div class="icon-box me-3"><i class="fas fa-cogs"></i></div>
+            <span>Proses Produksi</span>
+        </a>
+    </li>
 
     <li class="nav-item {{ request()->routeIs('produksi.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('produksi.stok.index') }}">
@@ -109,7 +125,7 @@
     @role('admin')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold">
-        <i class="fas fa-database me-1"></i> Data Utama
+        <i class="fas fa-database me-1"></i> <span class="heading-text">Data Utama</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('data-utama.jenis-plastik*') ? 'active' : '' }}">
@@ -133,95 +149,90 @@
     @hasanyrole('admin|penjualan')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-shopping-cart me-1"></i> Penjualan
+        <i class="fas fa-shopping-cart me-1"></i> <span class="heading-text">Penjualan</span>
     </div>
 
-    {{-- Transaksi Penjualan --}}
-<li class="nav-item {{ request()->routeIs('penjualan.penjualan') || request()->routeIs('penjualan.create') || request()->routeIs('penjualan.show') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('penjualan.penjualan') }}">
-        <div class="icon-box me-3"><i class="fas fa-cash-register"></i></div>
-        <span>Transaksi Penjualan</span>
-    </a>
-</li>
+    <li class="nav-item {{ request()->routeIs('penjualan.penjualan') || request()->routeIs('penjualan.create') || request()->routeIs('penjualan.show') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('penjualan.penjualan') }}">
+            <div class="icon-box me-3"><i class="fas fa-cash-register"></i></div>
+            <span>Transaksi Penjualan</span>
+        </a>
+    </li>
     @endhasanyrole
 
     @hasanyrole('admin|penjualan')
-<li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover"
-       href="{{ route('penjualan.pembeli.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-users"></i></div>
-        <span>Data Pembeli</span>
-    </a>
-</li>
-@endhasanyrole
+    <li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover"
+           href="{{ route('penjualan.pembeli.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-users"></i></div>
+            <span>Data Pembeli</span>
+        </a>
+    </li>
+    @endhasanyrole
 
     {{-- ==================== LAPORAN (Sesuai Role) ==================== --}}
     @if(auth()->user()->hasAnyRole(['admin', 'gudang', 'produksi', 'penjualan']))
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <li class="nav-item mt-2">
-    <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
-       href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan">
-        <div class="d-flex align-items-center">
-            <div class="icon-box me-3"><i class="fas fa-chart-pie"></i></div>
-            <span>Laporan</span>
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
+           href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan">
+            <div class="d-flex align-items-center">
+                <div class="icon-box me-3"><i class="fas fa-chart-pie"></i></div>
+                <span>Laporan</span>
+            </div>
+            <i class="fas fa-chevron-down small transition-icon"></i>
+        </a>
+        <div class="collapse" id="collapseLaporan">
+            <ul class="nav flex-column ms-3 mt-1">
+                @role('admin')
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
+                        <i class="fas fa-truck me-2"></i>Penerimaan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
+                        <i class="fas fa-industry me-2"></i>Produksi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
+                        <i class="fas fa-shopping-cart me-2"></i>Penjualan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.stok') }}">
+                        <i class="fas fa-boxes me-2"></i>Stok
+                    </a>
+                </li>
+                @endrole
+
+                @role('gudang')
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
+                        <i class="fas fa-truck me-2"></i>Penerimaan
+                    </a>
+                </li>
+                @endrole
+
+                @role('produksi')
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
+                        <i class="fas fa-industry me-2"></i>Produksi
+                    </a>
+                </li>
+                @endrole
+
+                @role('penjualan')
+                <li class="nav-item">
+                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
+                        <i class="fas fa-shopping-cart me-2"></i>Penjualan
+                    </a>
+                </li>
+                @endrole
+            </ul>
         </div>
-        <i class="fas fa-chevron-down small"></i>
-    </a>
-    <div class="collapse" id="collapseLaporan">
-        <ul class="nav flex-column ms-3 mt-1">
-            {{-- Admin lihat semua laporan --}}
-            @role('admin')
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
-                    <i class="fas fa-truck me-2"></i>Penerimaan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
-                    <i class="fas fa-industry me-2"></i>Produksi
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
-                    <i class="fas fa-shopping-cart me-2"></i>Penjualan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.stok') }}">
-                    <i class="fas fa-boxes me-2"></i>Stok
-                </a>
-            </li>
-            @endrole
-
-            {{-- Gudang hanya lihat laporan Penerimaan --}}
-            @role('gudang')
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
-                    <i class="fas fa-truck me-2"></i>Penerimaan
-                </a>
-            </li>
-            @endrole
-
-            {{-- Produksi hanya lihat laporan Produksi --}}
-            @role('produksi')
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
-                    <i class="fas fa-industry me-2"></i>Produksi
-                </a>
-            </li>
-            @endrole
-
-            {{-- Penjualan hanya lihat laporan Penjualan --}}
-            @role('penjualan')
-            <li class="nav-item">
-                <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
-                    <i class="fas fa-shopping-cart me-2"></i>Penjualan
-                </a>
-            </li>
-            @endrole
-        </ul>
-    </div>
     </li>
     @endif
 
@@ -229,7 +240,7 @@
     @role('admin')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-shield-alt me-1"></i> Sistem
+        <i class="fas fa-shield-alt me-1"></i> <span class="heading-text">Sistem</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
@@ -258,7 +269,7 @@
             
             <div class="d-flex align-items-center justify-content-center mb-3">
                 <div class="avatar-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;">
-                    {{ substr(auth()->user()->name, 0, 1) }}
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
             </div>
             
@@ -280,6 +291,109 @@
 </ul>
 
 <style>
+/* ========== RESPONSIVE SIDEBAR STYLES ========== */
+
+/* Default Sidebar (Desktop) */
+.sidebar {
+    width: 280px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1040;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Main Content Offset */
+.main-content {
+    margin-left: 280px;
+}
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 240px;
+    }
+    
+    .main-content {
+        margin-left: 240px;
+    }
+    
+    .sidebar-brand-text div:first-child {
+        font-size: 1rem !important;
+    }
+    
+    .sidebar-brand-text div:last-child {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Mobile & Small Tablet (< 768px) */
+@media (max-width: 767.98px) {
+    /* Mobile Toggle Button */
+    #sidebarToggleMobile {
+        display: block !important;
+    }
+    
+    /* Sidebar Hidden by Default on Mobile */
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1050;
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    /* Sidebar Active/Visible State */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    /* Overlay */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+    }
+    
+    /* Reset Main Content Margin */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Smaller text on mobile */
+    .nav-link span {
+        font-size: 0.85rem;
+    }
+    
+    .sidebar-heading {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Small Mobile (< 480px) */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    /* Thinner sidebar on very small screens */
+    .sidebar.active {
+        width: 85vw;
+    }
+}
+
 /* Base Colors & Typography */
 .sidebar .nav-link {
     color: rgba(255, 255, 255, 0.75);
@@ -296,7 +410,7 @@
     transition: all 0.3s ease;
 }
 
-/* Hover & Active States (Glassmorphism) */
+/* Hover & Active States */
 .custom-hover:hover {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
@@ -319,28 +433,6 @@
     color: #ffc107;
 }
 
-/* Sub-menus */
-.glass-menu {
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.collapse-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: none;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-.collapse-item:hover {
-    color: #ffc107;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-}
-
 /* Premium Card (Profile) */
 .glass-card {
     background: rgba(255, 255, 255, 0.08);
@@ -351,6 +443,7 @@
 .logout-btn {
     transition: all 0.3s;
 }
+
 .logout-btn:hover {
     background-color: #ffc107;
     color: #000 !important;
@@ -358,41 +451,154 @@
 }
 
 /* Scrollbar Styling */
-.sidebar {
-    overflow-y: auto;
-    overflow-x: hidden;
-}
 .sidebar::-webkit-scrollbar {
     width: 5px;
 }
+
 .sidebar::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .sidebar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
 }
+
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: #ffc107;
 }
 
 /* Toggle Arrow Animation */
-.transition-icon i {
+.transition-icon {
     transition: transform 0.3s ease;
 }
+
 .collapsed .fa-chevron-down {
     transform: rotate(-90deg);
+}
+
+/* Touch-friendly spacing for mobile */
+@media (max-width: 767.98px) {
+    .nav-link {
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+    
+    .sidebar-brand {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
 }
 </style>
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const sidebarToggle = document.getElementById('sidebarToggle');
+        // Mobile Sidebar Toggle
+        const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+        const closeSidebarMobile = document.getElementById('closeSidebarMobile');
         const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
         
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
+        // Function to open sidebar
+        function openSidebar() {
+            sidebar.classList.add('active');
+            sidebarOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+        
+        // Function to close sidebar
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            sidebarOverlay.style.display = 'none';
+            document.body.style.overflow = ''; // Restore background scroll
+        }
+        
+        // Toggle button click
+        if (sidebarToggleMobile) {
+            sidebarToggleMobile.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openSidebar();
+            });
+        }
+        
+        // Close button click
+        if (closeSidebarMobile) {
+            closeSidebarMobile.addEventListener('click', function() {
+                closeSidebar();
+            });
+        }
+        
+        // Overlay click
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+                closeSidebar();
+            });
+        }
+        
+        // Close sidebar when clicking a nav link (mobile)
+        const navLinks = document.querySelectorAll('.sidebar .nav-link:not([data-bs-toggle="collapse"])');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 768) {
+                    // Don't close immediately, wait for navigation
+                    setTimeout(closeSidebar, 300);
+                }
+            });
+        });
+        
+        // Handle window resize
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (window.innerWidth >= 768) {
+                    // Reset sidebar state on desktop
+                    sidebar.classList.remove('active');
+                    if (sidebarOverlay) {
+                        sidebarOverlay.style.display = 'none';
+                    }
+                    document.body.style.overflow = '';
+                }
+            }, 250);
+        });
+        
+        // Handle swipe gestures for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+        
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+        
+        function handleSwipe() {
+            const swipeThreshold = 100;
+            
+            // Swipe right to open sidebar (from left edge)
+            if (touchStartX < 30 && touchEndX - touchStartX > swipeThreshold) {
+                if (window.innerWidth < 768 && !sidebar.classList.contains('active')) {
+                    openSidebar();
+                }
+            }
+            
+            // Swipe left to close sidebar
+            if (touchStartX > 200 && touchStartX - touchEndX > swipeThreshold) {
+                if (window.innerWidth < 768 && sidebar.classList.contains('active')) {
+                    closeSidebar();
+                }
+            }
+        }
+        
+        // Desktop sidebar toggle (if you have a toggle button for desktop)
+        const sidebarToggleDesktop = document.getElementById('sidebarToggle');
+        
+        if (sidebarToggleDesktop) {
+            sidebarToggleDesktop.addEventListener('click', function() {
                 document.body.classList.toggle('sidebar-toggled');
                 sidebar.classList.toggle('toggled');
                 

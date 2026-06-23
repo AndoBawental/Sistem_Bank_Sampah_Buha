@@ -37,14 +37,7 @@
                 <p class="text-emerald-100 text-lg">Membangun ekosistem lingkungan yang lebih bersih melalui integrasi teknologi di Bank Sampah Buha.</p>
             </div>
             
-            <div class="relative z-10">
-                <div class="flex -space-x-3 mb-4">
-                    <div class="w-10 h-10 rounded-full border-2 border-emerald-600 bg-emerald-200 flex items-center justify-center text-emerald-800 text-xs font-bold">A</div>
-                    <div class="w-10 h-10 rounded-full border-2 border-emerald-600 bg-emerald-300 flex items-center justify-center text-emerald-800 text-xs font-bold">B</div>
-                    <div class="w-10 h-10 rounded-full border-2 border-emerald-600 bg-emerald-400 flex items-center justify-center text-emerald-800 text-xs font-bold">C</div>
-                </div>
-                <p class="text-sm text-emerald-100 italic">"Bergabunglah bersama ratusan warga Buha lainnya."</p>
-            </div>
+            
 
             <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-emerald-500 rounded-full opacity-50"></div>
             <div class="absolute top-1/2 -left-10 w-40 h-40 bg-emerald-400 rounded-full blur-3xl opacity-30"></div>
@@ -58,7 +51,7 @@
 
             <div class="mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-2">Selamat Datang</h2>
-                <p class="text-gray-500">Silakan masuk untuk mengelola data limbah.</p>
+                <p class="text-gray-500">Silakan masuk untuk mengelola data Sampah.</p>
             </div>
 
             @if ($errors->any())
@@ -105,7 +98,7 @@
 
                 <button type="submit" 
                     class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-200 transition-all flex items-center justify-center gap-2 hover:translate-y-[-2px] active:translate-y-[0]">
-                    <span>Masuk Dashboard</span>
+                    <span>Masuk</span>
                     <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </button>
             </form>

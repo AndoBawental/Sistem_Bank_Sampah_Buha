@@ -1,11 +1,11 @@
-{{-- resources/views/index.blade.php --}}
+{{-- resources/views/landing.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bank Sampah Buha – Recycle Manado</title>
-    <meta name="description" content="Bank Sampah Buha membeli segala jenis plastik — PET, PP, HDPE, dan LDPE. Berlokasi di Bailang, Kota Manado, Sulawesi Utara." />
+    <meta name="description" content="Bank Sampah Buha membeli/Menerima segala jenis plastik — PET, PP, HDPE, dan LDPE. Berlokasi di Bailang, Kota Manado, Sulawesi Utara." />
 
     {{-- Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -6,7 +6,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">📋 Detail Penjualan #{{ $penjualan->id }}</h5>
             <div>
-                <a href="{{ route('penjualan.index') }}" class="btn btn-sm btn-secondary">← Kembali</a>
+                <a href="{{ route('penjualan.penjualan') }}" class="btn btn-sm btn-secondary">← Kembali</a>
                 <a href="{{ route('penjualan.nota', $penjualan->id) }}" class="btn btn-sm btn-success" target="_blank">🖨️ Cetak Nota</a>
             </div>
         </div>
