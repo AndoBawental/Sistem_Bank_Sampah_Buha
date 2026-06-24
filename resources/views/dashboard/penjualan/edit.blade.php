@@ -1,432 +1,486 @@
+{{-- resources/views/dashboard/penjualan/edit.blade.php --}}
 @extends('layouts.app')
 
+@section('title', 'Edit Penjualan #' . $penjualan->id)
+@section('page-title', 'Edit Penjualan')
+
+@push('styles')
+<style>
+    .stok-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .stok-aman    { background: #d1e7dd; color: #0a3622; }
+    .stok-menipis { background: #fff3cd; color: #856404; }
+    .stok-habis   { background: #f8d7da; color: #721c24; }
+
+    .stok-preview {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        font-size: 0.8rem;
+        display: none;
+    }
+    .stok-preview.show { display: block; }
+
+    @media (max-width: 575.98px) {
+        .card-body { padding: 0.75rem !important; }
+        h6 { font-size: 0.95rem; }
+        .form-label { font-size: 0.8rem; }
+        .form-control, .form-select { font-size: 0.85rem; }
+        .btn { font-size: 0.85rem; }
+        #tabelProduk thead th { font-size: 0.7rem; }
+        #tabelProduk tbody td { font-size: 0.75rem; }
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container mt-3">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">✏️ Edit Penjualan #{{ $penjualan->id }}</h5>
+<div class="container-fluid px-2 px-md-4 mt-3 mb-4">
+
+    {{-- Error Alert --}}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div class="card-body">
-           <form id="formPenjualan" method="POST" action="{{ route('penjualan.update', $penjualan->id) }}">
-    @csrf
-    @method('PUT')
-                @csrf
-                @method('PUT')
-                
-                {{-- Input Dasar --}}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label>Tanggal</label>
-                        <input type="date" name="tanggal" id="tanggal" class="form-control" 
-                               value="{{ $penjualan->tanggal->format('Y-m-d') }}" required>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error!</strong>
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <form id="formPenjualan" action="{{ route('penjualan.update', $penjualan->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+
+        {{-- Info Dasar --}}
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-body p-3 p-md-4">
+                <h6 class="fw-bold mb-3">📋 Informasi Transaksi</h6>
+                <div class="row g-2 g-md-3">
+                    <div class="col-6 col-md-6">
+                        <label class="form-label small fw-semibold">Tanggal</label>
+                        <input type="date" name="tanggal" id="tanggal" 
+                               class="form-control" value="{{ old('tanggal', $penjualan->tanggal->format('Y-m-d')) }}" required>
                     </div>
-                    <div class="col-md-6">
-                        <label>Pembeli</label>
+                    <div class="col-6 col-md-6">
+                        <label class="form-label small fw-semibold">Pembeli</label>
                         <select name="pembeli_id" id="pembeli_id" class="form-select" required>
-                            <option value="">- Pilih Pembeli -</option>
+                            <option value="">— Pilih Pembeli —</option>
                             @foreach($pembeli as $p)
-                                <option value="{{ $p->id }}" {{ $penjualan->pembeli_id == $p->id ? 'selected' : '' }}>
-                                    {{ $p->nama }} {{ $p->telepon ? '(' . $p->telepon . ')' : '' }}
+                                <option value="{{ $p->id }}" {{ old('pembeli_id', $penjualan->pembeli_id) == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nama }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-
-                <div class="alert alert-info">
-                    📌 Kasir: {{ $penjualan->user->name ?? 'Admin' }} | 
-                    Dibuat: {{ $penjualan->created_at->format('d/m/Y H:i') }}
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-person"></i> Kasir: {{ $penjualan->user->name ?? 'Admin' }} | 
+                        <i class="bi bi-clock"></i> Dibuat: {{ $penjualan->created_at->format('d/m/Y H:i') }}
+                    </small>
                 </div>
+            </div>
+        </div>
 
-                <hr>
-                <h6>Tambah/Edit Produk</h6>
-
-                {{-- Input Produk --}}
-                <div class="row mb-3">
-                    <div class="col-md-5">
-                        <label>Produk</label>
-                        <select id="produk_id" class="form-select">
-                            <option value="">- Pilih Produk -</option>
+        {{-- Tambah Produk --}}
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-body p-3 p-md-4">
+                <h6 class="fw-bold mb-3">➕ Tambah Produk</h6>
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold">Produk</label>
+                        <select id="produk_id" class="form-select" onchange="onProdukChange()">
+                            <option value="">— Pilih Produk —</option>
                             @foreach($jenisProduk as $jp)
-                                <option value="{{ $jp->id }}" data-nama="{{ $jp->nama }}">
-                                    {{ $jp->nama }}
+                                <option value="{{ $jp->id }}"
+                                        data-nama="{{ $jp->nama }}"
+                                        data-stok="{{ $jp->stok_tersedia }}">
+                                    {{ $jp->nama }} 
+                                    (Stok: {{ $jp->stok_tersedia }} Unit)
                                 </option>
                             @endforeach
                         </select>
+                        <div class="stok-preview" id="stokPreview">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Tersedia:</small>
+                                <small class="text-success fw-bold" id="previewTersedia">0 Unit</small>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Diambil:</small>
+                                <small class="text-danger fw-bold" id="previewDiambil">0 Unit</small>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between">
+                                <small>Sisa:</small>
+                                <small class="fw-bold" id="previewSisa">0 Unit</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <label>Jumlah</label>
-                        <input type="number" id="qty" class="form-control" min="1" value="1">
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-semibold">Jumlah</label>
+                        <input type="number" id="qty" class="form-control" 
+                               min="1" placeholder="0" oninput="updatePreview()">
                     </div>
-                    <div class="col-md-3">
-                        <label>Harga Satuan (Rp)</label>
-                        <input type="text" id="harga_display" class="form-control" value="0" 
-                               onkeyup="formatRupiah(this)" onblur="syncHargaValue()">
-                        <input type="hidden" id="harga" value="0">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold">Harga/Unit (Rp)</label>
+                        <input type="number" id="harga" class="form-control" 
+                               min="0" placeholder="0" oninput="updateSubtotalPreview()">
                     </div>
-                    <div class="col-md-2">
-                        <label>&nbsp;</label>
+                    <div class="col-12 col-md-2">
                         <button type="button" class="btn btn-primary w-100" onclick="tambahProduk()">
-                            + Tambah
+                            <i class="fas fa-plus"></i> Tambah
                         </button>
                     </div>
                 </div>
-
-                {{-- Daftar Produk --}}
-                <table class="table table-bordered" id="tabelProduk">
-                    <thead>
-                        <tr>
-                            <th>Produk</th>
-                            <th width="100">Jumlah</th>
-                            <th width="150">Harga Satuan</th>
-                            <th width="150">Subtotal</th>
-                            <th width="50"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="listProduk">
-                        {{-- Data akan diisi oleh JavaScript --}}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="3" class="text-end">Total Keseluruhan:</th>
-                            <th id="totalSemua">Rp 0</th>
-                            <th></th>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                {{-- Tombol Aksi --}}
-                <div class="mt-3">
-                    <a href="{{ route('penjualan.index') }}" class="btn btn-secondary">
-                        ← Kembali
-                    </a>
-                    <button type="submit" class="btn btn-primary" onclick="return validasiSebelumSubmit()">
-                        💾 Update Transaksi
-                    </button>
+                <div id="subtotalPreview" class="mt-2 d-none">
+                    <small class="text-muted">Subtotal: <strong id="subtotalText">Rp 0</strong></small>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+
+        {{-- Daftar Produk --}}
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-header bg-white border-bottom p-2 p-md-3">
+                <h6 class="fw-bold mb-0">📦 Daftar Produk</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="tabelProduk">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produk</th>
+                                <th class="d-none d-sm-table-cell">Stok</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end d-none d-md-table-cell">Harga</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-center" width="50">#</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listProduk">
+                            <tr id="kosongRow">
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-shopping-cart fa-2x mb-2 d-block opacity-25"></i>
+                                    Belum ada produk
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="4" class="text-end">Total:</th>
+                                <th id="totalSemua" class="text-end">Rp 0</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hidden inputs untuk items --}}
+        <div id="hiddenItems"></div>
+
+        {{-- Tombol --}}
+        <div class="d-flex flex-column flex-sm-row gap-2 mb-4">
+            <a href="{{ route('penjualan.penjualan') }}" class="btn btn-outline-secondary w-100 w-sm-auto">
+                <i class="fas fa-arrow-left me-1"></i> Kembali
+            </a>
+            <button type="submit" class="btn btn-primary w-100 w-sm-auto" onclick="return validateBeforeSubmit()">
+                <i class="fas fa-save me-1"></i> Update Transaksi
+            </button>
+        </div>
+    </form>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-    // Array untuk menyimpan data produk
+    // Data stok dari server
+    const stokData = {
+        @foreach($jenisProduk as $jp)
+        {{ $jp->id }}: { 
+            nama: "{{ addslashes($jp->nama) }}", 
+            stok: {{ $jp->stok_tersedia }} 
+        },
+        @endforeach
+    };
+
     let daftarProduk = [];
-    
-    // Load data yang sudah ada dari database
+    let totalTransaksi = 0;
+
+    // Load data existing
     document.addEventListener('DOMContentLoaded', function() {
-        // Ambil data dari Blade ke JavaScript
         @foreach($penjualan->detailPenjualan as $detail)
             daftarProduk.push({
                 id: {{ $detail->jenis_produk_id }},
-                nama: @json($detail->jenisProduk->nama),
+                nama: "{{ addslashes($detail->jenisProduk->nama) }}",
+                stok: stokData[{{ $detail->jenis_produk_id }}]?.stok ?? 0,
                 qty: {{ $detail->qty }},
                 harga: {{ $detail->harga }},
                 subtotal: {{ $detail->subtotal }}
             });
         @endforeach
         
-        // Tampilkan data
-        tampilkanProduk();
-        
-        // Set hidden inputs untuk form submission
-        updateHiddenInputs();
+        renderTabel();
     });
 
-    // Format angka menjadi Rupiah
-    function formatRupiah(input) {
-        // Hapus semua karakter selain angka
-        let value = input.value.replace(/[^\d]/g, '');
-        
-        // Konversi ke number
-        let number = parseInt(value) || 0;
-        
-        // Format dengan pemisah ribuan
-        input.value = number.toLocaleString('id-ID');
-        
-        // Update hidden input dengan nilai asli
-        document.getElementById('harga').value = number;
+    // Update preview stok
+    function onProdukChange() {
+        updatePreview();
+        updateSubtotalPreview();
     }
 
-    // Sinkronisasi nilai hidden saat blur
-    function syncHargaValue() {
-        const display = document.getElementById('harga_display');
-        const hidden = document.getElementById('harga');
+    function updatePreview() {
+        const produkId = document.getElementById('produk_id').value;
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        const preview = document.getElementById('stokPreview');
+
+        if (!produkId) {
+            preview.classList.remove('show');
+            return;
+        }
+
+        const stok = stokData[produkId]?.stok ?? 0;
+        const sisa = stok - qty;
+
+        document.getElementById('previewTersedia').textContent = stok + ' Unit';
+        document.getElementById('previewDiambil').textContent = qty + ' Unit';
         
-        let value = display.value.replace(/[^\d]/g, '');
-        hidden.value = parseInt(value) || 0;
+        const sisaEl = document.getElementById('previewSisa');
+        sisaEl.textContent = sisa + ' Unit';
+        sisaEl.style.color = sisa < 0 ? '#dc3545' : sisa < 5 ? '#f59e0b' : '#198754';
+
+        preview.classList.add('show');
     }
 
-    // Format angka untuk tampilan
-    function formatNumber(num) {
-        return num.toLocaleString('id-ID');
-    }
-
-    // Tambah produk ke daftar
-    function tambahProduk() {
-        const produkSelect = document.getElementById('produk_id');
-        const qtyInput = document.getElementById('qty');
-        const hargaDisplay = document.getElementById('harga_display');
-        const hargaHidden = document.getElementById('harga');
+    function updateSubtotalPreview() {
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        const harga = parseFloat(document.getElementById('harga').value) || 0;
+        const subtotal = qty * harga;
         
-        // Validasi
-        if (!produkSelect.value) {
-            alert('❌ Pilih produk terlebih dahulu!');
-            return;
-        }
-        
-        const qty = parseInt(qtyInput.value);
-        if (!qty || qty < 1) {
-            alert('❌ Jumlah minimal 1!');
-            return;
-        }
-        
-        // Ambil nilai harga dari hidden input
-        let harga = parseInt(hargaHidden.value);
-        if (!harga || harga <= 0) {
-            alert('❌ Harga harus diisi dengan benar!');
-            return;
-        }
-        
-        // Cek apakah produk sudah ada dalam daftar
-        const produkId = produkSelect.value;
-        const produkNama = produkSelect.options[produkSelect.selectedIndex].dataset.nama;
-        const existingIndex = daftarProduk.findIndex(item => item.id == produkId);
-        
-        if (existingIndex >= 0) {
-            // Produk sudah ada, update quantity dan subtotal
-            const produk = daftarProduk[existingIndex];
-            const konfirmasi = confirm(
-                `Produk "${produk.nama}" sudah ada dalam daftar.\n` +
-                `Quantity saat ini: ${produk.qty}\n` +
-                `Harga satuan saat ini: Rp ${formatNumber(produk.harga)}\n\n` +
-                `Apakah Anda ingin:\n` +
-                `- OK: Menambah quantity\n` +
-                `- Cancel: Membatalkan`
-            );
-            
-            if (konfirmasi) {
-                produk.qty += qty;
-                produk.subtotal = produk.qty * produk.harga;
-            } else {
-                return;
-            }
+        const previewDiv = document.getElementById('subtotalPreview');
+        if (qty > 0 && harga > 0) {
+            previewDiv.classList.remove('d-none');
+            document.getElementById('subtotalText').textContent = 
+                'Rp ' + subtotal.toLocaleString('id-ID');
         } else {
-            // Produk baru, tambahkan ke daftar
+            previewDiv.classList.add('d-none');
+        }
+    }
+
+    // Tambah produk
+    function tambahProduk() {
+        const produkId = document.getElementById('produk_id').value;
+        const qty = parseInt(document.getElementById('qty').value);
+        const harga = parseFloat(document.getElementById('harga').value) || 0;
+
+        if (!produkId) {
+            Swal.fire({ icon: 'warning', title: 'Pilih produk!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+        if (!qty || qty <= 0) {
+            Swal.fire({ icon: 'warning', title: 'Jumlah harus > 0', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+        if (harga <= 0) {
+            Swal.fire({ icon: 'warning', title: 'Harga harus > 0', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+
+        const stok = stokData[produkId]?.stok ?? 0;
+        const existingIndex = daftarProduk.findIndex(p => p.id == produkId);
+        const existingQty = existingIndex >= 0 ? daftarProduk[existingIndex].qty : 0;
+        const totalQty = existingQty + qty;
+
+        if (totalQty > stok) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Stok Tidak Cukup',
+                text: `Stok ${stokData[produkId].nama}: ${stok} Unit\nSudah di daftar: ${existingQty} Unit\nTotal: ${totalQty} Unit (melebihi stok)`,
+            });
+            return;
+        }
+
+        const subtotal = qty * harga;
+        const namaProduk = stokData[produkId]?.nama ?? '-';
+
+        if (existingIndex >= 0) {
+            daftarProduk[existingIndex].qty = totalQty;
+            daftarProduk[existingIndex].harga = harga;
+            daftarProduk[existingIndex].subtotal = totalQty * harga;
+        } else {
             daftarProduk.push({
                 id: produkId,
-                nama: produkNama,
+                nama: namaProduk,
+                stok: stok,
                 qty: qty,
                 harga: harga,
-                subtotal: qty * harga
+                subtotal: subtotal
             });
         }
+
+        renderTabel();
+        resetFormTambah();
         
-        // Tampilkan ulang daftar
-        tampilkanProduk();
-        
-        // Reset form input
-        produkSelect.value = '';
-        qtyInput.value = '1';
-        hargaDisplay.value = '0';
-        hargaHidden.value = '0';
-        
-        // Update hidden inputs
-        updateHiddenInputs();
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: `${namaProduk} ditambahkan`,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
     }
 
-    // Hapus produk dari daftar
+    function resetFormTambah() {
+        document.getElementById('produk_id').value = '';
+        document.getElementById('qty').value = '';
+        document.getElementById('harga').value = '';
+        document.getElementById('stokPreview').classList.remove('show');
+        document.getElementById('subtotalPreview').classList.add('d-none');
+    }
+
+    // Hapus produk
     function hapusProduk(index) {
-        const produk = daftarProduk[index];
-        const konfirmasi = confirm(`Yakin hapus produk "${produk.nama}" dari daftar?`);
-        
-        if (konfirmasi) {
-            daftarProduk.splice(index, 1);
-            tampilkanProduk();
-            updateHiddenInputs();
-        }
-    }
-
-    // Edit quantity produk
-    function editQuantity(index) {
-        const produk = daftarProduk[index];
-        const qtyBaru = prompt(`Masukkan quantity baru untuk "${produk.nama}":`, produk.qty);
-        
-        if (qtyBaru !== null) {
-            const qty = parseInt(qtyBaru);
-            if (qty && qty > 0) {
-                produk.qty = qty;
-                produk.subtotal = produk.qty * produk.harga;
-                tampilkanProduk();
-                updateHiddenInputs();
-            } else {
-                alert('❌ Quantity harus lebih dari 0!');
+        Swal.fire({
+            title: 'Hapus?',
+            text: `Hapus "${daftarProduk[index].nama}" dari daftar?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                daftarProduk.splice(index, 1);
+                renderTabel();
             }
-        }
+        });
     }
 
-    // Edit harga produk
-    function editHarga(index) {
-        const produk = daftarProduk[index];
-        const hargaBaru = prompt(
-            `Masukkan harga satuan baru untuk "${produk.nama}":\n` +
-            `(Masukkan angka saja, contoh: 15000)`, 
-            produk.harga
-        );
-        
-        if (hargaBaru !== null) {
-            const harga = parseInt(hargaBaru.replace(/[^\d]/g, ''));
-            if (harga && harga > 0) {
-                produk.harga = harga;
-                produk.subtotal = produk.qty * produk.harga;
-                tampilkanProduk();
-                updateHiddenInputs();
-            } else {
-                alert('❌ Harga harus lebih dari 0!');
-            }
-        }
-    }
-
-    // Tampilkan daftar produk dalam tabel
-    function tampilkanProduk() {
+    // Render tabel
+    function renderTabel() {
         const tbody = document.getElementById('listProduk');
         tbody.innerHTML = '';
-        
-        let totalKeseluruhan = 0;
-        
+        totalTransaksi = 0;
+
         if (daftarProduk.length === 0) {
-            // Tampilkan pesan kosong
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = `
-                <td colspan="5" class="text-center text-muted py-3">
-                    📋 Belum ada produk dalam daftar
-                </td>
-            `;
-            tbody.appendChild(emptyRow);
+            tbody.innerHTML = `
+                <tr id="kosongRow">
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="fas fa-shopping-cart fa-2x mb-2 d-block opacity-25"></i>
+                        Belum ada produk
+                    </td>
+                </tr>`;
         } else {
-            // Tampilkan setiap produk
-            daftarProduk.forEach((produk, index) => {
-                totalKeseluruhan += produk.subtotal;
-                
+            daftarProduk.forEach((p, i) => {
+                totalTransaksi += p.subtotal;
+                const sisa = p.stok - p.qty;
+                let badgeClass = sisa <= 0 ? 'stok-habis' : sisa < 5 ? 'stok-menipis' : 'stok-aman';
+                let badgeText = sisa <= 0 ? 'Habis' : `Sisa ${sisa}`;
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <strong>${produk.nama}</strong>
+                        <strong>${p.nama}</strong>
+                        <small class="d-sm-none d-block text-muted">${badgeText} | Rp ${p.harga.toLocaleString('id-ID')}</small>
                     </td>
+                    <td class="d-none d-sm-table-cell">
+                        <span class="stok-badge ${badgeClass}">${badgeText}</span>
+                    </td>
+                    <td class="text-end">${p.qty}</td>
+                    <td class="text-end d-none d-md-table-cell">Rp ${p.harga.toLocaleString('id-ID')}</td>
+                    <td class="text-end fw-bold">Rp ${p.subtotal.toLocaleString('id-ID')}</td>
                     <td class="text-center">
-                        <span class="me-2">${produk.qty}</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                onclick="editQuantity(${index})" title="Edit Quantity">
-                            ✏️
-                        </button>
-                    </td>
-                    <td class="text-end">
-                        Rp ${formatNumber(produk.harga)}
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" 
-                                onclick="editHarga(${index})" title="Edit Harga">
-                            ✏️
-                        </button>
-                    </td>
-                    <td class="text-end">
-                        <strong>Rp ${formatNumber(produk.subtotal)}</strong>
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-danger" 
-                                onclick="hapusProduk(${index})" title="Hapus Produk">
-                            🗑️
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusProduk(${i})">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
-        
-        // Update total
-        document.getElementById('totalSemua').innerHTML = `<strong>Rp ${formatNumber(totalKeseluruhan)}</strong>`;
+
+        document.getElementById('totalSemua').textContent = 'Rp ' + totalTransaksi.toLocaleString('id-ID');
+        updateHiddenItems();
     }
 
-    // Update hidden inputs untuk form submission
-    function updateHiddenInputs() {
-        const form = document.getElementById('formPenjualan');
+    // Update hidden inputs
+    function updateHiddenItems() {
+        const container = document.getElementById('hiddenItems');
+        container.innerHTML = '';
         
-        // Hapus input items lama
-        const oldInputs = form.querySelectorAll('input[name^="items"]');
-        oldInputs.forEach(input => input.remove());
-        
-        // Tambahkan input baru untuk setiap produk
-        daftarProduk.forEach((produk, index) => {
-            // Input untuk jenis_produk_id
-            const inputId = document.createElement('input');
-            inputId.type = 'hidden';
-            inputId.name = `items[${index}][jenis_produk_id]`;
-            inputId.value = produk.id;
-            form.appendChild(inputId);
-            
-            // Input untuk qty
-            const inputQty = document.createElement('input');
-            inputQty.type = 'hidden';
-            inputQty.name = `items[${index}][qty]`;
-            inputQty.value = produk.qty;
-            form.appendChild(inputQty);
-            
-            // Input untuk harga
-            const inputHarga = document.createElement('input');
-            inputHarga.type = 'hidden';
-            inputHarga.name = `items[${index}][harga]`;
-            inputHarga.value = produk.harga;
-            form.appendChild(inputHarga);
+        daftarProduk.forEach((p, i) => {
+            container.innerHTML += `
+                <input type="hidden" name="items[${i}][jenis_produk_id]" value="${p.id}">
+                <input type="hidden" name="items[${i}][qty]" value="${p.qty}">
+                <input type="hidden" name="items[${i}][harga]" value="${p.harga}">
+            `;
         });
     }
 
-    // Validasi sebelum submit
-    function validasiSebelumSubmit() {
+    // Validasi submit
+    function validateBeforeSubmit() {
         const tanggal = document.getElementById('tanggal').value;
         const pembeli = document.getElementById('pembeli_id').value;
-        
+
         if (!tanggal) {
-            alert('❌ Tanggal harus diisi!');
+            Swal.fire({ icon: 'warning', title: 'Isi tanggal!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
             return false;
         }
-        
         if (!pembeli) {
-            alert('❌ Pilih pembeli terlebih dahulu!');
+            Swal.fire({ icon: 'warning', title: 'Pilih pembeli!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
             return false;
         }
-        
         if (daftarProduk.length === 0) {
-            alert('❌ Minimal harus ada 1 produk dalam transaksi!');
+            Swal.fire({ icon: 'warning', title: 'Tambahkan produk!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
             return false;
         }
-        
-        // Hitung total
-        const total = daftarProduk.reduce((sum, p) => sum + p.subtotal, 0);
-        
-        // Konfirmasi
-        const konfirmasi = confirm(
-            `📋 RINGKASAN TRANSAKSI\n` +
-            `────────────────────────\n` +
-            `Tanggal: ${tanggal}\n` +
-            `Pembeli: ${document.getElementById('pembeli_id').options[document.getElementById('pembeli_id').selectedIndex].text}\n` +
-            `Jumlah Produk: ${daftarProduk.length} jenis\n` +
-            `Total: Rp ${formatNumber(total)}\n` +
-            `────────────────────────\n\n` +
-            `Yakin ingin mengupdate transaksi ini?`
-        );
-        
-        if (konfirmasi) {
-            // Update hidden inputs sebelum submit
-            updateHiddenInputs();
-            return true;
-        }
-        
+
+        const listHtml = daftarProduk.map(p => 
+            `<tr><td>${p.nama}</td><td>${p.qty} x Rp ${p.harga.toLocaleString('id-ID')}</td><td>Rp ${p.subtotal.toLocaleString('id-ID')}</td></tr>`
+        ).join('');
+
+        Swal.fire({
+            title: 'Update Transaksi?',
+            html: `
+                <table class="table table-sm text-start">
+                    <thead><tr><th>Produk</th><th>Detail</th><th>Subtotal</th></tr></thead>
+                    <tbody>${listHtml}</tbody>
+                </table>
+                <hr>
+                <h5 class="text-end">Total: Rp ${totalTransaksi.toLocaleString('id-ID')}</h5>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Update',
+            cancelButtonText: 'Batal',
+            width: '600px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formPenjualan').submit();
+            }
+        });
+
         return false;
     }
-
-    // Inisialisasi format Rupiah pada input harga
-    document.getElementById('harga_display').addEventListener('keyup', function() {
-        formatRupiah(this);
-    });
 </script>
 @endpush
-@endsection
