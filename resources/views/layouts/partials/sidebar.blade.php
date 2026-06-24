@@ -1,41 +1,41 @@
+
 {{-- resources/views/layouts/partials/sidebar.blade.php --}}
 
-{{-- Mobile Toggle Button - Visible only on small screens --}}
+{{-- Mobile Toggle Button --}}
 <button class="btn btn-link d-md-none position-fixed top-0 start-0 m-3 z-3 shadow-lg" 
         id="sidebarToggleMobile" 
-        style="z-index: 1050; background: #115B39; color: white; width: 45px; height: 45px; border-radius: 50%;">
+        style="z-index: 1050; background: #115B39; color: white; width: 42px; height: 42px; border-radius: 50%; display: none; align-items: center; justify-content: center;">
     <i class="fas fa-bars"></i>
 </button>
 
-{{-- Sidebar Overlay for Mobile --}}
+{{-- Sidebar Overlay --}}
 <div class="sidebar-overlay d-md-none" id="sidebarOverlay" style="display: none;"></div>
 
+{{-- Sidebar --}}
 <ul class="navbar-nav sidebar accordion shadow-lg" id="accordionSidebar" 
     style="background: linear-gradient(180deg, #115B39 0%, #073520 100%); min-height: 100vh; transition: all 0.3s;">
 
     @php
-        $dashboardRoute = 'dashboard';
-        if(auth()->user()->hasRole('admin')) {
-            $dashboardRoute = 'admin.dashboard';
-        } elseif(auth()->user()->hasRole('gudang')) {
-            $dashboardRoute = 'gudang.dashboard';
-        } elseif(auth()->user()->hasRole('produksi')) {
-            $dashboardRoute = 'produksi.dashboard';
-        } elseif(auth()->user()->hasRole('penjualan')) {
-            $dashboardRoute = 'penjualan.dashboard';
-        }
+        $dashboardRoute = match(true) {
+            auth()->user()->hasRole('admin') => 'admin.dashboard',
+            auth()->user()->hasRole('gudang') => 'gudang.dashboard',
+            auth()->user()->hasRole('produksi') => 'produksi.dashboard',
+            auth()->user()->hasRole('penjualan') => 'penjualan.dashboard',
+            default => 'dashboard'
+        };
     @endphp
 
-    {{-- Close button for mobile --}}
+    {{-- Close Button Mobile --}}
     <div class="d-md-none text-end px-3 pt-3">
-        <button class="btn btn-sm text-white" id="closeSidebarMobile">
+        <button class="btn btn-sm text-white" id="closeSidebarMobile" aria-label="Tutup menu">
             <i class="fas fa-times fa-lg"></i>
         </button>
     </div>
 
+    {{-- Brand --}}
     <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-4 text-decoration-none"
        href="{{ route($dashboardRoute) }}">
-        <div class="sidebar-brand-icon mb-1 premium-icon">
+        <div class="sidebar-brand-icon mb-1">
             <i class="fas fa-recycle fa-2x text-warning"></i>
         </div>
         <div class="sidebar-brand-text text-white fw-bold text-center mt-2">
@@ -46,7 +46,7 @@
 
     <hr class="sidebar-divider opacity-25 mx-3">
 
-    {{-- Dashboard - Semua Role --}}
+    {{-- Dashboard --}}
     <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-2 custom-hover"
            href="{{ route($dashboardRoute) }}">
@@ -58,7 +58,7 @@
     {{-- ==================== GUDANG ==================== --}}
     @hasanyrole('admin|gudang')
     <div class="sidebar-heading text-white-50 small px-4 mt-3 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-warehouse me-1"></i> <span class="heading-text">Gudang</span>
+        <i class="fas fa-warehouse me-1"></i> <span>Gudang</span>
     </div>
     
     <li class="nav-item {{ request()->routeIs('gudang.penerimaan*') ? 'active' : '' }}">
@@ -89,7 +89,6 @@
     </li>
     @endhasanyrole
 
-    {{-- Supplier hanya untuk Admin --}}
     @role('admin')
     <li class="nav-item {{ request()->routeIs('gudang.supplier*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.supplier.index') }}">
@@ -103,7 +102,7 @@
     @hasanyrole('admin|produksi')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-industry me-1"></i> <span class="heading-text">Produksi</span>
+        <i class="fas fa-industry me-1"></i> <span>Produksi</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('produksi.produksi') || request()->routeIs('produksi.create') || request()->routeIs('produksi.show') ? 'active' : '' }}">
@@ -121,11 +120,11 @@
     </li>
     @endhasanyrole
 
-    {{-- ==================== DATA UTAMA (Admin Only) ==================== --}}
+    {{-- ==================== DATA UTAMA ==================== --}}
     @role('admin')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold">
-        <i class="fas fa-database me-1"></i> <span class="heading-text">Data Utama</span>
+        <i class="fas fa-database me-1"></i> <span>Data Utama</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('data-utama.jenis-plastik*') ? 'active' : '' }}">
@@ -149,7 +148,7 @@
     @hasanyrole('admin|penjualan')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-shopping-cart me-1"></i> <span class="heading-text">Penjualan</span>
+        <i class="fas fa-shopping-cart me-1"></i> <span>Penjualan</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('penjualan.penjualan') || request()->routeIs('penjualan.create') || request()->routeIs('penjualan.show') ? 'active' : '' }}">
@@ -159,9 +158,7 @@
             <span>Transaksi Penjualan</span>
         </a>
     </li>
-    @endhasanyrole
 
-    @hasanyrole('admin|penjualan')
     <li class="nav-item {{ request()->routeIs('penjualan.pembeli*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover"
            href="{{ route('penjualan.pembeli.index') }}">
@@ -171,12 +168,12 @@
     </li>
     @endhasanyrole
 
-    {{-- ==================== LAPORAN (Sesuai Role) ==================== --}}
+    {{-- ==================== LAPORAN ==================== --}}
     @if(auth()->user()->hasAnyRole(['admin', 'gudang', 'produksi', 'penjualan']))
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <li class="nav-item mt-2">
         <a class="nav-link collapsed d-flex justify-content-between align-items-center py-2 px-3 rounded mx-3 custom-hover"
-           href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan">
+           href="#" data-bs-toggle="collapse" data-bs-target="#collapseLaporan" aria-expanded="false">
             <div class="d-flex align-items-center">
                 <div class="icon-box me-3"><i class="fas fa-chart-pie"></i></div>
                 <span>Laporan</span>
@@ -185,49 +182,34 @@
         </a>
         <div class="collapse" id="collapseLaporan">
             <ul class="nav flex-column ms-3 mt-1">
-                @role('admin')
+                @hasanyrole('admin|gudang')
                 <li class="nav-item">
                     <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
                         <i class="fas fa-truck me-2"></i>Penerimaan
                     </a>
                 </li>
+                @endhasanyrole
+                
+                @hasanyrole('admin|produksi')
                 <li class="nav-item">
                     <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
                         <i class="fas fa-industry me-2"></i>Produksi
                     </a>
                 </li>
+                @endhasanyrole
+                
+                @hasanyrole('admin|penjualan')
                 <li class="nav-item">
                     <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
                         <i class="fas fa-shopping-cart me-2"></i>Penjualan
                     </a>
                 </li>
+                @endhasanyrole
+                
+                @role('admin')
                 <li class="nav-item">
                     <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.stok') }}">
                         <i class="fas fa-boxes me-2"></i>Stok
-                    </a>
-                </li>
-                @endrole
-
-                @role('gudang')
-                <li class="nav-item">
-                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penerimaan') }}">
-                        <i class="fas fa-truck me-2"></i>Penerimaan
-                    </a>
-                </li>
-                @endrole
-
-                @role('produksi')
-                <li class="nav-item">
-                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.produksi') }}">
-                        <i class="fas fa-industry me-2"></i>Produksi
-                    </a>
-                </li>
-                @endrole
-
-                @role('penjualan')
-                <li class="nav-item">
-                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.penjualan') }}">
-                        <i class="fas fa-shopping-cart me-2"></i>Penjualan
                     </a>
                 </li>
                 @endrole
@@ -236,11 +218,11 @@
     </li>
     @endif
 
-    {{-- ==================== SISTEM (Admin Only) ==================== --}}
+    {{-- ==================== SISTEM ==================== --}}
     @role('admin')
     <hr class="sidebar-divider opacity-25 mx-3 my-2">
     <div class="sidebar-heading text-white-50 small px-4 mt-2 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
-        <i class="fas fa-shield-alt me-1"></i> <span class="heading-text">Sistem</span>
+        <i class="fas fa-shield-alt me-1"></i> <span>Sistem</span>
     </div>
 
     <li class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
@@ -291,204 +273,161 @@
 </ul>
 
 <style>
-/* ========== RESPONSIVE SIDEBAR STYLES ========== */
-
-/* Default Sidebar (Desktop) */
-.sidebar {
-    width: 280px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 1040;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* Main Content Offset */
-.main-content {
-    margin-left: 280px;
-}
-
-/* Tablet (768px - 1024px) */
-@media (max-width: 1024px) {
+    /* ========== SIDEBAR STYLES ========== */
+    
     .sidebar {
-        width: 240px;
-    }
-    
-    .main-content {
-        margin-left: 240px;
-    }
-    
-    .sidebar-brand-text div:first-child {
-        font-size: 1rem !important;
-    }
-    
-    .sidebar-brand-text div:last-child {
-        font-size: 0.7rem !important;
-    }
-}
-
-/* Mobile & Small Tablet (< 768px) */
-@media (max-width: 767.98px) {
-    /* Mobile Toggle Button */
-    #sidebarToggleMobile {
-        display: block !important;
-    }
-    
-    /* Sidebar Hidden by Default on Mobile */
-    .sidebar {
-        transform: translateX(-100%);
-        width: 280px;
+        width: var(--sidebar-width, 280px);
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        z-index: 1050;
-        transition: transform 0.3s ease-in-out;
-    }
-    
-    /* Sidebar Active/Visible State */
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    
-    /* Overlay */
-    .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        height: -webkit-fill-available;
         z-index: 1040;
-        backdrop-filter: blur(2px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        transition: transform 0.3s ease-in-out;
+        will-change: transform;
     }
     
-    /* Reset Main Content Margin */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
+    /* Tablet */
+    @media (max-width: 1024px) {
+        .sidebar {
+            width: var(--sidebar-width-tablet, 240px);
+        }
+        .sidebar-brand-text div:first-child {
+            font-size: 1rem !important;
+        }
+        .sidebar-brand-text div:last-child {
+            font-size: 0.7rem !important;
+        }
     }
     
-    /* Smaller text on mobile */
-    .nav-link span {
-        font-size: 0.85rem;
+    /* Mobile */
+    @media (max-width: 767.98px) {
+        .sidebar {
+            transform: translateX(-100%);
+            width: 280px;
+            max-width: 85vw;
+            z-index: 1050;
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1045;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        
+        .nav-link {
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+        }
+        
+        .sidebar-brand {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
     }
     
-    .sidebar-heading {
-        font-size: 0.7rem !important;
-    }
-}
-
-/* Small Mobile (< 480px) */
-@media (max-width: 480px) {
-    .sidebar {
-        width: 100%;
-        max-width: 300px;
-    }
-    
-    /* Thinner sidebar on very small screens */
-    .sidebar.active {
-        width: 85vw;
-    }
-}
-
-/* Base Colors & Typography */
-.sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Icon Containers for consistent alignment */
-.icon-box {
-    width: 25px;
-    display: flex;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.3s ease;
-}
-
-/* Hover & Active States */
-.custom-hover:hover {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    color: white;
-    transform: translateX(4px);
-}
-
-.custom-hover:hover .icon-box {
-    color: #ffc107;
-}
-
-.nav-item.active .nav-link {
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: inset 3px 0 0 #ffc107;
-    color: white;
-    font-weight: 600;
-}
-
-.nav-item.active .icon-box {
-    color: #ffc107;
-}
-
-/* Premium Card (Profile) */
-.glass-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logout-btn {
-    transition: all 0.3s;
-}
-
-.logout-btn:hover {
-    background-color: #ffc107;
-    color: #000 !important;
-    transform: translateY(-2px);
-}
-
-/* Scrollbar Styling */
-.sidebar::-webkit-scrollbar {
-    width: 5px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-    background: #ffc107;
-}
-
-/* Toggle Arrow Animation */
-.transition-icon {
-    transition: transform 0.3s ease;
-}
-
-.collapsed .fa-chevron-down {
-    transform: rotate(-90deg);
-}
-
-/* Touch-friendly spacing for mobile */
-@media (max-width: 767.98px) {
-    .nav-link {
-        padding-top: 12px !important;
-        padding-bottom: 12px !important;
+    /* Small Mobile */
+    @media (max-width: 480px) {
+        .sidebar {
+            width: 100%;
+            max-width: 300px;
+        }
+        .sidebar.active {
+            width: 85vw;
+        }
     }
     
-    .sidebar-brand {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
+    /* Nav Links */
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0.5rem;
     }
-}
+    
+    .icon-box {
+        width: 25px;
+        display: flex;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+    }
+    
+    .custom-hover:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(4px);
+    }
+    
+    .custom-hover:hover .icon-box {
+        color: #ffc107;
+    }
+    
+    .nav-item.active .nav-link {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: inset 3px 0 0 #ffc107;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .nav-item.active .icon-box {
+        color: #ffc107;
+    }
+    
+    /* Glass Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .logout-btn {
+        transition: all 0.3s;
+    }
+    
+    .logout-btn:hover {
+        background-color: #ffc107;
+        color: #000 !important;
+        transform: translateY(-2px);
+    }
+    
+    /* Scrollbar */
+    .sidebar::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: #ffc107;
+    }
+    
+    /* Toggle Arrow */
+    .transition-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    [aria-expanded="false"] .fa-chevron-down,
+    .collapsed .fa-chevron-down {
+        transform: rotate(-90deg);
+    }
 </style>
 
 @push('scripts')

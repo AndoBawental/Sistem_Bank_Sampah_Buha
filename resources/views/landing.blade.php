@@ -854,7 +854,7 @@
             </nav>
 
             <div class="header-cta">
-                <a href="/login" class="btn btn-glass" style="padding: 0.45rem 1.1rem; font-size: .8rem;" aria-label="Login Staff">
+                <a href="{{ route('login') }}" class="btn btn-glass" style="padding: 0.45rem 1.1rem; font-size: .8rem;" aria-label="Login Staff">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
                     </svg>
@@ -882,7 +882,7 @@
         @foreach ($navLinks as $link)
             <a href="{{ $link['href'] }}">{{ $link['label'] }}</a>
         @endforeach
-        <a href="/admin/login" class="btn btn-glass" style="margin-top: .5rem; justify-content: center; display: flex;">
+       <a href="{{ route('login') }}" class="btn btn-glass" style="margin-top: .5rem; justify-content: center; display: flex;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
             </svg>
@@ -921,7 +921,7 @@
                 <h1>Sampah plastik Anda, <em>sumber daya</em> kami.</h1>
 
                 <p class="hero-lead">
-                    Bank Sampah Buha membeli segala jenis plastik — PET, PP, HDPE, dan LDPE. Setor di Bailang, Manado dan jadilah bagian dari perubahan.
+                    Bank Sampah Buha membeli/Menerima segala jenis plastik — PET, PP, HDPE, dan LDPE. Setor di Bailang, Manado dan jadilah bagian dari perubahan.
                 </p>
 
                 <div class="hero-btns">
@@ -989,7 +989,7 @@
                         Bank Sampah Buha (Recycle Manado) berlokasi di Bailang, Kota Manado. Kami bergerak di pengumpulan, pemilahan, dan pengolahan plastik bekas menjadi material bernilai ekonomis.
                     </p>
                     <p>
-                        Komitmen kami sederhana — <strong>membeli segala jenis plastik</strong> dari masyarakat, memberi harga yang adil, dan memastikan setiap kilogram diolah dengan benar.
+                        Komitmen kami sederhana — <strong>membeli/Menerima segala jenis plastik</strong> dari masyarakat, memberi harga yang adil, dan memastikan setiap kilogram diolah dengan benar.
                     </p>
 
                     <div class="tentang-cards">

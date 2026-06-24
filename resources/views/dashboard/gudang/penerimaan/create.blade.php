@@ -9,47 +9,95 @@
     :root {
         --primary-green: #115B39;
         --light-green: #e8f5e9;
-        --border-radius: 12px;
+        --border-radius: 10px;
+        --border-radius-lg: 16px;
+        --transition: 0.25s cubic-bezier(.4,0,.2,1);
     }
 
+    /* ========== FORM CARD ========== */
     .form-card {
         border: none;
-        border-radius: 16px;
+        border-radius: var(--border-radius);
         box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+    }
+    @media (min-width: 768px) {
+        .form-card { border-radius: var(--border-radius-lg); }
     }
 
     .form-card .card-header {
         background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
         border-bottom: 1px solid #e9ecef;
-        border-radius: 16px 16px 0 0 !important;
-        padding: 1.25rem 1.5rem;
+        border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+        padding: 1rem;
+    }
+    @media (min-width: 768px) {
+        .form-card .card-header { padding: 1.25rem 1.5rem; }
+    }
+    @media (min-width: 768px) {
+        .form-card .card-header { border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important; }
     }
 
+    .form-card .card-body {
+        padding: 1rem;
+    }
+    @media (min-width: 768px) {
+        .form-card .card-body { padding: 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        .form-card .card-body { padding: 1.75rem; }
+    }
+
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    @media (min-width: 768px) {
+        .card-header h5 { font-size: 1.1rem; }
+    }
+
+    /* ========== SECTION TITLE ========== */
     .section-title {
-        font-size: 0.85rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.6px;
         color: #6c757d;
         font-weight: 700;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+    }
+    @media (min-width: 768px) {
+        .section-title { 
+            font-size: 0.8rem; 
+            margin-bottom: 0.75rem;
+            gap: 8px;
+        }
     }
 
     .section-title i {
         color: var(--primary-green);
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+    }
+    @media (min-width: 768px) {
+        .section-title i { font-size: 0.9rem; }
     }
 
-    /* Custom Form Controls */
+    /* ========== FORM CONTROLS ========== */
     .form-control, .form-select {
-        border-radius: 10px;
+        border-radius: 8px;
         border: 1.5px solid #e9ecef;
-        padding: 10px 14px;
-        font-size: 0.9rem;
-        transition: all 0.25s;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        transition: all var(--transition);
         background: #fafbfc;
+        min-height: 38px;
+    }
+    @media (min-width: 768px) {
+        .form-control, .form-select { 
+            border-radius: 10px; 
+            padding: 10px 14px;
+            font-size: 0.88rem;
+        }
     }
 
     .form-control:focus, .form-select:focus {
@@ -60,9 +108,19 @@
 
     .form-label {
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         color: #495057;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+    }
+    @media (min-width: 768px) {
+        .form-label { font-size: 0.82rem; margin-bottom: 6px; }
+    }
+    
+    .form-label.small {
+        font-size: 0.7rem;
+    }
+    @media (min-width: 768px) {
+        .form-label.small { font-size: 0.75rem; }
     }
 
     .required::after {
@@ -71,71 +129,96 @@
         font-weight: bold;
     }
 
-    /* Tipe & Sortir Buttons */
+    /* ========== OPTION CARDS ========== */
     .option-card {
         cursor: pointer;
-        padding: 14px 18px;
-        border-radius: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
         border: 2px solid #e9ecef;
         text-align: center;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition);
         background: #fafbfc;
         user-select: none;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    @media (min-width: 768px) {
+        .option-card { 
+            padding: 14px 18px; 
+            border-radius: 12px;
+        }
     }
 
     .option-card:hover {
         border-color: #b8d4c1;
         background: #f8fdf9;
-        transform: translateY(-1px);
+    }
+    @media (hover: none) {
+        .option-card:hover { border-color: #e9ecef; }
     }
 
     .option-card.active {
         border-color: var(--primary-green);
         background: linear-gradient(135deg, #e8f5e9 0%, #f0fdf4 100%);
-        color: var(--primary-green);
-        font-weight: 600;
         box-shadow: 0 4px 12px rgba(17, 91, 57, 0.1);
     }
 
-    .option-card.active i {
-        color: var(--primary-green);
-    }
-
-    .option-card input[type="radio"] {
-        display: none;
-    }
+    .option-card input[type="radio"] { display: none; }
 
     .option-card .option-icon {
-        font-size: 1.5rem;
-        margin-bottom: 6px;
+        font-size: 1.2rem;
+        margin-bottom: 4px;
         color: #6c757d;
-        transition: color 0.25s;
+        transition: color var(--transition);
     }
-
-    .option-card.active .option-icon {
-        color: var(--primary-green);
+    @media (min-width: 768px) {
+        .option-card .option-icon { font-size: 1.5rem; margin-bottom: 6px; }
     }
-
+    
+    .option-card.active .option-icon { color: var(--primary-green); }
+    
     .option-card .option-label {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 500;
     }
-
+    @media (min-width: 768px) {
+        .option-card .option-label { font-size: 0.85rem; }
+    }
+    
+    .option-card.active .option-label { font-weight: 600; color: var(--primary-green); }
+    
     .option-card .option-desc {
-        font-size: 0.72rem;
+        font-size: 0.62rem;
         color: #6c757d;
         margin-top: 2px;
+        display: none;
+    }
+    @media (min-width: 480px) {
+        .option-card .option-desc { display: block; }
+    }
+    @media (min-width: 768px) {
+        .option-card .option-desc { font-size: 0.7rem; }
     }
 
-    /* Item Row */
+    /* ========== ITEM ROW ========== */
     .item-row {
         background: #ffffff;
         border: 1.5px solid #e9ecef;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 12px;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
         position: relative;
-        transition: all 0.25s;
+        transition: all var(--transition);
+    }
+    @media (min-width: 768px) {
+        .item-row { 
+            border-radius: 12px; 
+            padding: 18px;
+            margin-bottom: 12px;
+        }
     }
 
     .item-row:hover {
@@ -145,23 +228,32 @@
 
     .item-row .item-number {
         position: absolute;
-        top: -10px;
-        left: 15px;
+        top: -8px;
+        left: 10px;
         background: var(--primary-green);
         color: white;
-        font-size: 0.7rem;
+        font-size: 0.6rem;
         font-weight: 700;
-        padding: 3px 10px;
+        padding: 2px 8px;
         border-radius: 20px;
         letter-spacing: 0.5px;
+        z-index: 1;
+    }
+    @media (min-width: 768px) {
+        .item-row .item-number {
+            top: -10px;
+            left: 15px;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+        }
     }
 
     .btn-remove-item {
         position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 30px;
-        height: 30px;
+        top: 8px;
+        right: 8px;
+        width: 26px;
+        height: 26px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -171,7 +263,17 @@
         color: #dc3545;
         cursor: pointer;
         transition: all 0.2s;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
+        z-index: 1;
+    }
+    @media (min-width: 768px) {
+        .btn-remove-item {
+            top: 12px;
+            right: 12px;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
     }
 
     .btn-remove-item:hover {
@@ -180,43 +282,74 @@
         border-color: #dc3545;
     }
 
-    /* Ringkasan Total */
+    /* ========== SUMMARY CARD ========== */
     .summary-card {
         background: linear-gradient(135deg, #115B39 0%, #1a7a4e 100%);
-        border-radius: 14px;
-        padding: 18px 22px;
+        border-radius: 10px;
+        padding: 14px 16px;
         color: white;
+    }
+    @media (min-width: 768px) {
+        .summary-card { 
+            border-radius: 14px; 
+            padding: 18px 22px;
+        }
     }
 
     .summary-card .summary-label {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.6px;
         opacity: 0.85;
+    }
+    @media (min-width: 768px) {
+        .summary-card .summary-label { font-size: 0.72rem; }
     }
 
     .summary-card .summary-value {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
         font-weight: 700;
         letter-spacing: -0.5px;
     }
-
-    .summary-divider {
-        border-left: 1px solid rgba(255,255,255,0.3);
-        height: 40px;
+    @media (min-width: 768px) {
+        .summary-card .summary-value { font-size: 1.3rem; }
+    }
+    @media (min-width: 1024px) {
+        .summary-card .summary-value { font-size: 1.5rem; }
     }
 
-    /* Info Alert */
+    .summary-divider {
+        display: none;
+    }
+    @media (min-width: 768px) {
+        .summary-divider {
+            display: block;
+            border-left: 1px solid rgba(255,255,255,0.3);
+            height: 35px;
+            width: 1px;
+            margin: 0 auto;
+        }
+    }
+
+    /* ========== INFO ALERT ========== */
     .info-alert {
         background: #fff8e1;
         border: 1px solid #ffecb3;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-size: 0.85rem;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.72rem;
         color: #795548;
         display: flex;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
+    }
+    @media (min-width: 768px) {
+        .info-alert { 
+            border-radius: 10px; 
+            padding: 12px 16px;
+            font-size: 0.82rem;
+            gap: 10px;
+        }
     }
 
     .info-alert.success {
@@ -225,13 +358,20 @@
         color: #2e7d32;
     }
 
-    /* Buttons */
+    /* ========== BUTTONS ========== */
     .btn {
         font-weight: 600;
-        font-size: 0.88rem;
-        padding: 10px 20px;
-        border-radius: 10px;
-        transition: all 0.25s;
+        font-size: 0.78rem;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all var(--transition);
+    }
+    @media (min-width: 768px) {
+        .btn { 
+            font-size: 0.85rem; 
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
     }
 
     .btn-primary-green {
@@ -239,7 +379,6 @@
         color: white;
         border: none;
     }
-
     .btn-primary-green:hover {
         background: #0d4a2e;
         color: white;
@@ -252,7 +391,6 @@
         color: var(--primary-green);
         background: transparent;
     }
-
     .btn-outline-green:hover {
         background: var(--primary-green);
         color: white;
@@ -263,10 +401,18 @@
         color: var(--primary-green);
         background: #f8fdf9;
         width: 100%;
-        padding: 12px;
-        border-radius: 10px;
+        padding: 10px;
+        border-radius: 8px;
         font-weight: 600;
-        transition: all 0.25s;
+        font-size: 0.78rem;
+        transition: all var(--transition);
+    }
+    @media (min-width: 768px) {
+        .btn-add-item { 
+            padding: 12px; 
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
     }
 
     .btn-add-item:hover {
@@ -275,24 +421,43 @@
         color: #0d4a2e;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-        .summary-divider {
-            display: none;
+    /* ========== GAP RESPONSIVE ========== */
+    @media (max-width: 575px) {
+        .row.g-2 {
+            --bs-gutter-y: 0.4rem;
+            --bs-gutter-x: 0.4rem;
         }
-        .item-row .row > div {
-            margin-bottom: 8px;
+        .row.g-3 {
+            --bs-gutter-y: 0.5rem;
+            --bs-gutter-x: 0.5rem;
         }
+    }
+
+    /* ========== TOUCH FRIENDLY ========== */
+    @media (hover: none) and (pointer: coarse) {
+        .option-card { min-height: 70px; }
+        .btn-add-item { min-height: 44px; }
+        .btn-remove-item { min-width: 32px; min-height: 32px; }
+        select.form-select, input.form-control { min-height: 42px; }
+    }
+
+    /* ========== ANIMATION ========== */
+    @keyframes fadeInRow {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .item-row-new {
+        animation: fadeInRow 0.3s ease;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-3 py-2">
+<div class="container-fluid px-2 px-md-3 py-2">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            
-            {{-- Alert Error --}}
+
+            {{-- Alert Error via SweetAlert --}}
             @if($errors->any())
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
@@ -308,29 +473,29 @@
 
             <div class="card form-card">
                 <div class="card-header">
-                    <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold mb-1" style="color: #115B39;">
                                 <i class="fas fa-truck-loading me-2"></i>Form Penerimaan Sampah
                             </h5>
-                            <small class="text-muted">Lengkapi data penerimaan sampah dengan benar</small>
+                            <small class="text-muted d-none d-sm-inline">Lengkapi data penerimaan sampah dengan benar</small>
                         </div>
-                        <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-light rounded-3">
-                            <i class="fas fa-arrow-left me-1"></i>Kembali
+                        <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-light rounded-3 btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i><span class="d-none d-sm-inline">Kembali</span>
                         </a>
                     </div>
                 </div>
 
-                <div class="card-body p-4">
+                <div class="card-body">
                     <form action="{{ route('gudang.penerimaan.store') }}" method="POST" id="formPenerimaan" novalidate>
                         @csrf
 
-                        {{-- Informasi Dasar --}}
-                        <div class="section-title mt-2">
+                        {{-- ========== INFORMASI DASAR ========== --}}
+                        <div class="section-title mt-1">
                             <i class="fas fa-info-circle"></i> Informasi Dasar
                         </div>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                        <div class="row g-2 g-md-3 mb-3 mb-md-4">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label required">Tanggal Penerimaan</label>
                                 <input type="date" name="tanggal" 
                                        class="form-control @error('tanggal') is-invalid @enderror" 
@@ -339,7 +504,7 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label required">Supplier / Pengepul</label>
                                 <select name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror" required>
                                     <option value="">— Pilih Supplier —</option>
@@ -355,11 +520,11 @@
                             </div>
                         </div>
 
-                        {{-- Tipe Penerimaan --}}
+                        {{-- ========== TIPE PENERIMAAN ========== --}}
                         <div class="section-title">
                             <i class="fas fa-tag"></i> Tipe Penerimaan
                         </div>
-                        <div class="row g-3 mb-4">
+                        <div class="row g-2 g-md-3 mb-3 mb-md-4">
                             <div class="col-6">
                                 <label class="option-card w-100" id="tipeBeliCard">
                                     <input type="radio" name="tipe" value="Beli" {{ old('tipe', 'Beli') == 'Beli' ? 'checked' : '' }}>
@@ -378,11 +543,11 @@
                             </div>
                         </div>
 
-                        {{-- Kondisi Sampah --}}
+                        {{-- ========== KONDISI SAMPAH ========== --}}
                         <div class="section-title">
                             <i class="fas fa-clipboard-check"></i> Kondisi Sampah Saat Diterima
                         </div>
-                        <div class="row g-3 mb-3">
+                        <div class="row g-2 g-md-3 mb-3">
                             <div class="col-6">
                                 <label class="option-card w-100" id="sortirBelumCard">
                                     <input type="radio" name="status_sortir_awal" value="Belum" {{ old('status_sortir_awal', 'Belum') == 'Belum' ? 'checked' : '' }}>
@@ -401,18 +566,21 @@
                             </div>
                         </div>
 
-                        {{-- Info Note --}}
-                        <div class="info-alert mb-4" id="infoAlert">
+                        {{-- ========== INFO NOTE ========== --}}
+                        <div class="info-alert mb-3 mb-md-4" id="infoAlert">
                             <div class="flex-shrink-0"><i class="fas fa-info-circle fa-lg"></i></div>
-                            <div id="infoAlertText">Sampah masih dalam kondisi campur dan perlu melalui proses sortir di gudang. Stok akan bertambah <strong>setelah sortir selesai</strong>.</div>
+                            <div id="infoAlertText">
+                                Sampah masih dalam kondisi campur dan perlu melalui proses sortir di gudang. 
+                                Stok akan bertambah <strong>setelah sortir selesai</strong>.
+                            </div>
                         </div>
 
-                        {{-- Detail Plastik --}}
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        {{-- ========== DETAIL JENIS PLASTIK ========== --}}
+                        <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3 flex-wrap gap-2">
                             <div class="section-title mb-0">
                                 <i class="fas fa-cubes"></i> Detail Jenis Plastik
                             </div>
-                            <small class="text-muted">
+                            <small class="text-muted" style="font-size: 0.65rem;">
                                 <span id="itemCount">1</span> jenis ditambahkan
                             </small>
                         </div>
@@ -428,26 +596,26 @@
                                             </button>
                                         @endif
                                         <div class="row g-2 mt-2">
-                                            <div class="col-lg-5 mb-2">
+                                            <div class="col-12 col-md-6 col-lg-5 mb-2">
                                                 <label class="form-label small">Jenis Plastik</label>
                                                 <select name="items[{{ $index }}][jenis_plastik_id]" class="form-select" required>
                                                     <option value="">— Pilih Jenis Plastik —</option>
                                                     @foreach($jenisPlastik as $jp)
-                                                        <option value="{{ $jp->id }}" {{ $item['jenis_plastik_id'] == $jp->id ? 'selected' : '' }}>
+                                                        <option value="{{ $jp->id }}" {{ ($item['jenis_plastik_id'] ?? '') == $jp->id ? 'selected' : '' }}>
                                                             {{ $jp->nama }}
                                                         </option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-lg-3 col-md-6 mb-2">
+                                            <div class="col-6 col-md-3 col-lg-3 mb-2">
                                                 <label class="form-label small">Berat (Kg)</label>
                                                 <input type="number" step="0.01" min="0.01" 
                                                        name="items[{{ $index }}][berat]" 
                                                        class="form-control berat-input" 
                                                        placeholder="0.00" 
-                                                       value="{{ $item['berat'] }}" required>
+                                                       value="{{ $item['berat'] ?? '' }}" required>
                                             </div>
-                                            <div class="col-lg-4 col-md-6 mb-2" id="hargaWrapper{{ $index }}">
+                                            <div class="col-6 col-md-3 col-lg-4 mb-2" id="hargaWrapper{{ $index }}">
                                                 <label class="form-label small harga-label">Harga / Kg (Rp)</label>
                                                 <input type="text" 
                                                        name="items[{{ $index }}][harga]" 
@@ -463,7 +631,7 @@
                                 <div class="item-row" data-index="0">
                                     <span class="item-number">Item #1</span>
                                     <div class="row g-2 mt-2">
-                                        <div class="col-lg-5 mb-2">
+                                        <div class="col-12 col-md-6 col-lg-5 mb-2">
                                             <label class="form-label small">Jenis Plastik</label>
                                             <select name="items[0][jenis_plastik_id]" class="form-select" required>
                                                 <option value="">— Pilih Jenis Plastik —</option>
@@ -472,14 +640,14 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-lg-3 col-md-6 mb-2">
+                                        <div class="col-6 col-md-3 col-lg-3 mb-2">
                                             <label class="form-label small">Berat (Kg)</label>
                                             <input type="number" step="0.01" min="0.01" 
                                                    name="items[0][berat]" 
                                                    class="form-control berat-input" 
                                                    placeholder="0.00" required>
                                         </div>
-                                        <div class="col-lg-4 col-md-6 mb-2" id="hargaWrapper0">
+                                        <div class="col-6 col-md-3 col-lg-4 mb-2" id="hargaWrapper0">
                                             <label class="form-label small harga-label">Harga / Kg (Rp)</label>
                                             <input type="text" 
                                                    name="items[0][harga]" 
@@ -496,19 +664,19 @@
                             <i class="fas fa-plus-circle me-2"></i>Tambah Jenis Plastik Lain
                         </button>
 
-                        {{-- Ringkasan --}}
-                        <div class="summary-card mt-4">
-                            <div class="row align-items-center text-center">
-                                <div class="col-md-4 mb-2 mb-md-0">
+                        {{-- ========== RINGKASAN ========== --}}
+                        <div class="summary-card mt-3 mt-md-4">
+                            <div class="row align-items-center text-center g-2">
+                                <div class="col-4 col-md-4">
                                     <div class="summary-label">
                                         <i class="fas fa-weight-hanging me-1"></i> Total Berat
                                     </div>
                                     <div class="summary-value mt-1">
-                                        <span id="totalBerat">0,00</span> Kg
+                                        <span id="totalBerat">0,00</span> <small style="font-size:0.7rem;">Kg</small>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-2 mb-md-0">
-                                    <div class="summary-divider d-none d-md-block mx-auto"></div>
+                                <div class="col-4 col-md-4">
+                                    <div class="summary-divider"></div>
                                     <div class="summary-label" id="totalHargaLabel">
                                         <i class="fas fa-money-bill-wave me-1"></i> Total Pembayaran
                                     </div>
@@ -516,20 +684,20 @@
                                         Rp <span id="totalHarga">0</span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="summary-divider d-none d-md-block mx-auto"></div>
+                                <div class="col-4 col-md-4">
+                                    <div class="summary-divider"></div>
                                     <div class="summary-label">
-                                        <i class="fas fa-layer-group me-1"></i> Jenis Plastik
+                                        <i class="fas fa-layer-group me-1"></i> Jenis
                                     </div>
                                     <div class="summary-value mt-1">
-                                        <span id="totalJenis">1</span> Jenis
+                                        <span id="totalJenis">1</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Keterangan --}}
-                        <div class="mt-4">
+                        {{-- ========== KETERANGAN ========== --}}
+                        <div class="mt-3 mt-md-4">
                             <label class="form-label">
                                 <i class="fas fa-sticky-note me-1"></i>Keterangan Tambahan
                             </label>
@@ -537,12 +705,12 @@
                                       placeholder="Catatan tambahan (opsional)...">{{ old('keterangan') }}</textarea>
                         </div>
 
-                        {{-- Tombol Submit --}}
-                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                            <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-outline-green rounded-3 px-4">
+                        {{-- ========== TOMBOL AKSI ========== --}}
+                        <div class="d-flex justify-content-end gap-2 mt-3 mt-md-4 pt-3 border-top flex-wrap">
+                            <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-outline-green rounded-3 px-3 px-md-4">
                                 <i class="fas fa-times me-1"></i>Batal
                             </a>
-                            <button type="submit" class="btn btn-primary-green rounded-3 px-4">
+                            <button type="submit" class="btn btn-primary-green rounded-3 px-3 px-md-4">
                                 <i class="fas fa-save me-2"></i>Simpan Penerimaan
                             </button>
                         </div>
@@ -560,7 +728,6 @@
         
         // ============ VARIABEL ============
         let itemIndex = document.querySelectorAll('.item-row').length;
-        
         const form = document.getElementById('formPenerimaan');
         const itemsContainer = document.getElementById('itemsContainer');
         const tipeBeli = document.querySelector('input[value="Beli"]');
@@ -571,10 +738,8 @@
         const infoAlertText = document.getElementById('infoAlertText');
         const totalHargaLabel = document.getElementById('totalHargaLabel');
         const totalHargaDisplay = document.getElementById('totalHargaDisplay');
-        const itemCountSpan = document.getElementById('itemCount');
-        const totalJenisSpan = document.getElementById('totalJenis');
 
-        // ============ HELPER: Format Rupiah ============
+        // ============ HELPER FUNCTIONS ============
         function formatRupiah(angka) {
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
@@ -586,9 +751,7 @@
         // ============ UPDATE UI ============
         function updateTipeActive() {
             document.querySelectorAll('.option-card').forEach(card => {
-                if (card.querySelector('input[name="tipe"]')) {
-                    card.classList.remove('active');
-                }
+                if (card.querySelector('input[name="tipe"]')) card.classList.remove('active');
             });
             
             if (tipeBeli.checked) {
@@ -607,18 +770,16 @@
 
         function updateSortirActive() {
             document.querySelectorAll('.option-card').forEach(card => {
-                if (card.querySelector('input[name="status_sortir_awal"]')) {
-                    card.classList.remove('active');
-                }
+                if (card.querySelector('input[name="status_sortir_awal"]')) card.classList.remove('active');
             });
             
             if (sortirBelum.checked) {
                 document.getElementById('sortirBelumCard').classList.add('active');
-                infoAlert.className = 'info-alert mb-4';
+                infoAlert.className = 'info-alert mb-3 mb-md-4';
                 infoAlertText.innerHTML = 'Sampah masih dalam kondisi campur dan perlu melalui proses sortir di gudang. Stok akan bertambah <strong>setelah sortir selesai</strong>.';
             } else {
                 document.getElementById('sortirSudahCard').classList.add('active');
-                infoAlert.className = 'info-alert success mb-4';
+                infoAlert.className = 'info-alert success mb-3 mb-md-4';
                 infoAlertText.innerHTML = 'Sampah sudah bersih dan terpilah. Stok akan <strong>langsung bertambah</strong> setelah data disimpan.';
             }
         }
@@ -659,9 +820,7 @@
                 const beratInput = row.querySelector('.berat-input');
                 const hargaInput = row.querySelector('.harga-input');
                 
-                if (beratInput && parseFloat(beratInput.value) > 0) {
-                    totalJenis++;
-                }
+                if (beratInput && parseFloat(beratInput.value) > 0) totalJenis++;
                 
                 const berat = parseFloat(beratInput?.value) || 0;
                 const harga = isDonasi ? 0 : parseRupiah(hargaInput?.value || '0');
@@ -671,35 +830,26 @@
             });
             
             document.getElementById('totalBerat').textContent = totalBerat.toLocaleString('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+                minimumFractionDigits: 2, maximumFractionDigits: 2
             });
-            
             document.getElementById('totalHarga').textContent = formatRupiah(Math.round(totalHarga));
             document.getElementById('totalJenis').textContent = totalJenis || document.querySelectorAll('.item-row').length;
             document.getElementById('itemCount').textContent = document.querySelectorAll('.item-row').length;
         }
 
-        // ============ FORMAT INPUT HARGA ============
+        // ============ FORMAT INPUT HARGA (REAL-TIME) ============
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('harga-input') && !e.target.disabled) {
                 const cursorPos = e.target.selectionStart;
                 const rawValue = e.target.value.replace(/[^0-9]/g, '');
                 const formatted = rawValue ? formatRupiah(rawValue) : '';
-                
                 const oldLength = e.target.value.length;
                 e.target.value = formatted;
-                
                 const newLength = formatted.length;
-                const posDiff = newLength - oldLength;
-                e.target.setSelectionRange(cursorPos + posDiff, cursorPos + posDiff);
-                
+                e.target.setSelectionRange(cursorPos + (newLength - oldLength), cursorPos + (newLength - oldLength));
                 hitungTotal();
             }
-            
-            if (e.target.classList.contains('berat-input')) {
-                hitungTotal();
-            }
+            if (e.target.classList.contains('berat-input')) hitungTotal();
         });
 
         document.addEventListener('change', function(e) {
@@ -712,9 +862,8 @@
         document.getElementById('addItemBtn').addEventListener('click', function() {
             const isDonasi = tipeDonasi.checked;
             const newRow = document.createElement('div');
-            newRow.className = 'item-row';
+            newRow.className = 'item-row item-row-new';
             newRow.setAttribute('data-index', itemIndex);
-            newRow.style.animation = 'fadeIn 0.3s ease';
             
             newRow.innerHTML = `
                 <span class="item-number">Item #${itemIndex + 1}</span>
@@ -722,7 +871,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="row g-2 mt-2">
-                    <div class="col-lg-5 mb-2">
+                    <div class="col-12 col-md-6 col-lg-5 mb-2">
                         <label class="form-label small">Jenis Plastik</label>
                         <select name="items[${itemIndex}][jenis_plastik_id]" class="form-select" required>
                             <option value="">— Pilih Jenis Plastik —</option>
@@ -731,14 +880,14 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-2">
+                    <div class="col-6 col-md-3 col-lg-3 mb-2">
                         <label class="form-label small">Berat (Kg)</label>
                         <input type="number" step="0.01" min="0.01" 
                                name="items[${itemIndex}][berat]" 
                                class="form-control berat-input" 
                                placeholder="0.00" required>
                     </div>
-                    <div class="col-lg-4 col-md-6 mb-2" id="hargaWrapper${itemIndex}">
+                    <div class="col-6 col-md-3 col-lg-4 mb-2" id="hargaWrapper${itemIndex}">
                         <label class="form-label small harga-label">Harga / Kg (Rp)</label>
                         <input type="text" 
                                name="items[${itemIndex}][harga]" 
@@ -752,12 +901,13 @@
             
             itemsContainer.appendChild(newRow);
             itemIndex++;
-            
             attachRemoveHandlers();
             hitungTotal();
             
-            // Scroll ke item baru
-            newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Scroll ke item baru (mobile-friendly)
+            setTimeout(() => {
+                newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         });
 
         // ============ REMOVE ITEM ============
@@ -801,7 +951,6 @@
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Terhapus',
-                                    text: 'Item berhasil dihapus.',
                                     timer: 1500,
                                     showConfirmButton: false,
                                     toast: true,
@@ -817,37 +966,20 @@
         function updateItemNumbers() {
             document.querySelectorAll('.item-row').forEach((row, index) => {
                 const badge = row.querySelector('.item-number');
-                if (badge) {
-                    badge.textContent = `Item #${index + 1}`;
-                }
+                if (badge) badge.textContent = `Item #${index + 1}`;
                 row.setAttribute('data-index', index);
                 
                 // Update name attributes
-                const selects = row.querySelectorAll('select');
-                const inputs = row.querySelectorAll('input');
-                const textInputs = row.querySelectorAll('input[type="text"]');
-                
-                selects.forEach(select => {
-                    const name = select.getAttribute('name');
+                row.querySelectorAll('select, input').forEach(el => {
+                    const name = el.getAttribute('name');
                     if (name) {
-                        select.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
+                        el.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
                     }
                 });
                 
-                inputs.forEach(input => {
-                    const name = input.getAttribute('name');
-                    if (name && input.type !== 'text') {
-                        input.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
-                    }
-                });
-                
-                textInputs.forEach(input => {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        input.setAttribute('name', name.replace(/items\[\d+\]/, `items[${index}]`));
-                    }
-                    input.setAttribute('data-index', index);
-                });
+                // Update data-index for harga inputs
+                const hargaInput = row.querySelector('.harga-input');
+                if (hargaInput) hargaInput.setAttribute('data-index', index);
             });
             itemIndex = document.querySelectorAll('.item-row').length;
         }
@@ -858,18 +990,19 @@
         sortirBelum.addEventListener('change', updateSortirActive);
         sortirSudah.addEventListener('change', updateSortirActive);
 
-        // ============ FORM SUBMIT DENGAN SWEETALERT ============
+        // ============ FORM SUBMIT ============
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validasi HTML5
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
             
-            // Validasi tambahan
-            const totalBerat = parseFloat(document.getElementById('totalBerat').textContent.replace(/\./g, '').replace(',', '.')) || 0;
+            const totalBerat = parseFloat(
+                (document.getElementById('totalBerat').textContent || '0').replace(/\./g, '').replace(',', '.')
+            ) || 0;
+            
             if (totalBerat <= 0) {
                 Swal.fire({
                     icon: 'warning',
@@ -880,117 +1013,68 @@
                 return;
             }
             
-            // Kumpulkan data untuk konfirmasi
             const supplier = document.querySelector('select[name="supplier_id"] option:checked')?.text || '-';
             const tipeText = tipeDonasi.checked ? 'Donasi (Gratis)' : 'Pembelian';
-            const sortirText = sortirSudah.checked ? 'Sudah Bersih (Stok Langsung Bertambah)' : 'Belum Tersortir (Perlu Sortir)';
+            const sortirText = sortirSudah.checked ? 'Sudah Bersih' : 'Belum Tersortir';
             const totalHargaText = tipeDonasi.checked ? 'Gratis' : 'Rp ' + document.getElementById('totalHarga').textContent;
             
-            // Bangun daftar item
             let itemsHtml = '';
             document.querySelectorAll('.item-row').forEach((row, i) => {
                 const jenis = row.querySelector('select')?.selectedOptions[0]?.text || '-';
                 const berat = row.querySelector('.berat-input')?.value || '0';
                 const harga = row.querySelector('.harga-input')?.value || '0';
-                
-                itemsHtml += `
-                    <tr>
-                        <td class="text-start ps-3">${i + 1}. ${jenis}</td>
-                        <td class="text-end">${parseFloat(berat).toFixed(2)} Kg</td>
-                        <td class="text-end">${tipeDonasi.checked ? '-' : 'Rp ' + harga}</td>
-                    </tr>
-                `;
+                itemsHtml += `<tr>
+                    <td class="text-start ps-2">${i + 1}. ${jenis}</td>
+                    <td class="text-end">${parseFloat(berat).toFixed(2)} Kg</td>
+                    <td class="text-end d-none d-sm-table-cell">${tipeDonasi.checked ? '-' : 'Rp ' + harga}</td>
+                </tr>`;
             });
 
             Swal.fire({
                 title: 'Konfirmasi Penerimaan',
                 html: `
-                    <div style="font-size: 0.9rem;">
-                        <div class="mb-3">
-                            <strong>Supplier:</strong> ${supplier}<br>
-                            <strong>Tipe:</strong> ${tipeText}<br>
-                            <strong>Kondisi:</strong> <span class="${sortirSudah.checked ? 'text-success' : 'text-warning'}">${sortirText}</span><br>
-                            <strong>Total Pembayaran:</strong> <strong>${totalHargaText}</strong>
-                        </div>
-                        <table class="table table-sm table-bordered mb-0" style="font-size: 0.8rem;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-start ps-2">Item</th>
-                                    <th class="text-end">Berat</th>
-                                    <th class="text-end">Harga/Kg</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itemsHtml}
-                            </tbody>
+                    <div style="font-size: 0.82rem; text-align: left;">
+                        <p class="mb-2"><strong>Supplier:</strong> ${supplier}</p>
+                        <p class="mb-2"><strong>Tipe:</strong> ${tipeText} | <strong>Kondisi:</strong> ${sortirText}</p>
+                        <p class="mb-2"><strong>Total:</strong> ${totalHargaText}</p>
+                        <table class="table table-sm table-bordered mb-0" style="font-size: 0.72rem;">
+                            <thead class="table-light"><tr><th>Item</th><th class="text-end">Berat</th><th class="text-end d-none d-sm-table-cell">Harga</th></tr></thead>
+                            <tbody>${itemsHtml}</tbody>
                         </table>
-                        <hr class="my-2">
-                        <div class="text-end fw-bold">
-                            Total Berat: <span class="text-success">${totalBerat.toFixed(2)} Kg</span>
-                        </div>
+                        <p class="text-end fw-bold mt-2 mb-0">Total Berat: ${totalBerat.toFixed(2)} Kg</p>
                     </div>
                 `,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#115B39',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-save me-1"></i>Ya, Simpan',
+                confirmButtonText: 'Ya, Simpan',
                 cancelButtonText: 'Batal',
-                reverseButtons: true,
-                customClass: {
-                    popup: 'rounded-4',
-                    confirmButton: 'rounded-3',
-                    cancelButton: 'rounded-3'
-                }
+                customClass: { popup: 'rounded-3' }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Tampilkan loading
                     Swal.fire({
-                        title: 'Menyimpan Data...',
-                        html: 'Harap tunggu sebentar',
+                        title: 'Menyimpan...',
                         allowOutsideClick: false,
-                        allowEscapeKey: false,
                         showConfirmButton: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => Swal.showLoading()
                     });
                     
-                    // Bersihkan format rupiah sebelum submit
                     document.querySelectorAll('.harga-input').forEach(input => {
-                        if (input.value) {
-                            input.value = parseRupiah(input.value).toString();
-                        }
+                        if (input.value) input.value = parseRupiah(input.value).toString();
                     });
                     
-                    // Submit form
                     form.submit();
                 }
             });
         });
 
-        // ============ INITIALIZATION ============
+        // ============ INIT ============
         attachRemoveHandlers();
         updateTipeActive();
         updateSortirActive();
         updateHargaFields();
         hitungTotal();
-
-        // Tambahkan style animasi
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
     });
 </script>
 @endpush
