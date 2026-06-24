@@ -8,11 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting
+class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
     protected $dariTanggal;
     protected $sampaiTanggal;
@@ -50,14 +48,13 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
     public function headings(): array
     {
         return [
-            'Tanggal',
-            'Jenis Produk',
-            'Bahan Baku',
-            'Total Bahan (Kg)',
-            'Hasil Produksi (Kg)',
-            'Rendemen (%)',
-            'Petugas',
-            'Keterangan'
+            'TANGGAL',
+            'PRODUK',
+            'BAHAN BAKU',
+            'BAHAN (Kg)',
+            'HASIL (Unit)',
+            'PETUGAS',
+            'KETERANGAN',
         ];
     }
 
@@ -65,11 +62,10 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
     {
         $totalBahan = $produksi->detailBahanProduksi->sum('berat');
         $totalHasil = $produksi->detailHasilProduksi->sum('jumlah');
-        $yield = $totalBahan > 0 ? ($totalHasil / $totalBahan) * 100 : 0;
         
         // Gabungkan bahan baku
         $bahanList = $produksi->detailBahanProduksi->map(function($b) {
-            return $b->jenisPlastik->nama . ' (' . number_format($b->berat, 2, ',', '.') . ' Kg)';
+            return $b->jenisPlastik->nama . ' (' . number_format($b->berat, 1, ',', '.') . ' Kg)';
         })->implode(', ');
         
         return [
@@ -78,19 +74,19 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
             $bahanList ?: '-',
             $totalBahan,
             $totalHasil,
-            $yield,
             $produksi->user->name ?? '-',
-            $produksi->keterangan ?: '-'
+            $produksi->keterangan ?: '-',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Style untuk header
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        // Style header
+        $sheet->getStyle('A1:G1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
+                'size' => 11,
             ],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -98,32 +94,36 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
             ],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ],
         ]);
         
-        // Border untuk semua cell
-        $sheet->getStyle('A1:H' . ($sheet->getHighestRow()))->applyFromArray([
+        $lastRow = $sheet->getHighestRow();
+        
+        // Border semua cell
+        $sheet->getStyle('A1:G' . $lastRow)->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => 'DDDDDD'],
+                    'color' => ['rgb' => 'CCCCCC'],
                 ],
             ],
         ]);
         
-        // Alignment untuk kolom angka
-        $sheet->getStyle('D2:F' . $sheet->getHighestRow())->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        // Alignment
+        $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('D2:E' . $lastRow)->getAlignment()->setHorizontal('center');
+        
+        // Tinggi baris
+        $sheet->getDefaultRowDimension()->setRowHeight(20);
+        $sheet->getRowDimension(1)->setRowHeight(25);
+        
+        // Freeze header
+        $sheet->freezePane('A2');
+        
+        // Auto filter
+        $sheet->setAutoFilter('A1:G1');
         
         return [];
-    }
-
-    public function columnFormats(): array
-    {
-        return [
-            'D' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Total Bahan
-            'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Hasil Produksi
-            'F' => NumberFormat::FORMAT_NUMBER_00, // Rendemen dengan 2 desimal
-        ];
     }
 }

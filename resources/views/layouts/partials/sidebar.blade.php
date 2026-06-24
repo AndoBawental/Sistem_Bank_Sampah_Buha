@@ -206,13 +206,7 @@
                 </li>
                 @endhasanyrole
                 
-                @role('admin')
-                <li class="nav-item">
-                    <a class="nav-link py-2 px-3 rounded" href="{{ route('laporan.stok') }}">
-                        <i class="fas fa-boxes me-2"></i>Stok
-                    </a>
-                </li>
-                @endrole
+              
             </ul>
         </div>
     </li>

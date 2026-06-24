@@ -8,11 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting
+class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
     protected $dariTanggal;
     protected $sampaiTanggal;
@@ -43,44 +41,43 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
     public function headings(): array
     {
         return [
-            'No. Invoice',
-            'Tanggal',
-            'Pembeli',
-            'Telepon',
-            'Produk',
-            'Total Berat (Kg)',
-            'Total Harga (Rp)',
-            'Petugas'
+            'INVOICE',
+            'TANGGAL',
+            'PEMBELI',
+            'PRODUK',
+            'UNIT',
+            'TOTAL (Rp)',
+            'KASIR',
         ];
     }
 
     public function map($penjualan): array
     {
-        $totalBerat = $penjualan->detailPenjualan->sum('qty');
+        $totalUnit = $penjualan->detailPenjualan->sum('qty');
         
         $produkList = $penjualan->detailPenjualan->map(function($detail) {
-            return $detail->jenisProduk->nama . ' (' . number_format($detail->qty, 2, ',', '.') . ' Kg)';
+            return $detail->jenisProduk->nama . ' (' . number_format($detail->qty, 0, ',', '.') . ' Unit)';
         })->implode(', ');
         
         return [
-            'INV-' . str_pad($penjualan->id, 6, '0', STR_PAD_LEFT),
+            'INV-' . str_pad($penjualan->id, 5, '0', STR_PAD_LEFT),
             $penjualan->tanggal->format('d/m/Y'),
-            $penjualan->pembeli->nama ?? '-',
-            $penjualan->pembeli->telepon ?? '-',
+            $penjualan->pembeli->nama ?? 'Umum',
             $produkList,
-            $totalBerat,
+            $totalUnit,
             $penjualan->total_harga,
-            $penjualan->user->name ?? '-'
+            $penjualan->user->name ?? '-',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Style untuk header
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        // Style header
+        $sheet->getStyle('A1:G1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'color' => ['rgb' => '000000'],
+                'color' => ['rgb' => '333333'],
+                'size' => 11,
             ],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -88,31 +85,38 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
             ],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ],
         ]);
         
-        // Border untuk semua cell
-        $sheet->getStyle('A1:H' . ($sheet->getHighestRow()))->applyFromArray([
+        $lastRow = $sheet->getHighestRow();
+        
+        // Border semua cell
+        $sheet->getStyle('A1:G' . $lastRow)->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => 'DDDDDD'],
+                    'color' => ['rgb' => 'CCCCCC'],
                 ],
             ],
         ]);
         
-        // Alignment untuk kolom angka
-        $sheet->getStyle('F2:G' . $sheet->getHighestRow())->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        // Alignment
+        $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('B2:B' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('E2:E' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('F2:F' . $lastRow)->getAlignment()->setHorizontal('right');
+        
+        // Tinggi baris
+        $sheet->getDefaultRowDimension()->setRowHeight(20);
+        $sheet->getRowDimension(1)->setRowHeight(25);
+        
+        // Freeze header
+        $sheet->freezePane('A2');
+        
+        // Auto filter
+        $sheet->setAutoFilter('A1:G1');
         
         return [];
-    }
-
-    public function columnFormats(): array
-    {
-        return [
-            'F' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Total Berat dengan 2 desimal
-            'G' => '#,##0', // Total Harga tanpa desimal
-        ];
     }
 }

@@ -8,11 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting
+class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
     protected $dariTanggal;
     protected $sampaiTanggal;
@@ -51,51 +49,55 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
     public function headings(): array
     {
         return [
-            'Tanggal',
-            'Supplier',
-            'Tipe',
-            'Jenis Plastik',
-            'Berat Kotor (Kg)',
-            'Berat Bersih (Kg)',
-            'Status Sortir',
-            'Total Bayar (Rp)',
-            'Petugas'
+            'TANGGAL',
+            'SUPPLIER',
+            'TIPE',
+            'JENIS PLASTIK',
+            'BERAT DATANG (Kg)',
+            'BERAT BERSIH (Kg)',
+            'STATUS SORTIR',
+            'PEMBAYARAN (Rp)',
+            'PETUGAS',
         ];
     }
 
     public function map($penerimaan): array
     {
-        // Gabungkan semua jenis plastik dalam satu transaksi
+        // Gabungkan jenis plastik
         $jenisPlastik = $penerimaan->detailPenerimaan->map(function($detail) {
             return $detail->jenisPlastik->nama ?? '-';
         })->implode(', ');
         
-        // Total berat kotor dari semua detail
-        $beratKotor = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
+        // Total berat datang
+        $beratDatang = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
         
         // Total berat bersih dari hasil sortir
         $beratBersih = $penerimaan->hasilSortir->sum('berat_bersih_kg') ?? 0;
         
+        // Pembayaran (hanya untuk pembelian)
+        $bayar = $penerimaan->tipe == 'Beli' ? $penerimaan->total_bayar : 0;
+        
         return [
             $penerimaan->tanggal->format('d/m/Y'),
             $penerimaan->supplier->nama ?? '-',
-            $penerimaan->tipe,
+            $penerimaan->tipe == 'Beli' ? 'Pembelian' : 'Donasi',
             $jenisPlastik,
-            $beratKotor,
-            $beratBersih,
+            $beratDatang,
+            $beratBersih > 0 ? $beratBersih : '0',
             $penerimaan->status_sortir,
-            $penerimaan->tipe == 'Beli' ? $penerimaan->total_bayar : 0,
-            $penerimaan->user->name ?? '-'
+            $bayar,
+            $penerimaan->user->name ?? '-',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Style untuk header
+        // Style header
         $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
+                'size' => 11,
             ],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -103,35 +105,39 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
             ],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ],
         ]);
         
-        // Border untuk semua cell
-        $sheet->getStyle('A1:I' . ($sheet->getHighestRow()))->applyFromArray([
+        // Style semua cell
+        $lastRow = $sheet->getHighestRow();
+        
+        // Border
+        $sheet->getStyle('A1:I' . $lastRow)->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => 'DDDDDD'],
+                    'color' => ['rgb' => 'CCCCCC'],
                 ],
             ],
         ]);
         
-        // Alignment untuk kolom angka
-        $sheet->getStyle('E2:F' . $sheet->getHighestRow())->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        // Alignment
+        $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('C2:C' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('G2:G' . $lastRow)->getAlignment()->setHorizontal('center');
         
-        $sheet->getStyle('H2:H' . $sheet->getHighestRow())->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        // Angka rata kanan
+        $sheet->getStyle('E2:F' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal('right');
+        
+        // Tinggi baris
+        $sheet->getDefaultRowDimension()->setRowHeight(20);
+        $sheet->getRowDimension(1)->setRowHeight(25);
+        
+        // Freeze header
+        $sheet->freezePane('A2');
         
         return [];
-    }
-
-    public function columnFormats(): array
-    {
-        return [
-            'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Berat Kotor dengan 2 desimal
-            'F' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Berat Bersih dengan 2 desimal
-            'H' => '#,##0', // Total Bayar tanpa desimal
-        ];
     }
 }
