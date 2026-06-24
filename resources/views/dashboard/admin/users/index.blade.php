@@ -1,232 +1,259 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="container-fluid">
+@section('title', 'Kelola Pengguna')
+@section('page-title', 'Kelola Pengguna')
+
+@push('styles')
+<style>
+    .badge-role {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
     
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Kelola Pengguna</h1>
-        <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-success">
-            <i class="fas fa-plus fa-sm"></i> Tambah User
+    @media (max-width: 575.98px) {
+        .table td, .table th {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.3rem;
+        }
+        .btn-sm {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+        }
+        .badge-role {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+        }
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="container-fluid px-2 px-md-4 mt-3 mb-4">
+
+    {{-- Header --}}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+        <h5 class="mb-0 fw-bold">👥 Kelola Pengguna</h5>
+        <a href="{{ route('admin.users.create') }}" class="btn btn-success btn-sm w-100 w-sm-auto">
+            <i class="fas fa-plus"></i> Tambah User
         </a>
     </div>
 
+    {{-- Alert --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show small" role="alert">
             <i class="fas fa-check-circle"></i> {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
-
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show small" role="alert">
             <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-users"></i> Daftar Pengguna Sistem
-            </h6>
-        </div>
-        <div class="card-body">
+    {{-- Tabel Desktop & Tablet --}}
+    <div class="card shadow-sm border-0 d-none d-md-block">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%">No</th>
-                            <th width="25%">Nama</th>
-                            <th width="25%">Email</th>
-                            <th width="15%">Role</th>
-                            <th width="30%">Aksi</th>
+                            <th width="50" class="ps-3">No</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th width="220">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($users as $index => $user)
                         <tr>
-                            <td>{{ $users->firstItem() + $index }}</td>
+                            <td class="ps-3 small">{{ $users->firstItem() + $index }}</td>
                             <td>
-                                <i class="fas fa-user-circle text-primary"></i> 
-                                {{ $user->name }}
+                                <span class="fw-semibold">{{ $user->name }}</span>
                             </td>
-                            <td>
-                                <i class="fas fa-envelope text-secondary"></i> 
-                                {{ $user->email }}
-                            </td>
+                            <td class="small">{{ $user->email }}</td>
                             <td>
                                 @if($user->roles->isNotEmpty())
                                     @php
                                         $roleName = $user->roles->first()->name;
                                         $badgeClass = match($roleName) {
-                                            'admin' => 'danger',
-                                            'gudang' => 'primary',
-                                            'produksi' => 'success',
-                                            'penjualan' => 'warning',
-                                            default => 'secondary'
+                                            'admin' => 'bg-danger',
+                                            'gudang' => 'bg-primary',
+                                            'produksi' => 'bg-success',
+                                            'penjualan' => 'bg-warning text-dark',
+                                            default => 'bg-secondary'
                                         };
                                     @endphp
-                                    <span class="badge bg-{{ $badgeClass }} p-2">
+                                    <span class="badge {{ $badgeClass }} badge-role">
                                         {{ ucfirst($roleName) }}
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary">No Role</span>
+                                    <span class="badge bg-secondary badge-role">No Role</span>
                                 @endif
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    {{-- Tombol Edit --}}
+                                <div class="d-flex gap-1">
                                     <a href="{{ route('admin.users.edit', $user) }}" 
-                                       class="btn btn-outline-primary btn-sm" 
-                                       data-bs-toggle="tooltip" 
-                                       title="Edit Pengguna">
-                                        <i class="fas fa-edit"></i> Edit
+                                       class="btn btn-outline-primary btn-sm" title="Edit">
+                                        <i class="fas fa-edit"></i>
                                     </a>
-                                    
-                                    {{-- Tombol Reset Password --}}
                                     <button type="button" 
                                             class="btn btn-outline-info btn-sm" 
-                                            onclick="confirmReset('{{ $user->id }}', '{{ $user->name }}')"
-                                            data-bs-toggle="tooltip" 
-                                            title="Reset Password">
-                                        <i class="fas fa-key"></i> Reset
+                                            onclick="confirmReset('{{ $user->id }}', '{{ addslashes($user->name) }}')" title="Reset Password">
+                                        <i class="fas fa-key"></i>
                                     </button>
-                                    
-                                    {{-- Tombol Hapus --}}
                                     @if(auth()->id() !== $user->id)
                                     <button type="button" 
                                             class="btn btn-outline-danger btn-sm" 
-                                            onclick="confirmDelete('{{ $user->id }}', '{{ $user->name }}')"
-                                            data-bs-toggle="tooltip" 
-                                            title="Hapus Pengguna">
-                                        <i class="fas fa-trash"></i> Hapus
+                                            onclick="confirmDelete('{{ $user->id }}', '{{ addslashes($user->name) }}')" title="Hapus">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                     @else
-                                    <button type="button" 
-                                            class="btn btn-outline-secondary btn-sm" 
-                                            disabled
-                                            data-bs-toggle="tooltip" 
-                                            title="Tidak dapat menghapus diri sendiri">
-                                        <i class="fas fa-user"></i> Aktif
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled title="Diri sendiri">
+                                        <i class="fas fa-user"></i>
                                     </button>
                                     @endif
                                 </div>
-
-                                {{-- Form tersembunyi untuk aksi --}}
-                                <form id="delete-form-{{ $user->id }}" action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display: none;">
-                                    @csrf
-                                    @method('DELETE')
+                                <form id="delete-form-{{ $user->id }}" action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:none;">
+                                    @csrf @method('DELETE')
                                 </form>
-                                
-                                <form id="reset-form-{{ $user->id }}" action="{{ route('admin.users.reset-password', $user) }}" method="POST" style="display: none;">
+                                <form id="reset-form-{{ $user->id }}" action="{{ route('admin.users.reset-password', $user) }}" method="POST" style="display:none;">
                                     @csrf
                                 </form>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Belum ada data pengguna</p>
-                                <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-success">
-                                    <i class="fas fa-plus"></i> Tambah User Sekarang
-                                </a>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="fas fa-users fa-2x d-block mb-2 opacity-25"></i>
+                                Belum ada pengguna
                             </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            
-            {{-- Pagination --}}
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div>
-                    <small class="text-muted">
-                        Menampilkan {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }} 
-                        dari {{ $users->total() }} data
-                    </small>
-                </div>
-                <div>
+        </div>
+        @if($users->hasPages())
+            <div class="card-footer bg-white py-2">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <small class="text-muted">{{ $users->firstItem() }}-{{ $users->lastItem() }} dari {{ $users->total() }}</small>
                     {{ $users->links() }}
                 </div>
             </div>
-        </div>
+        @endif
     </div>
-</div>
 
-{{-- Script Konfirmasi --}}
+    {{-- Mobile Card View --}}
+    <div class="d-block d-md-none">
+        @forelse($users as $index => $user)
+            <div class="card shadow-sm border-0 mb-2">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1 small">{{ $user->name }}</h6>
+                            <small class="text-muted">{{ $user->email }}</small>
+                            <br>
+                            @if($user->roles->isNotEmpty())
+                                @php
+                                    $roleName = $user->roles->first()->name;
+                                    $badgeClass = match($roleName) {
+                                        'admin' => 'bg-danger',
+                                        'gudang' => 'bg-primary',
+                                        'produksi' => 'bg-success',
+                                        'penjualan' => 'bg-warning text-dark',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }} badge-role mt-1">
+                                    {{ ucfirst($roleName) }}
+                                </span>
+                            @endif
+                        </div>
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-primary btn-sm" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-info btn-sm" 
+                                    onclick="confirmReset('{{ $user->id }}', '{{ addslashes($user->name) }}')" title="Reset">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            @if(auth()->id() !== $user->id)
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="confirmDelete('{{ $user->id }}', '{{ addslashes($user->name) }}')" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            @endif
+                        </div>
+                        <form id="delete-form-{{ $user->id }}" action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:none;">
+                            @csrf @method('DELETE')
+                        </form>
+                        <form id="reset-form-{{ $user->id }}" action="{{ route('admin.users.reset-password', $user) }}" method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-users fa-3x d-block mb-2 opacity-25"></i>
+                <small>Belum ada pengguna</small>
+            </div>
+        @endforelse
+        
+        @if($users->hasPages())
+            <div class="d-flex justify-content-center mt-3">
+                {{ $users->links() }}
+            </div>
+        @endif
+    </div>
+
+</div>
+@endsection
+
 @push('scripts')
 <script>
-    // Konfirmasi Hapus
     function confirmDelete(userId, userName) {
         Swal.fire({
-            title: 'Konfirmasi Hapus',
-            html: `Apakah Anda yakin ingin menghapus pengguna <strong>"${userName}"</strong>?<br>
-                   <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Data yang dihapus tidak dapat dikembalikan!</small>`,
+            title: 'Hapus Pengguna?',
+            html: `Hapus <strong>"${userName}"</strong>?<br><small class="text-danger">Data tidak dapat dikembalikan!</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus!',
-            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Menghapus...',
-                    text: 'Mohon tunggu sebentar',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
+                Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 document.getElementById(`delete-form-${userId}`).submit();
             }
         });
     }
     
-    // Konfirmasi Reset Password
     function confirmReset(userId, userName) {
         Swal.fire({
-            title: 'Konfirmasi Reset Password',
-            html: `Apakah Anda yakin ingin mereset password pengguna <strong>"${userName}"</strong>?<br>
-                   <small class="text-info"><i class="fas fa-info-circle"></i> Password akan direset ke: <strong>password123</strong></small>`,
+            title: 'Reset Password?',
+            html: `Reset password <strong>"${userName}"</strong>?<br><small class="text-info">Password akan direset ke: <strong>password123</strong></small>`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#0dcaf0',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-key"></i> Ya, Reset!',
-            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            confirmButtonText: 'Ya, Reset',
+            cancelButtonText: 'Batal',
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Memproses...',
-                    text: 'Mohon tunggu sebentar',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
+                Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 document.getElementById(`reset-form-${userId}`).submit();
             }
         });
     }
-    
-    // Inisialisasi Tooltip
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
 </script>
 @endpush
-
-@endsection

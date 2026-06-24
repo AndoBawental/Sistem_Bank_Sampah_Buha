@@ -1,107 +1,87 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="container-fluid">
-    
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-user-plus"></i> Tambah Pengguna Baru
-        </h1>
-        <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
-    </div>
+@section('title', 'Tambah Pengguna')
+@section('page-title', 'Tambah Pengguna')
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Form Tambah Pengguna</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.users.store') }}" method="POST" id="userForm">
-                @csrf
-                
-                <div class="row">
-                    <div class="col-md-6">
+@section('content')
+<div class="container-fluid px-2 px-md-4 mt-3 mb-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            
+            {{-- Header --}}
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:34px;height:34px;">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h5 class="mb-0 fw-bold">👤 Tambah Pengguna</h5>
+            </div>
+
+            {{-- Form --}}
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-3 p-md-4">
+                    <form action="{{ route('admin.users.store') }}" method="POST" id="userForm">
+                        @csrf
+                        
+                        {{-- Nama --}}
                         <div class="mb-3">
-                            <label for="name" class="form-label">
+                            <label class="form-label small fw-semibold">
                                 Nama Lengkap <span class="text-danger">*</span>
                             </label>
                             <input type="text" 
                                    class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" 
                                    name="name" 
                                    value="{{ old('name') }}" 
-                                   placeholder="Masukkan nama lengkap"
-                                   required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                   placeholder="Masukkan nama lengkap" required>
+                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6">
+
+                        {{-- Email --}}
                         <div class="mb-3">
-                            <label for="email" class="form-label">
+                            <label class="form-label small fw-semibold">
                                 Email <span class="text-danger">*</span>
                             </label>
                             <input type="email" 
                                    class="form-control @error('email') is-invalid @enderror" 
-                                   id="email" 
                                    name="email" 
                                    value="{{ old('email') }}" 
-                                   placeholder="contoh@email.com"
-                                   required>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                   placeholder="contoh@email.com" required>
+                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                    </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="password" class="form-label">
-                                Password <span class="text-danger">*</span>
-                            </label>
-                            <input type="password" 
-                                   class="form-control @error('password') is-invalid @enderror" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Minimal 6 karakter"
-                                   required>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">Minimal 6 karakter</small>
+                        {{-- Password --}}
+                        <div class="row g-2">
+                            <div class="col-12 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">
+                                        Password <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control @error('password') is-invalid @enderror" 
+                                           name="password" 
+                                           placeholder="Minimal 6 karakter" required>
+                                    <small class="text-muted">Minimal 6 karakter</small>
+                                    @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">
+                                        Konfirmasi Password <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           name="password_confirmation" 
+                                           placeholder="Ulangi password" required>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="password_confirmation" class="form-label">
-                                Konfirmasi Password <span class="text-danger">*</span>
-                            </label>
-                            <input type="password" 
-                                   class="form-control" 
-                                   id="password_confirmation" 
-                                   name="password_confirmation" 
-                                   placeholder="Ulangi password"
-                                   required>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="role" class="form-label">
+                        {{-- Role --}}
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">
                                 Role <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select @error('role') is-invalid @enderror" 
-                                    id="role" 
-                                    name="role" 
-                                    required>
+                            <select class="form-select @error('role') is-invalid @enderror" name="role" required>
                                 <option value="">-- Pilih Role --</option>
                                 @foreach($roles as $role)
                                     <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>
@@ -109,40 +89,58 @@
                                     </option>
                                 @endforeach
                             </select>
-                            @error('role')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                    </div>
-                </div>
 
-                <hr>
-
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
-                    </a>
-                    <button type="button" class="btn btn-primary" onclick="confirmSubmit()">
-                        <i class="fas fa-save"></i> Simpan
-                    </button>
+                        {{-- Tombol --}}
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <button type="button" class="btn btn-primary w-100 w-sm-auto rounded-pill px-4" onclick="confirmSubmit()">
+                                <i class="fas fa-save me-1"></i> Simpan
+                            </button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary w-100 w-sm-auto rounded-pill px-4">
+                                Batal
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
+
         </div>
     </div>
 </div>
+@endsection
+
+@push('styles')
+<style>
+    @media (max-width: 575.98px) {
+        .card-body { padding: 1rem !important; }
+        h5 { font-size: 1rem; }
+        .form-label { font-size: 0.8rem; }
+        .form-control, .form-select { font-size: 0.85rem; }
+        .btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
+    }
+    
+    .card { transition: box-shadow 0.2s ease; }
+    .card:hover { box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important; }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
     function confirmSubmit() {
         Swal.fire({
-            title: 'Konfirmasi',
-            text: 'Apakah data yang diisi sudah benar?',
+            title: 'Simpan Pengguna?',
+            text: 'Apakah data sudah benar?',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
+            confirmButtonColor: '#0d6efd',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-check"></i> Ya, Simpan',
-            cancelButtonText: '<i class="fas fa-times"></i> Batal'
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('userForm').submit();
@@ -151,5 +149,3 @@
     }
 </script>
 @endpush
-
-@endsection
