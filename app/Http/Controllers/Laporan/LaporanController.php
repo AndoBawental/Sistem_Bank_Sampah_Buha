@@ -42,76 +42,64 @@ class LaporanController extends Controller
         ));
     }
 
-    public function penerimaan(Request $request)
-    {
-        $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
-        $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
+  public function penerimaan(Request $request)
+{
+    $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
+    $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
 
-        // Tambahkan waktu untuk mencakup sehari penuh
-        $dariTanggalFull = $dariTanggal . ' 00:00:00';
-        $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
+    $dariTanggalFull = $dariTanggal . ' 00:00:00';
+    $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
 
-        $query = Penerimaan::with([
-            'supplier',
-            'user',
-            'detailPenerimaan.jenisPlastik',
-            'hasilSortir'
-        ])->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
+    // ✅ HAPUS 'hasilSortir' dari with()
+    $query = Penerimaan::with([
+        'supplier',
+        'user',
+        'detailPenerimaan.jenisPlastik',
+    ])->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
 
-        if ($request->filled('supplier_id')) {
-            $query->where('supplier_id', $request->supplier_id);
-        }
-
-        if ($request->filled('tipe')) {
-            $query->where('tipe', $request->tipe);
-        }
-
-        if ($request->filled('status_sortir')) {
-            $query->where('status_sortir', $request->status_sortir);
-        }
-
-        $penerimaan = $query->orderBy('tanggal', 'desc')->paginate(15);
-
-        $suppliers = Supplier::orderBy('nama')->get();
-
-        // Query untuk statistik (gunakan format datetime lengkap)
-        $statsQuery = Penerimaan::whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
-        
-        if ($request->filled('supplier_id')) {
-            $statsQuery->where('supplier_id', $request->supplier_id);
-        }
-        if ($request->filled('tipe')) {
-            $statsQuery->where('tipe', $request->tipe);
-        }
-        if ($request->filled('status_sortir')) {
-            $statsQuery->where('status_sortir', $request->status_sortir);
-        }
-
-        $totalTransaksi = $statsQuery->count();
-        $totalBeli = (clone $statsQuery)->where('tipe', 'Beli')->count();
-        $totalDonasi = (clone $statsQuery)->where('tipe', 'Donasi')->count();
-        $totalBeratKotor = (clone $statsQuery)->sum('total_berat_kotor_kg');
-        $totalBayar = (clone $statsQuery)->where('tipe', 'Beli')->sum('total_bayar');
-
-        $totalBeratBersih = HasilSortir::whereHas('penerimaan', function ($q) use ($dariTanggalFull, $sampaiTanggalFull, $request) {
-            $q->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
-            if ($request->filled('supplier_id')) {
-                $q->where('supplier_id', $request->supplier_id);
-            }
-            if ($request->filled('tipe')) {
-                $q->where('tipe', $request->tipe);
-            }
-            if ($request->filled('status_sortir')) {
-                $q->where('status_sortir', $request->status_sortir);
-            }
-        })->sum('berat_bersih_kg');
-
-        return view('dashboard.laporan.penerimaan', compact(
-            'penerimaan', 'suppliers', 'dariTanggal', 'sampaiTanggal',
-            'totalTransaksi', 'totalBeli', 'totalDonasi',
-            'totalBeratKotor', 'totalBeratBersih', 'totalBayar'
-        ));
+    if ($request->filled('supplier_id')) {
+        $query->where('supplier_id', $request->supplier_id);
     }
+    if ($request->filled('tipe')) {
+        $query->where('tipe', $request->tipe);
+    }
+    if ($request->filled('status_sortir')) {
+        $query->where('status_sortir', $request->status_sortir);
+    }
+
+    $penerimaan = $query->orderBy('tanggal', 'desc')->paginate(15);
+
+    $suppliers = Supplier::orderBy('nama')->get();
+
+    // Statistik
+    $statsQuery = Penerimaan::whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
+    
+    if ($request->filled('supplier_id')) {
+        $statsQuery->where('supplier_id', $request->supplier_id);
+    }
+    if ($request->filled('tipe')) {
+        $statsQuery->where('tipe', $request->tipe);
+    }
+    if ($request->filled('status_sortir')) {
+        $statsQuery->where('status_sortir', $request->status_sortir);
+    }
+
+    $totalTransaksi = $statsQuery->count();
+    $totalBeli = (clone $statsQuery)->where('tipe', 'Beli')->count();
+    $totalDonasi = (clone $statsQuery)->where('tipe', 'Donasi')->count();
+    $totalBeratKotor = (clone $statsQuery)->sum('total_berat_kotor_kg');
+    $totalBayar = (clone $statsQuery)->where('tipe', 'Beli')->sum('total_bayar');
+
+    // ✅ Berat bersih dari penerimaan yang SUDAH sortir (status Sudah)
+    $totalBeratBersih = (clone $statsQuery)->where('status_sortir', 'Sudah')
+        ->sum('total_berat_kotor_kg');
+
+    return view('dashboard.laporan.penerimaan', compact(
+        'penerimaan', 'suppliers', 'dariTanggal', 'sampaiTanggal',
+        'totalTransaksi', 'totalBeli', 'totalDonasi',
+        'totalBeratKotor', 'totalBeratBersih', 'totalBayar'
+    ));
+}
 
     public function produksi(Request $request)
     {
@@ -362,45 +350,39 @@ class LaporanController extends Controller
         );
     }
 
-    public function exportPenerimaanPdf(Request $request)
-    {
-        $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
-        $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
+   public function exportPenerimaanPdf(Request $request)
+{
+    $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
+    $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
 
-        // Tambahkan waktu untuk mencakup sehari penuh
-        $dariTanggalFull = $dariTanggal . ' 00:00:00';
-        $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
+    $dariTanggalFull = $dariTanggal . ' 00:00:00';
+    $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
 
-        $query = Penerimaan::with([
-            'supplier',
-            'user',
-            'detailPenerimaan.jenisPlastik',
-            'hasilSortir'
-        ])->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
+    // ✅ HAPUS 'hasilSortir' dari with()
+    $query = Penerimaan::with([
+        'supplier',
+        'user',
+        'detailPenerimaan.jenisPlastik',
+    ])->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
 
-        // Apply filters yang sama seperti di method penerimaan
-        if ($request->filled('supplier_id')) {
-            $query->where('supplier_id', $request->supplier_id);
-        }
-
-        if ($request->filled('tipe')) {
-            $query->where('tipe', $request->tipe);
-        }
-
-        if ($request->filled('status_sortir')) {
-            $query->where('status_sortir', $request->status_sortir);
-        }
-
-        $data = $query->orderBy('tanggal', 'desc')->get();
-
-        $pdf = Pdf::loadView('dashboard.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
-        
-        // Set paper orientation
-        $pdf->setPaper('A4', 'landscape');
-        
-        // Stream atau download
-        return $pdf->stream('laporan-penerimaan-' . date('Y-m-d') . '.pdf');
+    if ($request->filled('supplier_id')) {
+        $query->where('supplier_id', $request->supplier_id);
     }
+    if ($request->filled('tipe')) {
+        $query->where('tipe', $request->tipe);
+    }
+    if ($request->filled('status_sortir')) {
+        $query->where('status_sortir', $request->status_sortir);
+    }
+
+    $data = $query->orderBy('tanggal', 'desc')->get();
+
+    $pdf = Pdf::loadView('dashboard.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
+    $pdf->setPaper('A4', 'landscape');
+    
+    return $pdf->stream('laporan-penerimaan-' . date('Y-m-d') . '.pdf');
+}
+
 
     public function exportPenerimaanExcel(Request $request)
     {

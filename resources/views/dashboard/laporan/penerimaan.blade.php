@@ -6,367 +6,300 @@
 
 @push('styles')
 <style>
+    :root { --radius: 10px; --radius-lg: 12px; }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    @media (max-width: 767px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
     .stat-card {
-        background: white;
-        border-radius: 10px;
-        padding: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        background: #fff;
+        border-radius: var(--radius-lg);
+        padding: 12px 14px;
         border: 1px solid #f0f0f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        text-align: center;
     }
-    .stat-label {
-        font-size: 0.65rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .stat-card .stat-label {
+        font-size: 0.6rem; color: #999; text-transform: uppercase;
+        letter-spacing: 0.3px; font-weight: 600;
     }
-    .stat-value {
-        font-size: 1.1rem;
-        font-weight: 700;
+    .stat-card .stat-value {
+        font-size: 1.05rem; font-weight: 700; color: #333;
+        font-variant-numeric: tabular-nums;
     }
+    .stat-card .stat-sub { font-size: 0.58rem; color: #aaa; margin-top: 2px; }
+
+    .filter-bar {
+        background: #fafbfc; border: 1px solid #f0f0f0;
+        border-radius: var(--radius); padding: 10px 12px; margin-bottom: 12px;
+    }
+    .filter-bar .form-label { font-size: 0.6rem; font-weight: 600; color: #999; margin-bottom: 2px; }
+    .filter-bar .form-control-sm, .filter-bar .form-select-sm {
+        font-size: 0.7rem; padding: 5px 8px; min-height: 32px; border-radius: 6px;
+    }
+
+    .card {
+        border: none; border-radius: var(--radius-lg);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden;
+    }
+    .card-header {
+        background: #fff; border-bottom: 1px solid #f0f0f0;
+        padding: 10px 14px; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .table th {
+        font-size: 0.62rem; font-weight: 700; color: #888; text-transform: uppercase;
+        background: #fafbfc; padding: 10px 8px; white-space: nowrap;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .table td {
+        font-size: 0.72rem; padding: 10px 8px; vertical-align: middle;
+        border-bottom: 1px solid #f5f5f5; color: #444;
+    }
+    .table tr:last-child td { border-bottom: none; }
+
     .badge-status {
-        padding: 3px 8px;
-        border-radius: 20px;
-        font-size: 0.65rem;
-        font-weight: 500;
-        white-space: nowrap;
+        font-size: 0.6rem; padding: 3px 8px; border-radius: 20px; font-weight: 600;
     }
-    .badge-beli { background: #d1e7dd; color: #0a3622; }
-    .badge-donasi { background: #cfe2ff; color: #084298; }
-    .badge-belum { background: #fff3cd; color: #856404; }
-    .badge-proses { background: #cfe2ff; color: #084298; }
-    .badge-selesai { background: #d1e7dd; color: #0a3622; }
-    
-    .table-penerimaan th {
-        font-size: 0.7rem;
-        white-space: nowrap;
-        background: #f8f9fa;
-    }
-    .table-penerimaan td {
-        font-size: 0.78rem;
-        vertical-align: middle;
-    }
-    
-    @media (max-width: 575.98px) {
-        .stat-card { padding: 0.6rem; }
-        .stat-value { font-size: 0.95rem; }
-        .stat-label { font-size: 0.6rem; }
-        .table-penerimaan th, .table-penerimaan td {
-            font-size: 0.68rem;
-            padding: 0.4rem;
-            white-space: nowrap;
+    .badge-beli { background: #fef3c7; color: #92400e; }
+    .badge-donasi { background: #dbeafe; color: #1e40af; }
+    .badge-belum { background: #fee2e2; color: #991b1b; }
+    .badge-selesai { background: #d1fae5; color: #065f46; }
+
+    .btn-sm { font-size: 0.68rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+
+    .empty-state { text-align: center; padding: 2.5rem 1rem; }
+    .empty-state i { opacity: 0.2; font-size: 3rem; }
+
+    /* Mobile Cards */
+    .mobile-cards { display: none; }
+    @media (max-width: 767px) {
+        .desktop-table { display: none; }
+        .mobile-cards { display: block; }
+        
+        .rpt-card {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: var(--radius);
+            padding: 12px; margin-bottom: 10px;
+        }
+        .rpt-card .rpt-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .rpt-card .rpt-body { font-size: 0.7rem; }
+        .rpt-card .rpt-row {
+            display: flex; justify-content: space-between; padding: 3px 0;
+        }
+        .rpt-card .rpt-sub {
+            background: #f9fafb; border-radius: 6px; padding: 6px 8px; margin-top: 6px;
+            font-size: 0.65rem;
         }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-2 px-md-3 mt-3 mb-4">
+<div class="container-fluid px-2 px-md-3">
 
-    {{-- Header --}}
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:34px;height:34px;">
+            <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle" style="width:34px;height:34px;">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h5 class="mb-0 fw-bold">📋 Laporan Penerimaan</h5>
+            <h6 class="fw-bold mb-0" style="font-size:0.9rem;">Laporan Penerimaan</h6>
         </div>
-        <div class="d-flex gap-1 w-100 w-sm-auto">
-            <a href="{{ route('laporan.penerimaan.pdf', request()->query()) }}" class="btn btn-danger btn-sm w-100 w-sm-auto">
-                <i class="fas fa-file-pdf"></i> <span class="d-none d-sm-inline">PDF</span>
+        <div class="d-flex gap-1">
+            <a href="{{ route('laporan.penerimaan.pdf', request()->query()) }}" class="btn btn-danger btn-sm rounded-pill">
+                <i class="fas fa-file-pdf me-1"></i>PDF
             </a>
-            <a href="{{ route('laporan.penerimaan.excel') }}" class="btn btn-success btn-sm w-100 w-sm-auto">
-                <i class="fas fa-file-excel"></i> <span class="d-none d-sm-inline">Excel</span>
+            <a href="{{ route('laporan.penerimaan.excel') }}" class="btn btn-success btn-sm rounded-pill">
+                <i class="fas fa-file-excel me-1"></i>Excel
             </a>
         </div>
     </div>
 
-    {{-- Penjelasan Istilah --}}
-    <div class="alert alert-info alert-dismissible fade show py-2 mb-3 small" role="alert">
-        <i class="fas fa-info-circle me-1"></i>
-        <strong>Keterangan:</strong> 
-        <strong>Berat Datang</strong> = Berat awal saat barang diterima (sebelum sortir). 
-        <strong>Berat Bersih</strong> = Berat setelah disortir (bersih dari kotoran/air).
-        <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size:0.6rem;"></button>
-    </div>
-
-    {{-- Filter --}}
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body p-2 p-md-3">
-            <form method="GET" class="row g-2 align-items-end">
+    {{-- FILTER --}}
+    <div class="filter-bar">
+        <form method="GET">
+            <div class="row g-2 align-items-end">
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Dari Tanggal</label>
+                    <label class="form-label">Dari</label>
                     <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ $dariTanggal }}">
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Sampai Tanggal</label>
+                    <label class="form-label">Sampai</label>
                     <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ $sampaiTanggal }}">
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Supplier</label>
+                    <label class="form-label">Supplier</label>
                     <select name="supplier_id" class="form-select form-select-sm">
-                        <option value="">Semua Supplier</option>
+                        <option value="">Semua</option>
                         @foreach($suppliers as $s)
                             <option value="{{ $s->id }}" {{ request('supplier_id') == $s->id ? 'selected' : '' }}>{{ $s->nama }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Tipe</label>
+                    <label class="form-label">Tipe</label>
                     <select name="tipe" class="form-select form-select-sm">
                         <option value="">Semua</option>
-                        <option value="Beli" {{ request('tipe') == 'Beli' ? 'selected' : '' }}>Pembelian</option>
+                        <option value="Beli" {{ request('tipe') == 'Beli' ? 'selected' : '' }}>Beli</option>
                         <option value="Donasi" {{ request('tipe') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Status Sortir</label>
+                    <label class="form-label">Status</label>
                     <select name="status_sortir" class="form-select form-select-sm">
                         <option value="">Semua</option>
-                        <option value="Belum" {{ request('status_sortir') == 'Belum' ? 'selected' : '' }}>Belum Sortir</option>
-                        <option value="Proses" {{ request('status_sortir') == 'Proses' ? 'selected' : '' }}>Sedang Sortir</option>
-                        <option value="Selesai" {{ request('status_sortir') == 'Selesai' ? 'selected' : '' }}>Selesai Sortir</option>
+                        <option value="Belum" {{ request('status_sortir') == 'Belum' ? 'selected' : '' }}>Belum</option>
+                        <option value="Sudah" {{ request('status_sortir') == 'Sudah' ? 'selected' : '' }}>Sudah</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-primary btn-sm flex-fill">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
-                    <a href="{{ route('laporan.penerimaan') }}" class="btn btn-outline-secondary btn-sm" title="Reset">
-                        <i class="fas fa-redo"></i>
-                    </a>
+                <div class="col-6 col-md-2">
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-success btn-sm flex-fill rounded-pill"><i class="fas fa-search me-1"></i>Cari</button>
+                        <a href="{{ route('laporan.penerimaan') }}" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="fas fa-redo"></i></a>
+                    </div>
                 </div>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    {{-- STATS --}}
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Transaksi</div>
+            <div class="stat-value">{{ $totalTransaksi }}</div>
+            <div class="stat-sub">{{ $totalBeli }} beli, {{ $totalDonasi }} donasi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Berat Kotor</div>
+            <div class="stat-value text-warning">{{ number_format($totalBeratKotor, 1, ',', '.') }} Kg</div>
+            <div class="stat-sub">Sebelum sortir</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Berat Bersih</div>
+            <div class="stat-value text-success">{{ number_format($totalBeratBersih, 1, ',', '.') }} Kg</div>
+            <div class="stat-sub">Dari supplier (sudah bersih)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Bayar</div>
+            <div class="stat-value text-danger">Rp {{ number_format($totalBayar, 0, ',', '.') }}</div>
+            <div class="stat-sub">Pembelian</div>
         </div>
     </div>
 
-    {{-- Statistik --}}
-    <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Total Penerimaan</div>
-                <div class="stat-value text-primary">{{ $totalTransaksi }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">{{ $totalBeli }} pembelian, {{ $totalDonasi }} donasi</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Total Berat Datang</div>
-                <div class="stat-value text-warning">{{ number_format($totalBeratKotor, 1, ',', '.') }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">Kg (sebelum sortir)</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Total Berat Bersih</div>
-                <div class="stat-value text-success">{{ number_format($totalBeratBersih, 1, ',', '.') }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">Kg (setelah sortir)</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Total Pembayaran</div>
-                <div class="stat-value text-danger">Rp {{ number_format($totalBayar, 0, ',', '.') }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">Untuk pembelian</small>
-            </div>
-        </div>
-    </div>
-
-    {{-- Tabel Desktop & Tablet --}}
-    <div class="card shadow-sm border-0 d-none d-md-block">
+    {{-- DESKTOP TABLE --}}
+    <div class="card desktop-table">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-penerimaan mb-0">
+                <table class="table mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-3">Tanggal</th>
+                            <th>Tanggal</th>
                             <th>Supplier</th>
                             <th>Tipe</th>
                             <th>Jenis Plastik</th>
-                            <th class="text-end">Berat Datang (Kg)</th>
-                            <th class="text-end">Berat Bersih (Kg)</th>
-                            <th>Status Sortir</th>
+                            <th class="text-end">Berat (Kg)</th>
+                            <th>Status</th>
                             <th>Petugas</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($penerimaan as $p)
-                            @foreach($p->detailPenerimaan as $index => $detail)
+                            @foreach($p->detailPenerimaan as $i => $detail)
                                 <tr>
-                                    @if($index === 0)
-                                        <td class="ps-3" rowspan="{{ $p->detailPenerimaan->count() }}">
-                                            {{ date('d/m/Y', strtotime($p->tanggal)) }}
-                                        </td>
-                                        <td rowspan="{{ $p->detailPenerimaan->count() }}">
-                                            {{ $p->supplier->nama ?? '-' }}
-                                        </td>
+                                    @if($i === 0)
+                                        <td rowspan="{{ $p->detailPenerimaan->count() }}">{{ $p->tanggal->format('d/m/Y') }}</td>
+                                        <td rowspan="{{ $p->detailPenerimaan->count() }}">{{ $p->supplier->nama ?? '-' }}</td>
                                         <td rowspan="{{ $p->detailPenerimaan->count() }}">
                                             <span class="badge-status {{ $p->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">
-                                                {{ $p->tipe == 'Beli' ? 'Pembelian' : 'Donasi' }}
+                                                {{ $p->tipe == 'Beli' ? 'Beli' : 'Donasi' }}
                                             </span>
                                         </td>
                                     @endif
                                     <td>{{ $detail->jenisPlastik->nama ?? '-' }}</td>
-                                    <td class="text-end">{{ number_format($detail->berat_datang_kg, 2, ',', '.') }}</td>
-                                    <td class="text-end">
-                                        @php
-                                            $bersih = $p->hasilSortir->where('jenis_plastik_id', $detail->jenis_plastik_id)->sum('berat_bersih_kg') ?? 0;
-                                        @endphp
-                                        @if($p->status_sortir == 'Selesai')
-                                            <span class="text-success fw-medium">{{ number_format($bersih, 2, ',', '.') }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    @if($index === 0)
+                                    <td class="text-end fw-semibold">{{ number_format($detail->berat_datang_kg, 2, ',', '.') }}</td>
+                                    @if($i === 0)
                                         <td rowspan="{{ $p->detailPenerimaan->count() }}">
-                                            @php
-                                                $statusClass = match($p->status_sortir) {
-                                                    'Proses' => 'badge-proses',
-                                                    'Selesai' => 'badge-selesai',
-                                                    default => 'badge-belum'
-                                                };
-                                                $statusText = match($p->status_sortir) {
-                                                    'Proses' => 'Sedang Sortir',
-                                                    'Selesai' => 'Selesai Sortir',
-                                                    default => 'Belum Sortir'
-                                                };
-                                            @endphp
-                                            <span class="badge-status {{ $statusClass }}">{{ $statusText }}</span>
+                                            <span class="badge-status {{ $p->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
+                                                {{ $p->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor' }}
+                                            </span>
                                         </td>
-                                        <td rowspan="{{ $p->detailPenerimaan->count() }}">
-                                            {{ $p->user->name ?? '-' }}
-                                        </td>
+                                        <td rowspan="{{ $p->detailPenerimaan->count() }}">{{ $p->user->name ?? '-' }}</td>
                                     @endif
                                 </tr>
                             @endforeach
-                            {{-- Subtotal per penerimaan --}}
                             <tr class="table-light">
-                                <td colspan="4" class="text-end fw-bold small">
-                                    Subtotal Penerimaan Ini:
-                                </td>
-                                <td class="text-end fw-bold small">
-                                    {{ number_format($p->total_berat_kotor_kg, 2, ',', '.') }} Kg
-                                </td>
-                                <td class="text-end fw-bold small">
-                                    @if($p->status_sortir == 'Selesai')
-                                        {{ number_format($p->hasilSortir->sum('berat_bersih_kg'), 2, ',', '.') }} Kg
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+                                <td colspan="4" class="text-end fw-bold small">Subtotal</td>
+                                <td class="text-end fw-bold small">{{ number_format($p->total_berat_kotor_kg, 2, ',', '.') }} Kg</td>
                                 <td colspan="2">
                                     @if($p->tipe == 'Beli')
-                                        <small>Pembayaran: <strong>Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</strong></small>
+                                        <small>Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</small>
                                     @else
-                                        <small class="text-muted">Donasi (Gratis)</small>
+                                        <small class="text-muted">Donasi</small>
                                     @endif
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-5 text-muted">
-                                    <i class="fas fa-inbox fa-2x d-block mb-2 opacity-25"></i>
-                                    Tidak ada data penerimaan
-                                </td>
-                            </tr>
+                            <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p class="text-muted mt-2 mb-0">Tidak ada data</p></div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
         @if($penerimaan->hasPages())
-            <div class="card-footer bg-white py-2">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <small class="text-muted">{{ $penerimaan->firstItem() }}-{{ $penerimaan->lastItem() }} dari {{ $penerimaan->total() }} data</small>
-                    {{ $penerimaan->appends(request()->query())->links() }}
-                </div>
-            </div>
+        <div class="card-footer bg-white py-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ $penerimaan->firstItem() }}-{{ $penerimaan->lastItem() }} dari {{ $penerimaan->total() }}</small>
+            {{ $penerimaan->appends(request()->query())->links('pagination::bootstrap-5') }}
+        </div>
         @endif
     </div>
 
-    {{-- Mobile Card View --}}
-    <div class="d-block d-md-none">
+    {{-- MOBILE CARDS --}}
+    <div class="mobile-cards">
         @forelse($penerimaan as $p)
-            <div class="card shadow-sm border-0 mb-2">
-                <div class="card-body p-2">
-                    {{-- Header --}}
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <span class="badge-status {{ $p->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">
-                                {{ $p->tipe == 'Beli' ? 'Pembelian' : 'Donasi' }}
-                            </span>
-                            <small class="text-muted ms-2">{{ date('d/m/Y', strtotime($p->tanggal)) }}</small>
-                        </div>
-                        @php
-                            $statusClass = match($p->status_sortir) {
-                                'Proses' => 'badge-proses',
-                                'Selesai' => 'badge-selesai',
-                                default => 'badge-belum'
-                            };
-                            $statusText = match($p->status_sortir) {
-                                'Proses' => 'Sedang Sortir',
-                                'Selesai' => 'Selesai Sortir',
-                                default => 'Belum Sortir'
-                            };
-                        @endphp
-                        <span class="badge-status {{ $statusClass }}">{{ $statusText }}</span>
+            <div class="rpt-card">
+                <div class="rpt-header">
+                    <div>
+                        <span class="badge-status {{ $p->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">{{ $p->tipe }}</span>
+                        <small class="ms-1">{{ $p->tanggal->format('d/m/Y') }}</small>
                     </div>
-                    
-                    {{-- Info --}}
-                    <div class="small mb-2">
-                        <div><strong>Supplier:</strong> {{ $p->supplier->nama ?? '-' }}</div>
-                        <div><strong>Petugas:</strong> {{ $p->user->name ?? '-' }}</div>
-                    </div>
-                    
-                    {{-- Detail plastik --}}
+                    <span class="badge-status {{ $p->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
+                        {{ $p->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor' }}
+                    </span>
+                </div>
+                <div class="rpt-body">
+                    <div class="rpt-row"><span>Supplier</span><strong>{{ $p->supplier->nama ?? '-' }}</strong></div>
+                    <div class="rpt-row"><span>Petugas</span><span>{{ $p->user->name ?? '-' }}</span></div>
                     @foreach($p->detailPenerimaan as $detail)
-                        <div class="bg-light rounded-2 p-2 mb-1">
-                            <div class="fw-medium small">{{ $detail->jenisPlastik->nama ?? '-' }}</div>
-                            <div class="d-flex justify-content-between small">
-                                <span class="text-muted">Berat Datang:</span>
+                        <div class="rpt-sub">
+                            <div class="rpt-row">
+                                <span>{{ $detail->jenisPlastik->nama ?? '-' }}</span>
                                 <strong>{{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg</strong>
                             </div>
-                            @php
-                                $bersih = $p->hasilSortir->where('jenis_plastik_id', $detail->jenis_plastik_id)->sum('berat_bersih_kg') ?? 0;
-                            @endphp
-                            @if($p->status_sortir == 'Selesai' && $bersih > 0)
-                                <div class="d-flex justify-content-between small text-success">
-                                    <span>Berat Bersih:</span>
-                                    <strong>{{ number_format($bersih, 2, ',', '.') }} Kg</strong>
-                                </div>
-                                @php $susut = $detail->berat_datang_kg - $bersih; @endphp
-                                @if($susut > 0)
-                                    <div class="d-flex justify-content-between small text-danger">
-                                        <span>Susut:</span>
-                                        <strong>{{ number_format($susut, 2, ',', '.') }} Kg</strong>
-                                    </div>
-                                @endif
-                            @endif
                         </div>
                     @endforeach
-                    
-                    {{-- Total --}}
-                    <div class="d-flex justify-content-between small fw-bold pt-1 border-top mt-1">
-                        <span>Total Berat Datang: {{ number_format($p->total_berat_kotor_kg, 2, ',', '.') }} Kg</span>
-                        @if($p->tipe == 'Beli')
-                            <span class="text-danger">Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</span>
-                        @endif
+                    <div class="rpt-row mt-1 pt-1 border-top">
+                        <strong>Total</strong>
+                        <strong>{{ number_format($p->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong>
                     </div>
+                    @if($p->tipe == 'Beli')
+                        <div class="rpt-row"><span>Bayar</span><strong class="text-danger">Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</strong></div>
+                    @endif
                 </div>
             </div>
         @empty
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-inbox fa-3x d-block mb-2 opacity-25"></i>
-                <small>Tidak ada data penerimaan</small>
-            </div>
+            <div class="empty-state"><i class="fas fa-inbox"></i><p class="text-muted mt-2 mb-0">Tidak ada data</p></div>
         @endforelse
-        
         @if($penerimaan->hasPages())
-            <div class="d-flex justify-content-center mt-3">
-                {{ $penerimaan->appends(request()->query())->links() }}
-            </div>
+            <div class="text-center mt-3">{{ $penerimaan->appends(request()->query())->links('pagination::bootstrap-5') }}</div>
         @endif
     </div>
-
 </div>
 @endsection

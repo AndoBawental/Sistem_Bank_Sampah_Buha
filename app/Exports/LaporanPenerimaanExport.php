@@ -25,20 +25,21 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
 
     public function collection()
     {
-        $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaan.jenisPlastik', 'hasilSortir']);
+        // ✅ HAPUS 'hasilSortir'
+        $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaan.jenisPlastik']);
         
         if ($this->dariTanggal && $this->sampaiTanggal) {
-            $query->whereBetween('tanggal', [$this->dariTanggal, $this->sampaiTanggal]);
+            $dari = $this->dariTanggal . ' 00:00:00';
+            $sampai = $this->sampaiTanggal . ' 23:59:59';
+            $query->whereBetween('tanggal', [$dari, $sampai]);
         }
         
         if (!empty($this->filters['supplier_id'])) {
             $query->where('supplier_id', $this->filters['supplier_id']);
         }
-        
         if (!empty($this->filters['tipe'])) {
             $query->where('tipe', $this->filters['tipe']);
         }
-        
         if (!empty($this->filters['status_sortir'])) {
             $query->where('status_sortir', $this->filters['status_sortir']);
         }
@@ -53,9 +54,8 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
             'SUPPLIER',
             'TIPE',
             'JENIS PLASTIK',
-            'BERAT DATANG (Kg)',
-            'BERAT BERSIH (Kg)',
-            'STATUS SORTIR',
+            'BERAT (Kg)',
+            'STATUS',
             'PEMBAYARAN (Rp)',
             'PETUGAS',
         ];
@@ -63,18 +63,11 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
 
     public function map($penerimaan): array
     {
-        // Gabungkan jenis plastik
         $jenisPlastik = $penerimaan->detailPenerimaan->map(function($detail) {
             return $detail->jenisPlastik->nama ?? '-';
         })->implode(', ');
         
-        // Total berat datang
-        $beratDatang = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
-        
-        // Total berat bersih dari hasil sortir
-        $beratBersih = $penerimaan->hasilSortir->sum('berat_bersih_kg') ?? 0;
-        
-        // Pembayaran (hanya untuk pembelian)
+        $berat = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
         $bayar = $penerimaan->tipe == 'Beli' ? $penerimaan->total_bayar : 0;
         
         return [
@@ -82,9 +75,8 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
             $penerimaan->supplier->nama ?? '-',
             $penerimaan->tipe == 'Beli' ? 'Pembelian' : 'Donasi',
             $jenisPlastik,
-            $beratDatang,
-            $beratBersih > 0 ? $beratBersih : '0',
-            $penerimaan->status_sortir,
+            $berat,
+            $penerimaan->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor',
             $bayar,
             $penerimaan->user->name ?? '-',
         ];
@@ -92,50 +84,23 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
 
     public function styles(Worksheet $sheet)
     {
-        // Style header
-        $sheet->getStyle('A1:I1')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 11,
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '0D6EFD'],
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-        
-        // Style semua cell
         $lastRow = $sheet->getHighestRow();
         
-        // Border
-        $sheet->getStyle('A1:I' . $lastRow)->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => 'CCCCCC'],
-                ],
-            ],
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D6EFD']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        // Alignment
-        $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('C2:C' . $lastRow)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('G2:G' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1:H' . $lastRow)->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => 'CCCCCC']]],
+        ]);
         
-        // Angka rata kanan
-        $sheet->getStyle('E2:F' . $lastRow)->getAlignment()->setHorizontal('right');
-        $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('E2:E' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('G2:G' . $lastRow)->getAlignment()->setHorizontal('right');
         
-        // Tinggi baris
         $sheet->getDefaultRowDimension()->setRowHeight(20);
         $sheet->getRowDimension(1)->setRowHeight(25);
-        
-        // Freeze header
         $sheet->freezePane('A2');
         
         return [];
