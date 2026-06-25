@@ -38,36 +38,22 @@ class PenerimaanController extends Controller
         $perPage = $request->per_page ?? 10;
         $penerimaan = $query->orderBy('tanggal', 'desc')->paginate($perPage)->withQueryString();
         
-        // Statistik
+        // ========== STATISTIK MURNI PENERIMAAN ==========
         $supplierCount = Supplier::count();
         
-        // Berat kotor (yang belum sortir)
-        $totalBeratKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
-        
-        // Berat bersih (yang sudah sortir dari supplier)
-        $totalBeratBersih = Penerimaan::where('status_sortir', 'Sudah')->sum('total_berat_kotor_kg');
-        
-        // Bulan ini
-        $bulanIniKotor = Penerimaan::where('status_sortir', 'Belum')
-            ->whereMonth('tanggal', now()->month)
-            ->whereYear('tanggal', now()->year)
-            ->sum('total_berat_kotor_kg');
-            
-        $bulanIniBersih = Penerimaan::where('status_sortir', 'Sudah')
-            ->whereMonth('tanggal', now()->month)
+        // Total penerimaan bulan ini (riwayat transaksi)
+        $totalBulanIni = Penerimaan::whereMonth('tanggal', now()->month)
             ->whereYear('tanggal', now()->year)
             ->sum('total_berat_kotor_kg');
         
-        $bulanIniTotal = $bulanIniKotor + $bulanIniBersih;
-        
-        // Bulan lalu
-        $bulanLaluTotal = Penerimaan::whereMonth('tanggal', now()->subMonth()->month)
+        // Total penerimaan bulan lalu
+        $totalBulanLalu = Penerimaan::whereMonth('tanggal', now()->subMonth()->month)
             ->whereYear('tanggal', now()->subMonth()->year)
             ->sum('total_berat_kotor_kg');
         
-        $persenKenaikan = $bulanLaluTotal > 0 
-            ? (($bulanIniTotal - $bulanLaluTotal) / $bulanLaluTotal) * 100 
-            : ($bulanIniTotal > 0 ? 100 : 0);
+        $persenKenaikan = $totalBulanLalu > 0 
+            ? (($totalBulanIni - $totalBulanLalu) / $totalBulanLalu) * 100 
+            : ($totalBulanIni > 0 ? 100 : 0);
         
         // Pembelian bulan ini
         $totalBeliBulanIni = Penerimaan::where('tipe', 'Beli')
@@ -79,9 +65,6 @@ class PenerimaanController extends Controller
             ->whereMonth('tanggal', now()->month)
             ->whereYear('tanggal', now()->year)
             ->count();
-        
-        // Perlu sortir
-        $perluSortir = Penerimaan::where('status_sortir', 'Belum')->count();
         
         // Donasi bulan ini
         $totalDonasiBulanIni = Penerimaan::where('tipe', 'Donasi')
@@ -95,13 +78,18 @@ class PenerimaanController extends Controller
             ->count();
         
         $suppliers = Supplier::orderBy('nama')->get();
-        
-        return view('dashboard.gudang.penerimaan.index', compact(
-            'penerimaan', 'supplierCount', 'totalBeratKotor', 'totalBeratBersih',
-            'bulanIniKotor', 'bulanIniBersih', 'bulanIniTotal', 'persenKenaikan',
-            'totalBeliBulanIni', 'totalBeliTransaksi', 'perluSortir',
-            'totalDonasiBulanIni', 'totalDonasiTransaksi', 'suppliers', 'perPage'
-        ));
+        $beratKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
+$beratBersih = Penerimaan::where('status_sortir', 'Sudah')->sum('total_berat_kotor_kg');
+
+// Tambahkan di compact()
+return view('dashboard.gudang.penerimaan.index', compact(
+    'penerimaan', 'supplierCount',
+    'totalBulanIni', 'totalBulanLalu', 'persenKenaikan',
+    'totalBeliBulanIni', 'totalBeliTransaksi',
+    'totalDonasiBulanIni', 'totalDonasiTransaksi',
+    'beratKotor', 'beratBersih',  // ← tambahkan ini
+    'suppliers', 'perPage'
+));
     }
 
     public function create()
@@ -118,7 +106,7 @@ class PenerimaanController extends Controller
             'supplier_id' => 'required|exists:supplier,id',
             'tipe' => 'required|in:Beli,Donasi',
             'status_sortir' => 'required|in:Belum,Sudah',
-            'keterangan' => 'nullable|string',
+            'keterangan' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.jenis_plastik_id' => 'required|exists:jenis_plastik,id',
             'items.*.berat' => 'required|numeric|min:0.01',
@@ -145,7 +133,7 @@ class PenerimaanController extends Controller
                 $totalBayar += $berat * $harga;
             }
 
-            // Buat penerimaan
+            // Simpan penerimaan
             $penerimaan = Penerimaan::create([
                 'tanggal' => $request->tanggal . ' ' . now()->format('H:i:s'),
                 'supplier_id' => $request->supplier_id,
@@ -171,29 +159,28 @@ class PenerimaanController extends Controller
                     'subtotal' => $subtotal
                 ]);
 
-                // Jika status SUDAH sortir, langsung masuk stok
+                // Jika status SUDAH bersih, langsung masuk stok
                 if ($request->status_sortir == 'Sudah') {
                     $stok = Stok::firstOrCreate(
-    ['jenis_plastik_id' => $item['jenis_plastik_id']],
-    ['total_berat' => 0]
-);
-
-$stok->increment('total_berat', $berat);
+                        ['jenis_plastik_id' => $item['jenis_plastik_id']],
+                        ['total_berat' => 0]
+                    );
+                    $stok->increment('total_berat', $berat);
                 }
             }
 
             DB::commit();
             
             $message = $request->status_sortir == 'Sudah' 
-                ? 'Penerimaan berhasil. Stok langsung bertambah (sampah sudah bersih).' 
-                : 'Penerimaan berhasil. Sampah perlu disortir sebelum masuk stok.';
+                ? 'Penerimaan berhasil dicatat. Stok langsung bertambah (sampah sudah bersih).' 
+                : 'Penerimaan berhasil dicatat. Sampah perlu disortir sebelum masuk stok.';
             
             return redirect()->route('gudang.penerimaan.index')
                 ->with('success', $message . ' Total: ' . number_format($totalBerat, 2) . ' Kg');
                 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Error: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -210,10 +197,9 @@ $stok->increment('total_berat', $berat);
     {
         $penerimaan = Penerimaan::with(['detailPenerimaan.jenisPlastik'])->findOrFail($id);
         
-        // Tidak bisa edit jika sudah masuk stok (sudah sortir)
         if ($penerimaan->status_sortir == 'Sudah') {
             return redirect()->route('gudang.penerimaan.show', $id)
-                ->with('error', 'Penerimaan dengan status Sudah Sortir tidak dapat diedit.');
+                ->with('error', 'Penerimaan yang sudah bersih tidak dapat diedit.');
         }
         
         $suppliers = Supplier::orderBy('nama')->get();
@@ -228,7 +214,7 @@ $stok->increment('total_berat', $berat);
         
         if ($penerimaan->status_sortir == 'Sudah') {
             return redirect()->route('gudang.penerimaan.show', $id)
-                ->with('error', 'Penerimaan dengan status Sudah Sortir tidak dapat diubah.');
+                ->with('error', 'Penerimaan yang sudah bersih tidak dapat diubah.');
         }
         
         $rules = [
@@ -236,7 +222,7 @@ $stok->increment('total_berat', $berat);
             'supplier_id' => 'required|exists:supplier,id',
             'tipe' => 'required|in:Beli,Donasi',
             'status_sortir' => 'required|in:Belum,Sudah',
-            'keterangan' => 'nullable|string',
+            'keterangan' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.jenis_plastik_id' => 'required|exists:jenis_plastik,id',
             'items.*.berat' => 'required|numeric|min:0.01',
@@ -263,7 +249,16 @@ $stok->increment('total_berat', $berat);
                 $totalBayar += $berat * $harga;
             }
 
-            // Update penerimaan
+            // Jika sebelumnya Sudah dan diubah ke Belum, kurangi stok
+            if ($penerimaan->status_sortir == 'Sudah' && $request->status_sortir == 'Belum') {
+                foreach ($penerimaan->detailPenerimaan as $detail) {
+                    $stok = Stok::where('jenis_plastik_id', $detail->jenis_plastik_id)->first();
+                    if ($stok) {
+                        $stok->decrement('total_berat', $detail->berat_datang_kg);
+                    }
+                }
+            }
+
             $penerimaan->update([
                 'tanggal' => $request->tanggal . ' ' . now()->format('H:i:s'),
                 'supplier_id' => $request->supplier_id,
@@ -291,12 +286,13 @@ $stok->increment('total_berat', $berat);
                     'subtotal' => $subtotal
                 ]);
 
-                // Jika diubah ke Sudah, masukkan ke stok
+                // Jika diubah ke Sudah, tambah stok
                 if ($request->status_sortir == 'Sudah') {
-                    Stok::updateOrCreate(
+                    $stok = Stok::firstOrCreate(
                         ['jenis_plastik_id' => $item['jenis_plastik_id']],
-                        ['total_berat' => DB::raw('total_berat + ' . $berat)]
+                        ['total_berat' => 0]
                     );
+                    $stok->increment('total_berat', $berat);
                 }
             }
 
@@ -307,7 +303,7 @@ $stok->increment('total_berat', $berat);
                 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Error: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Gagal memperbarui: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -323,8 +319,7 @@ $stok->increment('total_berat', $berat);
                 foreach ($penerimaan->detailPenerimaan as $detail) {
                     $stok = Stok::where('jenis_plastik_id', $detail->jenis_plastik_id)->first();
                     if ($stok) {
-                        $stok->total_berat -= $detail->berat_datang_kg;
-                        $stok->save();
+                        $stok->decrement('total_berat', $detail->berat_datang_kg);
                     }
                 }
             }
@@ -339,7 +334,7 @@ $stok->increment('total_berat', $berat);
                 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
         }
     }
 }

@@ -95,10 +95,10 @@ Route::middleware(['auth'])->group(function () {
         // SORTIR
         // ========================
         Route::prefix('sortir')->name('sortir.')->group(function () {
-            Route::get('/', [SortirController::class, 'index'])->name('index');
-            Route::get('/{sortir}', [SortirController::class, 'show'])->name('show');
-            Route::post('/{sortir}', [SortirController::class, 'store'])->name('store');
-            Route::put('/{sortir}', [SortirController::class, 'update'])->name('update');
+        Route::get('/', [SortirController::class, 'index'])->name('index');
+    Route::get('/create', [SortirController::class, 'create'])->name('create');
+    Route::post('/store', [SortirController::class, 'store'])->name('store');
+    Route::delete('/destroy/{id}', [SortirController::class, 'destroy'])->name('destroy');
         });
 
         // ========================

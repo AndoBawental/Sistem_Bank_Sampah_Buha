@@ -74,19 +74,6 @@
        href="{{ route('gudang.sortir.index') }}">
         <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
         <span>Sortir Sampah</span>
-        @php
-            // Hitung aktivitas sortir manual hari ini
-            $sortirHariIni = \App\Models\HasilSortir::whereNull('penerimaan_id')
-                ->whereDate('created_at', today())
-                ->sum('berat_bersih_kg');
-        @endphp
-        @if($sortirHariIni > 0)
-            <span class="badge bg-success ms-2 rounded-pill" 
-                  style="font-size: 0.65rem;"
-                  title="Hasil sortir hari ini">
-                {{ number_format($sortirHariIni, 1) }} Kg
-            </span>
-        @endif
     </a>
 </li>
 

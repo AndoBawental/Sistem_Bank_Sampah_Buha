@@ -14,7 +14,7 @@ class HasilSortir extends Model
     protected $table = 'hasil_sortir';
     
     protected $fillable = [
-        'penerimaan_id',
+        'penerimaan_id',    // NULLABLE - tidak wajib terikat penerimaan
         'jenis_plastik_id',
         'berat_bersih_kg',
         'catatan'

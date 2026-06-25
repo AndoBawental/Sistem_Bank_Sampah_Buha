@@ -356,71 +356,71 @@
 <div class="container-fluid px-2 px-md-3">
 
     {{-- ==================== STATISTIK BARIS 1 ==================== --}}
-    <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="stat-label">Total Penerimaan</div>
-                <div class="stat-value">{{ $penerimaan->total() }}</div>
-                <div class="stat-sub">Transaksi</div>
-            </div>
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-label">Total Penerimaan</div>
+            <div class="stat-value">{{ $penerimaan->total() }}</div>
+            <div class="stat-sub">Transaksi</div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card info">
-                <div class="stat-label">Supplier</div>
-                <div class="stat-value">{{ $supplierCount }}</div>
-                <div class="stat-sub">Aktif</div>
-            </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card info">
+            <div class="stat-label">Supplier</div>
+            <div class="stat-value">{{ $supplierCount }}</div>
+            <div class="stat-sub">Aktif</div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card warning">
-                <div class="stat-label">Berat Kotor</div>
-                <div class="stat-value">{{ number_format($totalBeratKotor, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
-                <div class="stat-sub">Belum sortir</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card" style="border-left-color:#10b981;">
-                <div class="stat-label">Berat Bersih</div>
-                <div class="stat-value">{{ number_format($totalBeratBersih, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
-                <div class="stat-sub">Sudah bersih</div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card warning">
+            <div class="stat-label">Penerimaan Bulan Ini</div>
+            <div class="stat-value">{{ number_format($totalBulanIni, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
+            <div class="stat-sub" style="color:{{ $persenKenaikan >= 0 ? '#10b981' : '#ef4444' }};">
+                <i class="fas fa-{{ $persenKenaikan >= 0 ? 'arrow-up' : 'arrow-down' }} me-1"></i>
+                {{ number_format(abs($persenKenaikan), 1) }}% vs bulan lalu
             </div>
         </div>
     </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="border-left-color:#10b981;">
+            <div class="stat-label">Bulan Lalu</div>
+            <div class="stat-value">{{ number_format($totalBulanLalu, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
+            <div class="stat-sub">Perbandingan</div>
+        </div>
+    </div>
+</div>
 
-    {{-- ==================== STATISTIK BARIS 2 ==================== --}}
-    <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="stat-label">Total Bulan Ini</div>
-                <div class="stat-value">{{ number_format($bulanIniTotal, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
-                <div class="stat-sub" style="color:{{ $persenKenaikan >= 0 ? '#10b981' : '#ef4444' }};">
-                    <i class="fas fa-{{ $persenKenaikan >= 0 ? 'arrow-up' : 'arrow-down' }} me-1"></i>
-                    {{ number_format(abs($persenKenaikan), 1) }}% vs bulan lalu
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card info">
-                <div class="stat-label">Pembelian</div>
-                <div class="stat-value" style="font-size:0.85rem;">Rp {{ number_format($totalBeliBulanIni, 0, ',', '.') }}</div>
-                <div class="stat-sub">{{ $totalBeliTransaksi }} transaksi</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card danger">
-                <div class="stat-label">Perlu Sortir</div>
-                <div class="stat-value">{{ $perluSortir }}</div>
-                <div class="stat-sub">Menunggu proses</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card" style="border-left-color:#8b5cf6;">
-                <div class="stat-label">Donasi</div>
-                <div class="stat-value">{{ number_format($totalDonasiBulanIni, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
-                <div class="stat-sub">{{ $totalDonasiTransaksi }} transaksi</div>
-            </div>
+{{-- ==================== STATISTIK BARIS 2 ==================== --}}
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="stat-card info">
+            <div class="stat-label">Pembelian</div>
+            <div class="stat-value" style="font-size:0.85rem;">Rp {{ number_format($totalBeliBulanIni, 0, ',', '.') }}</div>
+            <div class="stat-sub">{{ $totalBeliTransaksi }} transaksi</div>
         </div>
     </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="border-left-color:#8b5cf6;">
+            <div class="stat-label">Donasi</div>
+            <div class="stat-value">{{ number_format($totalDonasiBulanIni, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
+            <div class="stat-sub">{{ $totalDonasiTransaksi }} transaksi</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card warning">
+            <div class="stat-label">Berat Kotor</div>
+            <div class="stat-value">{{ number_format($beratKotor, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
+            <div class="stat-sub">Dari supplier (belum sortir)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="border-left-color:#10b981;">
+            <div class="stat-label">Berat Bersih</div>
+            <div class="stat-value">{{ number_format($beratBersih, 0, ',', '.') }} <small style="font-size:0.65rem;">Kg</small></div>
+            <div class="stat-sub">Dari supplier (sudah bersih)</div>
+        </div>
+    </div>
+</div>
 
     {{-- ==================== FILTER ==================== --}}
     <div class="filter-bar">
