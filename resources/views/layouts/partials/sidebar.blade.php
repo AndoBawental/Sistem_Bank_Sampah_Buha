@@ -68,18 +68,27 @@
         </a>
     </li>
 
-    <li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.sortir.index') }}">
-            <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
-            <span>Sortir Sampah</span>
-            @php
-                $pendingSortir = \App\Models\Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])->count();
-            @endphp
-            @if($pendingSortir > 0)
-                <span class="badge bg-warning text-dark ms-2 rounded-pill">{{ $pendingSortir }}</span>
-            @endif
-        </a>
-    </li>
+    {{-- Sortir Sampah --}}
+<li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+       href="{{ route('gudang.sortir.index') }}">
+        <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
+        <span>Sortir Sampah</span>
+        @php
+            // Hitung aktivitas sortir manual hari ini
+            $sortirHariIni = \App\Models\HasilSortir::whereNull('penerimaan_id')
+                ->whereDate('created_at', today())
+                ->sum('berat_bersih_kg');
+        @endphp
+        @if($sortirHariIni > 0)
+            <span class="badge bg-success ms-2 rounded-pill" 
+                  style="font-size: 0.65rem;"
+                  title="Hasil sortir hari ini">
+                {{ number_format($sortirHariIni, 1) }} Kg
+            </span>
+        @endif
+    </a>
+</li>
 
     <li class="nav-item {{ request()->routeIs('gudang.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.stok.index') }}">

@@ -6,484 +6,518 @@
 
 @push('styles')
 <style>
-    /* ========== SCREEN STYLES ========== */
-    .detail-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
-    }
-    @media (min-width: 768px) {
-        .detail-card { border-radius: 12px; padding: 1.25rem; }
+    :root {
+        --primary: #2e7d32;
+        --radius: 12px;
     }
 
+    .card {
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        margin-bottom: 12px;
+    }
+
+    .card-body { 
+        padding: 14px; 
+    }
+
+    /* Info Row */
     .info-row {
         display: flex;
-        padding: 6px 0;
-        border-bottom: 1px dashed #eee;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-    @media (min-width: 768px) {
-        .info-row { padding: 8px 0; gap: 0; }
+        padding: 7px 0;
+        border-bottom: 1px solid #f3f4f6;
+        align-items: flex-start;
     }
     .info-row:last-child { border-bottom: none; }
-
-    .info-label {
-        width: 100%;
-        color: #666;
-        font-size: 0.72rem;
-        font-weight: 600;
+    .info-label { 
+        min-width: 90px;
+        color: #6b7280; 
+        font-size: 12px; 
+        font-weight: 600; 
+        flex-shrink: 0;
     }
-    @media (min-width: 480px) {
-        .info-label { width: 110px; font-size: 0.8rem; }
-    }
-    @media (min-width: 768px) {
-        .info-label { width: 130px; font-size: 0.85rem; }
-    }
-
-    .info-value {
-        flex: 1;
-        font-weight: 500;
-        font-size: 0.78rem;
+    .info-value { 
+        font-size: 13px; 
+        font-weight: 500; 
         word-break: break-word;
-    }
-    @media (min-width: 768px) {
-        .info-value { font-size: 0.88rem; }
+        flex: 1;
+        color: #1f2937;
     }
 
     /* Total Box */
     .total-box {
-        background: #e8f5e9;
-        border-radius: 8px;
-        padding: 12px;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+    .total-box .total-item {
         text-align: center;
     }
-    @media (min-width: 768px) {
-        .total-box { border-radius: 10px; padding: 15px; }
+    .total-box .total-label {
+        font-size: 11px;
+        color: #6b7280;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .total-box .total-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #065f46;
+    }
+    .total-box .total-unit {
+        font-size: 12px;
+        color: #6b7280;
     }
 
-    .total-box h5 {
-        font-size: 1rem;
+    /* Payment Box */
+    .payment-box {
+        background: #fef3c7;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
     }
-    @media (min-width: 768px) {
-        .total-box h5 { font-size: 1.1rem; }
+    .payment-box .payment-label {
+        font-size: 11px;
+        color: #92400e;
+        margin-bottom: 4px;
     }
-
-    .total-box small {
-        font-size: 0.65rem;
+    .payment-box .payment-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #92400e;
     }
-    @media (min-width: 768px) {
-        .total-box small { font-size: 0.72rem; }
+    .donation-box {
+        background: #dbeafe;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+    }
+    .donation-box .donation-label {
+        font-size: 11px;
+        color: #1e40af;
+        margin-bottom: 4px;
+    }
+    .donation-box .donation-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e40af;
     }
 
     /* Table Detail */
-    .table-detail th {
-        background: #f8f9fa;
-        font-size: 0.7rem;
+    .table-detail {
+        margin: 0;
+        font-size: 12px;
+    }
+    .table-detail thead th {
+        background: #f9fafb;
+        font-size: 11px;
         font-weight: 700;
+        color: #374151;
+        padding: 10px 8px;
         white-space: nowrap;
-        padding: 8px 6px;
+        border-bottom: 2px solid #e5e7eb;
     }
-    @media (min-width: 768px) {
-        .table-detail th { font-size: 0.8rem; padding: 10px 8px; }
-    }
-
-    .table-detail td {
-        font-size: 0.72rem;
-        padding: 8px 6px;
+    .table-detail tbody td {
+        padding: 10px 8px;
         vertical-align: middle;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 12px;
     }
-    @media (min-width: 768px) {
-        .table-detail td { font-size: 0.85rem; padding: 10px 8px; }
-    }
-
     .table-detail tfoot td {
-        font-size: 0.78rem;
         font-weight: 700;
-    }
-    @media (min-width: 768px) {
-        .table-detail tfoot td { font-size: 0.88rem; }
-    }
-
-    /* Badge */
-    .badge {
-        font-size: 0.62rem;
-        padding: 3px 8px;
-    }
-    @media (min-width: 768px) {
-        .badge { font-size: 0.7rem; padding: 4px 10px; }
+        background: #f9fafb;
+        font-size: 12px;
     }
 
-    /* Card Header */
-    .card h6 {
-        font-size: 0.85rem;
+    /* Badges */
+    .badge-status {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
     }
-    @media (min-width: 768px) {
-        .card h6 { font-size: 0.9rem; }
-    }
+    .badge-beli { background: #fef3c7; color: #92400e; }
+    .badge-donasi { background: #dbeafe; color: #1e40af; }
+    .badge-selesai { background: #d1fae5; color: #065f46; }
+    .badge-belum { background: #fee2e2; color: #991b1b; }
 
     /* Buttons */
-    .btn-sm.rounded-pill {
-        font-size: 0.72rem;
-        padding: 6px 14px;
+    .btn {
+        font-size: 12px;
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: all 0.2s;
     }
-    @media (min-width: 768px) {
-        .btn-sm.rounded-pill { font-size: 0.78rem; padding: 8px 18px; }
+    .btn:active {
+        transform: scale(0.95);
+    }
+    .btn-success { 
+        background: var(--primary); 
+        border-color: var(--primary); 
+    }
+    .btn-outline-secondary { 
+        font-size: 12px; 
     }
 
-    /* ========== PRINT STYLES (Nota 80mm) ========== */
-    @media print {
-        @page {
-            size: 80mm auto;
-            margin: 0;
-        }
-        
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 80mm;
-            font-size: 10px;
-            background: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        
-        /* Sembunyikan elemen non-print */
-        .sidebar, .navbar, .topbar, .footer,
-        .btn, .action-buttons, .no-print,
-        .page-title, .breadcrumb, .card-header,
-        #sidebarToggleMobile, #sidebarOverlay,
-        .btn-print-hide {
-            display: none !important;
-        }
-        
-        /* Reset layout */
-        #wrapper, #main-content {
-            display: block !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 80mm !important;
-        }
-        
-        .container-fluid {
-            margin: 0 !important;
-            padding: 3mm !important;
-            width: 80mm;
-            max-width: 80mm;
-        }
-        
-        .card {
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-        }
-        
+    /* Section Title */
+    .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-title i {
+        font-size: 16px;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    
+    /* Tablet */
+    @media (min-width: 768px) and (max-width: 1024px) {
         .card-body {
-            padding: 2mm !important;
+            padding: 16px;
+        }
+        .info-label {
+            min-width: 110px;
+            font-size: 13px;
+        }
+        .info-value {
+            font-size: 13px;
+        }
+        .total-box .total-value {
+            font-size: 18px;
+        }
+        .table-detail thead th,
+        .table-detail tbody td {
+            font-size: 12px;
+            padding: 10px;
+        }
+    }
+
+    /* Mobile Landscape */
+    @media (max-width: 767px) {
+        .card-body {
+            padding: 12px;
+        }
+        .info-label {
+            min-width: 80px;
+            font-size: 11px;
+        }
+        .info-value {
+            font-size: 12px;
+        }
+        .section-title {
+            font-size: 13px;
+        }
+        .total-box .total-value {
+            font-size: 16px;
+        }
+        .payment-box .payment-value {
+            font-size: 18px;
+        }
+        .table-detail thead th {
+            font-size: 10px;
+            padding: 8px 6px;
+        }
+        .table-detail tbody td {
+            font-size: 11px;
+            padding: 8px 6px;
+        }
+        .btn {
+            font-size: 11px;
+            padding: 6px 14px;
         }
         
-        .row {
-            margin: 0 !important;
+        /* Stack info rows vertically */
+        .info-row {
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 0;
+        }
+        .info-label {
+            min-width: auto;
+        }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+        .container-fluid {
+            padding: 0 6px;
+        }
+        .card-body {
+            padding: 10px;
+        }
+        .info-label {
+            font-size: 10px;
+        }
+        .info-value {
+            font-size: 11px;
+        }
+        .section-title {
+            font-size: 12px;
+        }
+        .section-title i {
+            font-size: 14px;
+        }
+        .total-box {
+            padding: 10px;
+        }
+        .total-box .total-label {
+            font-size: 9px;
+        }
+        .total-box .total-value {
+            font-size: 15px;
+        }
+        .payment-box .payment-value {
+            font-size: 16px;
+        }
+        .table-detail thead th {
+            font-size: 9px;
+            padding: 6px 4px;
+        }
+        .table-detail tbody td {
+            font-size: 10px;
+            padding: 6px 4px;
+        }
+        .table-detail tfoot td {
+            font-size: 10px;
+        }
+        .badge-status {
+            font-size: 9px;
+            padding: 3px 8px;
+        }
+        .btn {
+            font-size: 10px;
+            padding: 5px 12px;
         }
         
-        .col-12, .col-md-6, .col-md-4, .col-6 {
-            padding: 0 !important;
-            width: 100% !important;
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
+        /* Mobile table optimization */
+        .hide-mobile-col {
+            display: none;
         }
-        
-        /* Show/Hide */
+    }
+
+    /* Very Small */
+    @media (max-width: 360px) {
+        .info-label {
+            font-size: 9px;
+        }
+        .info-value {
+            font-size: 10px;
+        }
+        .table-detail thead th,
+        .table-detail tbody td {
+            font-size: 8px;
+            padding: 4px 2px;
+        }
+        .btn {
+            font-size: 9px;
+            padding: 4px 10px;
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        @page { size: 80mm auto; margin: 2mm; }
+        body { font-size: 10px; }
+        .no-print, .navbar, .sidebar, .footer { display: none !important; }
+        .card { box-shadow: none !important; border: none !important; }
+        .card-body { padding: 3mm !important; }
         .print-only { display: block !important; }
         .screen-only { display: none !important; }
-        
-        /* Print Elements */
-        .print-header {
-            text-align: center;
-            margin-bottom: 3mm;
-        }
-        .print-header h4 {
-            font-size: 13px;
-            margin: 1mm 0;
-            font-weight: bold;
-        }
-        .print-header p {
-            font-size: 9px;
-            margin: 1mm 0;
-            color: #333;
-        }
-        .print-divider {
-            border-top: 1px dashed #000;
-            margin: 3mm 0;
-        }
-        .print-table {
-            width: 100%;
-            font-size: 9px;
-            border-collapse: collapse;
-        }
-        .print-table th {
-            text-align: left;
-            padding: 1mm 0;
-            border-bottom: 1px solid #000;
-            font-size: 9px;
-        }
-        .print-table td {
-            padding: 1mm 0;
-            font-size: 9px;
-        }
-        .print-total {
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 2mm;
-        }
-        .print-footer {
-            text-align: center;
-            font-size: 9px;
-            margin-top: 5mm;
-        }
-        
-        /* Table di print */
-        .table-detail {
-            font-size: 9px;
-        }
-        .table-detail th, .table-detail td {
-            padding: 1mm 1mm !important;
-            font-size: 9px;
-        }
-        h5, .h5 { font-size: 12px !important; }
-        h4, .h4 { font-size: 14px !important; }
-        
-        /* Prevent page break inside */
-        .print-only { page-break-inside: avoid; }
+        .print-header { text-align: center; margin-bottom: 2mm; }
+        .print-header h4 { font-size: 12px; margin: 1mm 0; }
+        .print-header p { font-size: 9px; margin: 1mm 0; }
+        .print-divider { border-top: 1px dashed #000; margin: 2mm 0; }
+        .print-table { width: 100%; font-size: 9px; border-collapse: collapse; }
+        .print-table th { text-align: left; border-bottom: 1px solid #000; padding: 1mm 0; }
+        .print-table td { padding: 1mm 0; }
+        .print-footer { text-align: center; font-size: 9px; margin-top: 3mm; }
     }
-    
-    /* Screen only / Print only */
     .print-only { display: none; }
-    .screen-only { display: block; }
-
-    /* ========== GAP RESPONSIVE ========== */
-    @media (max-width: 575px) {
-        .row.g-3 { --bs-gutter-y: 0.5rem; }
-    }
-
-    /* ========== TOUCH FRIENDLY ========== */
-    @media (hover: none) and (pointer: coarse) {
-        .btn { min-height: 36px; }
-    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-    {{-- ========== TOMBOL NAVIGASI (Screen Only) ========== --}}
-    <div class="d-flex justify-content-between align-items-center mb-2 mb-md-3 no-print flex-wrap gap-2">
+    {{-- Action Buttons --}}
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print flex-wrap gap-2">
         <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-            <i class="fas fa-arrow-left me-1"></i><span class="d-none d-sm-inline">Kembali</span>
+            <i class="fas fa-arrow-left me-1"></i>Kembali
         </a>
         <div class="d-flex gap-2">
-            @if($penerimaan->status_sortir != 'Selesai')
+            @if($penerimaan->status_sortir != 'Sudah')
             <a href="{{ route('gudang.penerimaan.edit', $penerimaan->id) }}" class="btn btn-outline-primary btn-sm rounded-pill">
-                <i class="fas fa-edit me-1"></i><span class="d-none d-sm-inline">Edit</span>
+                <i class="fas fa-edit me-1"></i>Edit
             </a>
             @endif
             <button onclick="window.print()" class="btn btn-success btn-sm rounded-pill">
-                <i class="fas fa-print me-1"></i><span class="d-none d-sm-inline">Cetak Nota</span>
+                <i class="fas fa-print me-1"></i>Cetak
             </button>
         </div>
     </div>
 
-    {{-- ========== TAMPILAN LAYAR ========== --}}
+    {{-- Screen View --}}
     <div class="screen-only">
         <div class="row g-2 g-md-3">
-            {{-- Informasi Utama --}}
+            
+            {{-- Left Column: Information --}}
             <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body p-2 p-md-3">
-                        <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-info-circle text-success"></i>Informasi
-                        </h6>
-                        
-                        {{-- Mobile: Tampilan compact --}}
-                        <div class="d-sm-none">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">No. Transaksi</small>
-                                    <span class="fw-semibold small">#TRX-{{ str_pad($penerimaan->id, 6, '0', STR_PAD_LEFT) }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">Tanggal</small>
-                                    <span class="fw-semibold small">{{ \Carbon\Carbon::parse($penerimaan->tanggal)->format('d/m/Y') }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">Supplier</small>
-                                    <span class="fw-semibold small">{{ $penerimaan->supplier->nama }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">Tipe</small>
-                                    @if($penerimaan->tipe == 'Beli')
-                                        <span class="badge bg-warning text-dark">Beli</span>
-                                    @else
-                                        <span class="badge bg-info">Donasi</span>
-                                    @endif
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">Status</small>
-                                    @if($penerimaan->status_sortir == 'Selesai')
-                                        <span class="badge bg-success">Selesai</span>
-                                    @elseif($penerimaan->status_sortir == 'Proses')
-                                        <span class="badge bg-warning text-dark">Proses</span>
-                                    @else
-                                        <span class="badge bg-danger">Belum</span>
-                                    @endif
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block" style="font-size:0.6rem;">Petugas</small>
-                                    <span class="fw-semibold small">{{ $penerimaan->user->name }}</span>
-                                </div>
-                            </div>
-                            @if($penerimaan->keterangan)
-                            <div class="mt-2">
-                                <small class="text-muted d-block" style="font-size:0.6rem;">Keterangan</small>
-                                <span class="small">{{ $penerimaan->keterangan }}</span>
-                            </div>
-                            @endif
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="section-title">
+                            <i class="fas fa-info-circle text-success"></i>
+                            Informasi Penerimaan
                         </div>
                         
-                        {{-- Desktop: Tampilan list --}}
-                        <div class="d-none d-sm-block">
-                            <div class="info-row">
-                                <span class="info-label">No. Transaksi</span>
-                                <span class="info-value">: #TRX-{{ str_pad($penerimaan->id, 6, '0', STR_PAD_LEFT) }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Tanggal</span>
-                                <span class="info-value">: {{ \Carbon\Carbon::parse($penerimaan->tanggal)->format('d/m/Y') }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Supplier</span>
-                                <span class="info-value">: {{ $penerimaan->supplier->nama }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Tipe</span>
-                                <span class="info-value">: 
-                                    @if($penerimaan->tipe == 'Beli')
-                                        <span class="badge bg-warning text-dark">Pembelian</span>
-                                    @else
-                                        <span class="badge bg-info">Donasi</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Status Sortir</span>
-                                <span class="info-value">: 
-                                    @if($penerimaan->status_sortir == 'Selesai')
-                                        <span class="badge bg-success">Selesai</span>
-                                    @elseif($penerimaan->status_sortir == 'Proses')
-                                        <span class="badge bg-warning text-dark">Proses</span>
-                                    @else
-                                        <span class="badge bg-danger">Belum</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Petugas</span>
-                                <span class="info-value">: {{ $penerimaan->user->name }}</span>
-                            </div>
-                            @if($penerimaan->keterangan)
-                            <div class="info-row">
-                                <span class="info-label">Keterangan</span>
-                                <span class="info-value">: {{ $penerimaan->keterangan }}</span>
-                            </div>
-                            @endif
+                        <div class="info-row">
+                            <span class="info-label">No. Transaksi</span>
+                            <span class="info-value">#TRX-{{ str_pad($penerimaan->id, 6, '0', STR_PAD_LEFT) }}</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Ringkasan --}}
-            <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body p-2 p-md-3">
-                        <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-chart-pie text-info"></i>Ringkasan
-                        </h6>
-                        <div class="total-box mb-2 mb-md-3">
-                            <div class="row g-1">
-                                <div class="col-6">
-                                    <small class="text-muted">Total Berat</small>
-                                    <h5 class="mb-0">{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</h5>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Total Item</small>
-                                    <h5 class="mb-0">{{ $penerimaan->detailPenerimaan->count() }} Jenis</h5>
-                                </div>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label">Tanggal</span>
+                            <span class="info-value">{{ $penerimaan->tanggal->format('d/m/Y H:i') }}</span>
                         </div>
-                        @if($penerimaan->tipe == 'Beli')
-                        <div class="text-center p-2 p-md-3 bg-light rounded-3">
-                            <small class="text-muted">Total Pembayaran</small>
-                            <h4 class="text-success mb-0" style="font-size: clamp(1rem, 2.5vw, 1.3rem);">
-                                Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}
-                            </h4>
+                        <div class="info-row">
+                            <span class="info-label">Supplier</span>
+                            <span class="info-value fw-bold">{{ $penerimaan->supplier->nama }}</span>
                         </div>
-                        @else
-                        <div class="text-center p-2 p-md-3 bg-light rounded-3">
-                            <small class="text-muted">Tipe Penerimaan</small>
-                            <h5 class="text-info mb-0">
-                                <i class="fas fa-hand-holding-heart me-1"></i>Donasi (Gratis)
-                            </h5>
+                        <div class="info-row">
+                            <span class="info-label">Tipe</span>
+                            <span class="info-value">
+                                @if($penerimaan->tipe == 'Beli')
+                                    <span class="badge-status badge-beli">Pembelian</span>
+                                @else
+                                    <span class="badge-status badge-donasi">Donasi</span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Status</span>
+                            <span class="info-value">
+                                @if($penerimaan->status_sortir == 'Sudah')
+                                    <span class="badge-status badge-selesai">
+                                        <i class="fas fa-check-circle me-1"></i>Sudah Bersih
+                                    </span>
+                                @else
+                                    <span class="badge-status badge-belum">
+                                        <i class="fas fa-clock me-1"></i>Belum Sortir
+                                    </span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Petugas</span>
+                            <span class="info-value">{{ $penerimaan->user->name }}</span>
+                        </div>
+                        @if($penerimaan->keterangan)
+                        <div class="info-row">
+                            <span class="info-label">Keterangan</span>
+                            <span class="info-value">{{ $penerimaan->keterangan }}</span>
                         </div>
                         @endif
                     </div>
                 </div>
             </div>
 
-            {{-- Detail Plastik --}}
+            {{-- Right Column: Summary --}}
+            <div class="col-12 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="section-title">
+                            <i class="fas fa-chart-pie text-info"></i>
+                            Ringkasan
+                        </div>
+                        
+                        <div class="total-box">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="total-item">
+                                        <div class="total-label">Total Berat</div>
+                                        <div class="total-value">
+                                            {{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }}
+                                            <span class="total-unit">Kg</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="total-item">
+                                        <div class="total-label">Jumlah Item</div>
+                                        <div class="total-value">
+                                            {{ $penerimaan->detailPenerimaan->count() }}
+                                            <span class="total-unit">Jenis</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($penerimaan->tipe == 'Beli')
+                        <div class="payment-box">
+                            <div class="payment-label">Total Pembayaran</div>
+                            <div class="payment-value">Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</div>
+                        </div>
+                        @else
+                        <div class="donation-box">
+                            <div class="donation-label">Tipe Penerimaan</div>
+                            <div class="donation-value">
+                                <i class="fas fa-hand-holding-heart me-1"></i>Donasi (Gratis)
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Detail Table --}}
             <div class="col-12">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-body p-2 p-md-3">
-                        <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-boxes text-warning"></i>Detail Plastik
-                        </h6>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="section-title">
+                            <i class="fas fa-boxes text-warning"></i>
+                            Detail Jenis Plastik
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-detail mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="ps-2">No</th>
-                                        <th>Jenis Plastik</th>
-                                        <th class="text-end">Berat (Kg)</th>
-                                        <th class="text-end d-none d-sm-table-cell">Harga/Kg</th>
-                                        <th class="text-end d-none d-sm-table-cell">Subtotal</th>
+                                        <th class="text-center" style="width:5%;">No</th>
+                                        <th style="min-width:120px;">Jenis Plastik</th>
+                                        <th class="text-end" style="width:20%;">Berat (Kg)</th>
+                                        <th class="text-end hide-mobile-col" style="width:22%;">Harga/Kg</th>
+                                        <th class="text-end" style="width:22%;">Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($penerimaan->detailPenerimaan as $index => $detail)
+                                    @foreach($penerimaan->detailPenerimaan as $i => $d)
                                     <tr>
-                                        <td class="ps-2">{{ $index + 1 }}</td>
-                                        <td class="text-truncate" style="max-width: 120px;">
-                                            {{ $detail->jenisPlastik->nama ?? '-' }}
+                                        <td class="text-center text-muted">{{ $i + 1 }}</td>
+                                        <td class="fw-semibold">{{ $d->jenisPlastik->nama ?? '-' }}</td>
+                                        <td class="text-end">{{ number_format($d->berat_datang_kg, 2, ',', '.') }}</td>
+                                        <td class="text-end hide-mobile-col">
+                                            {{ $d->harga_per_kg > 0 ? 'Rp '.number_format($d->harga_per_kg, 0, ',', '.') : '-' }}
                                         </td>
-                                        <td class="text-end">{{ number_format($detail->berat_datang_kg, 2, ',', '.') }}</td>
-                                        <td class="text-end d-none d-sm-table-cell">
-                                            {{ $detail->harga_per_kg > 0 ? 'Rp '.number_format($detail->harga_per_kg, 0, ',', '.') : '-' }}
-                                        </td>
-                                        <td class="text-end d-none d-sm-table-cell">
-                                            {{ $detail->subtotal > 0 ? 'Rp '.number_format($detail->subtotal, 0, ',', '.') : '-' }}
+                                        <td class="text-end fw-semibold">
+                                            {{ $d->subtotal > 0 ? 'Rp '.number_format($d->subtotal, 0, ',', '.') : '-' }}
                                         </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="table-light fw-bold">
+                                <tfoot>
                                     <tr>
-                                        <td colspan="2" class="text-end ps-2">Total</td>
+                                        <td colspan="2" class="text-end">Total</td>
                                         <td class="text-end">{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</td>
-                                        <td class="d-none d-sm-table-cell"></td>
-                                        <td class="text-end d-none d-sm-table-cell">
-                                            Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}
-                                        </td>
+                                        <td class="hide-mobile-col"></td>
+                                        <td class="text-end">Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -491,10 +525,11 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    {{-- ========== TAMPILAN CETAK (NOTA 80mm) ========== --}}
+    {{-- Print View (80mm Thermal) --}}
     <div class="print-only">
         <div class="print-header">
             <h4>BANK SAMPAH BUHA</h4>
@@ -505,103 +540,49 @@
             <h4>TANDA TERIMA PENERIMAAN</h4>
             <p>No: #TRX-{{ str_pad($penerimaan->id, 6, '0', STR_PAD_LEFT) }}</p>
         </div>
-
         <div class="print-divider"></div>
-
         <table style="width:100%; font-size:9px;">
-            <tr>
-                <td width="30%">Tanggal</td>
-                <td width="5%">:</td>
-                <td>{{ \Carbon\Carbon::parse($penerimaan->tanggal)->format('d/m/Y H:i') }}</td>
-            </tr>
-            <tr>
-                <td>Supplier</td>
-                <td>:</td>
-                <td><strong>{{ $penerimaan->supplier->nama }}</strong></td>
-            </tr>
-            <tr>
-                <td>Tipe</td>
-                <td>:</td>
-                <td>{{ $penerimaan->tipe == 'Beli' ? 'PEMBELIAN' : 'DONASI (GRATIS)' }}</td>
-            </tr>
-            <tr>
-                <td>Petugas</td>
-                <td>:</td>
-                <td>{{ $penerimaan->user->name }}</td>
-            </tr>
+            <tr><td width="30%">Tanggal</td><td>:</td><td>{{ $penerimaan->tanggal->format('d/m/Y H:i') }}</td></tr>
+            <tr><td>Supplier</td><td>:</td><td><strong>{{ $penerimaan->supplier->nama }}</strong></td></tr>
+            <tr><td>Tipe</td><td>:</td><td>{{ $penerimaan->tipe == 'Beli' ? 'PEMBELIAN' : 'DONASI' }}</td></tr>
+            <tr><td>Status</td><td>:</td><td>{{ $penerimaan->status_sortir == 'Sudah' ? 'SUDAH BERSIH' : 'BELUM SORTIR' }}</td></tr>
         </table>
-
         <div class="print-divider"></div>
-
         <table class="print-table">
             <thead>
                 <tr>
                     <th>Jenis Plastik</th>
                     <th class="text-end">Berat</th>
-                    @if($penerimaan->tipe == 'Beli')
+                    @if($penerimaan->tipe=='Beli')
                     <th class="text-end">Harga</th>
                     <th class="text-end">Jumlah</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
-                @foreach($penerimaan->detailPenerimaan as $detail)
+                @foreach($penerimaan->detailPenerimaan as $d)
                 <tr>
-                    <td>{{ $detail->jenisPlastik->nama ?? '-' }}</td>
-                    <td class="text-end">{{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg</td>
-                    @if($penerimaan->tipe == 'Beli')
-                    <td class="text-end">{{ number_format($detail->harga_per_kg, 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                    <td>{{ $d->jenisPlastik->nama ?? '-' }}</td>
+                    <td class="text-end">{{ number_format($d->berat_datang_kg, 2, ',', '.') }} Kg</td>
+                    @if($penerimaan->tipe=='Beli')
+                    <td class="text-end">{{ number_format($d->harga_per_kg, 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
                     @endif
                 </tr>
                 @endforeach
             </tbody>
         </table>
-
         <div class="print-divider"></div>
-
         <table style="width:100%; font-size:10px;">
-            <tr>
-                <td width="50%">Total Berat</td>
-                <td class="text-end"><strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></td>
-            </tr>
-            @if($penerimaan->tipe == 'Beli')
-            <tr>
-                <td>Total Pembayaran</td>
-                <td class="text-end"><strong>Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</strong></td>
-            </tr>
+            <tr><td>Total Berat</td><td class="text-end"><strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></td></tr>
+            @if($penerimaan->tipe=='Beli')
+            <tr><td>Total Bayar</td><td class="text-end"><strong>Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</strong></td></tr>
             @endif
         </table>
-
         <div class="print-divider"></div>
-
-        <table style="width:100%; font-size:9px;">
-            <tr>
-                <td width="40%">Status Sortir</td>
-                <td>: 
-                    @if($penerimaan->status_sortir == 'Selesai')
-                        <strong>SUDAH SELESAI</strong>
-                    @elseif($penerimaan->status_sortir == 'Proses')
-                        <strong>SEDANG DIPROSES</strong>
-                    @else
-                        <strong>BELUM SORTIR</strong>
-                    @endif
-                </td>
-            </tr>
-            @if($penerimaan->keterangan)
-            <tr>
-                <td>Keterangan</td>
-                <td>: {{ $penerimaan->keterangan }}</td>
-            </tr>
-            @endif
-        </table>
-
-        <div class="print-divider"></div>
-
         <div class="print-footer">
             <p>Terima kasih telah mendaur ulang!</p>
-            <p>Mari lestarikan Kota Manado</p>
-            <p>{{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
+            <p>{{ now()->format('d/m/Y H:i') }}</p>
             <br>
             <p>( ____________________ )</p>
             <p>Petugas</p>
@@ -609,25 +590,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto print jika ada parameter ?print=true
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('print') === 'true') {
-            // Delay sedikit untuk memastikan render selesai
-            setTimeout(function() {
-                window.print();
-            }, 500);
-        }
-        
-        // Tooltip untuk teks terpotong
-        document.querySelectorAll('.text-truncate').forEach(function(el) {
-            if (el.scrollWidth > el.clientWidth) {
-                el.setAttribute('title', el.textContent.trim());
-            }
-        });
-    });
-</script>
-@endpush

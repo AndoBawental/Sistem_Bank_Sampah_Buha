@@ -7,9 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Supplier;
-use App\Models\User;
-use App\Models\DetailPenerimaan; // Tambahkan ini
 
 class Penerimaan extends Model
 {
@@ -29,7 +26,7 @@ class Penerimaan extends Model
     ];
 
     protected $casts = [
-       'tanggal' => 'datetime',
+        'tanggal' => 'datetime',
         'total_berat_kotor_kg' => 'float',
         'total_bayar' => 'decimal:2'
     ];
@@ -44,24 +41,11 @@ class Penerimaan extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi ke detail_penerimaan (tabel baru)
     public function detailPenerimaan(): HasMany
     {
         return $this->hasMany(DetailPenerimaan::class, 'penerimaan_id');
     }
 
-    // Relasi ke hasil_sortir
-    public function hasilSortir(): HasMany
-    {
-        return $this->hasMany(HasilSortir::class, 'penerimaan_id');
-    }
-
-public function getTotalBersihAttribute()
-{
-    return $this->hasilSortir->sum('berat_bersih_kg');
-}
-
-    // Relasi ke pembayaran_penerimaan
     public function pembayaran(): HasMany
     {
         return $this->hasMany(PembayaranPenerimaan::class, 'penerimaan_id');
