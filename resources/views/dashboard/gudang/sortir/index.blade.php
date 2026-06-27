@@ -20,13 +20,7 @@
         margin-bottom: 12px;
     }
     @media (max-width: 767px) {
-        .stat-row {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-        }
-        .stat-row .stat-box:last-child {
-            grid-column: 1 / -1;
-        }
+        .stat-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
     }
 
     .stat-box {
@@ -59,54 +53,31 @@
         margin-bottom: 12px;
     }
     .filter-bar .form-label {
-        font-size: 0.6rem;
-        font-weight: 600;
-        color: #999;
-        margin-bottom: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
+        font-size: 0.6rem; font-weight: 600; color: #999;
+        margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px;
     }
     .filter-bar .form-control-sm,
     .filter-bar .form-select-sm {
-        font-size: 0.7rem;
-        padding: 5px 8px;
-        min-height: 32px;
-        border-radius: 6px;
-        border: 1.5px solid #e0e0e0;
+        font-size: 0.7rem; padding: 5px 8px; min-height: 32px;
+        border-radius: 6px; border: 1.5px solid #e0e0e0;
     }
     .filter-bar .btn-sm {
-        font-size: 0.68rem;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
+        font-size: 0.68rem; padding: 6px 12px; border-radius: 6px; font-weight: 600;
     }
     .filter-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: #e8f5e9;
-        color: #2e7d32;
-        font-size: 0.6rem;
-        padding: 3px 8px;
-        border-radius: 20px;
-        margin: 2px;
-    }
-    .filter-badge .btn-close {
-        font-size: 0.4rem;
-        cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #e8f5e9; color: #2e7d32; font-size: 0.6rem;
+        padding: 3px 8px; border-radius: 20px; margin: 2px;
     }
 
     /* ========== CARD ========== */
     .card {
-        border: none;
-        border-radius: var(--radius-lg);
+        border: none; border-radius: var(--radius-lg);
         box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
     .card-header {
-        background: #fff;
-        border-bottom: 1px solid #f0f0f0;
-        padding: 0.75rem 1rem;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        background: #fff; border-bottom: 1px solid #f0f0f0;
+        padding: 0.75rem 1rem; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
     .card-body { padding: 0; }
 
@@ -138,20 +109,18 @@
     .btn-sortir:hover { background: #1b5e20; color: #fff; }
     .btn-sortir:active { transform: scale(0.97); }
 
-    .btn-undo {
-        color: #dc3545; padding: 4px 8px; font-size: 0.75rem;
-        border-radius: 50%; transition: all 0.15s;
+    .btn-batal {
+        background: #fff;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+        font-size: 0.68rem;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
     }
-    .btn-undo:hover { background: #dc3545; color: #fff; }
-
-    /* ========== ALERT ========== */
-    .alert-toast {
-        border-radius: var(--radius); font-size: 0.75rem; padding: 10px 14px;
-        margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;
-    }
-    .alert-toast i { font-size: 0.95rem; margin-top: 1px; }
-    .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #1b5e20; }
-    .alert-danger { background: #ffebee; border: 1px solid #ffcdd2; color: #b71c1c; }
+    .btn-batal:hover { background: #dc3545; color: #fff; }
 
     /* ========== EMPTY STATE ========== */
     .empty-state { text-align: center; padding: 2.5rem 1rem; }
@@ -166,46 +135,26 @@
 
     /* ========== PAGINATION ========== */
     .pagination { --bs-pagination-font-size: 0.72rem; margin-bottom: 0; }
-
-    @media (hover: none) and (pointer: coarse) {
-        .btn-undo { min-width: 36px; min-height: 36px; }
-        .btn-sortir { min-height: 40px; }
-        .table tbody td { padding: 10px 8px; }
-    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-    {{-- NOTIFIKASI --}}
-    @if(session('success'))
-    <div class="alert-toast alert-success fade-in">
-        <i class="fas fa-check-circle"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="alert-toast alert-danger fade-in">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-    @endif
-
     {{-- STATISTIK --}}
     <div class="stat-row">
         <div class="stat-box warning">
-            <div class="stat-label">Stok Kotor</div>
+            <div class="stat-label">⚖️ Stok Kotor</div>
             <div class="stat-value">{{ number_format($totalBeratKotor, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">Gabungan penerimaan</div>
+            <div class="stat-sub">Menunggu sortir</div>
         </div>
         <div class="stat-box success">
-            <div class="stat-label">Estimasi Bersih</div>
+            <div class="stat-label">✅ Estimasi Bersih</div>
             <div class="stat-value">{{ number_format($estimasiBersih, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
             <div class="stat-sub">~85% dari kotor</div>
         </div>
         <div class="stat-box primary">
-            <div class="stat-label">Stok Bersih</div>
+            <div class="stat-label">🏭 Stok Bersih</div>
             <div class="stat-value">{{ number_format($totalBeratBersih, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
             <div class="stat-sub">Siap produksi</div>
         </div>
@@ -247,7 +196,7 @@
             {{-- Filter Aktif --}}
             @if(request('jenis_plastik_id') || request('dari_tanggal') || request('sampai_tanggal'))
             <div class="mt-2 d-flex flex-wrap align-items-center gap-1">
-                <small class="text-muted me-1" style="font-size:0.6rem;">Aktif:</small>
+                <small class="text-muted me-1" style="font-size:0.6rem;">Filter:</small>
                 @if(request('jenis_plastik_id'))
                     @php $jpActive = $jenisPlastik->where('id', request('jenis_plastik_id'))->first(); @endphp
                     <span class="filter-badge">
@@ -287,7 +236,7 @@
                             <th>Jenis Plastik</th>
                             <th class="text-end" style="width:120px;">Berat Bersih</th>
                             <th class="d-none d-md-table-cell">Catatan</th>
-                            <th class="text-center" style="width:55px;">Aksi</th>
+                            <th class="text-center" style="width:90px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -308,12 +257,11 @@
                                 <small class="text-muted">{{ $r->catatan ?: '-' }}</small>
                             </td>
                             <td class="text-center">
-                                <form action="{{ route('gudang.sortir.destroy', $r->id) }}" method="POST"
-                                      onsubmit="return confirm('Batalkan sortir ini?\nStok akan dikembalikan ke gudang.')">
+                                <button type="button" class="btn-batal btn-batal-sortir" data-id="{{ $r->id }}" data-berat="{{ number_format($r->berat_bersih_kg, 2, ',', '.') }}" data-jenis="{{ $r->jenisPlastik->nama ?? '-' }}">
+                                    Batalkan
+                                </button>
+                                <form id="deleteForm{{ $r->id }}" action="{{ route('gudang.sortir.destroy', $r->id) }}" method="POST" class="d-none">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-undo" title="Batalkan Sortir">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
                                 </form>
                             </td>
                         </tr>
@@ -345,11 +293,100 @@
 @endsection
 
 @push('scripts')
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // Auto submit filter
     document.querySelectorAll('.filter-auto').forEach(sel => {
         sel.addEventListener('change', () => document.getElementById('filterForm').submit());
     });
+    
+    // ========== KONFIRMASI BATALKAN DENGAN SWEETALERT ==========
+    document.querySelectorAll('.btn-batal-sortir').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const berat = this.getAttribute('data-berat');
+            const jenis = this.getAttribute('data-jenis');
+            
+            Swal.fire({
+                title: 'Batalkan Sortir?',
+                html: `
+                    <div style="font-size:13px; text-align:left;">
+                        <p class="mb-2">Anda akan membatalkan hasil sortir:</p>
+                        <table style="width:100%;">
+                            <tr><td>Jenis Plastik</td><td>: <strong>${jenis}</strong></td></tr>
+                            <tr><td>Berat Bersih</td><td>: <strong>${berat} Kg</strong></td></tr>
+                        </table>
+                        <p class="mt-2 mb-0 text-danger"><small>⚠️ Stok bersih akan dikurangi dan stok kotor akan dikembalikan.</small></p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-undo me-1"></i> Ya, Batalkan!',
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Tutup',
+                reverseButtons: true,
+                focusCancel: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Tampilkan loading
+                    Swal.fire({
+                        title: 'Membatalkan...',
+                        text: 'Mohon tunggu',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                    
+                    // Submit form
+                    document.getElementById('deleteForm' + id).submit();
+                }
+            });
+        });
+    });
+    
+    // ========== NOTIFIKASI SUKSES/ERROR DARI SESSION ==========
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: true,
+            confirmButtonColor: '#2e7d32',
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: '{{ session('error') }}',
+            timer: 4000,
+            timerProgressBar: true,
+            showConfirmButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    @if(session('warning'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian!',
+            text: '{{ session('warning') }}',
+            timer: 3500,
+            timerProgressBar: true,
+            showConfirmButton: true,
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'OK'
+        });
+    @endif
+    
 });
 </script>
 @endpush

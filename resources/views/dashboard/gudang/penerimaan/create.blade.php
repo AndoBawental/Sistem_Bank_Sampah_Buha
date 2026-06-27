@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/gudang/penerimaan/create.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Tambah Penerimaan Sampah')
@@ -9,63 +8,65 @@
     :root {
         --primary: #2e7d32;
         --primary-light: #e8f5e9;
+        --danger: #e53935;
+        --warning: #f9a825;
         --radius: 10px;
-        --radius-lg: 14px;
     }
 
     * { box-sizing: border-box; }
+    
+    body { background: #f5f7fa; }
 
     .card {
         border: none;
-        border-radius: var(--radius-lg);
-        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         margin-bottom: 1rem;
     }
 
     .card-header {
         background: #fff;
-        border-bottom: 1px solid #eee;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eef0f5;
+        border-radius: 14px 14px 0 0;
+        padding: 1rem 1.25rem;
     }
 
-    .card-body { padding: 1rem; }
+    .card-body { padding: 1.25rem; }
     
-    @media (min-width: 768px) { 
-        .card-body { padding: 1.5rem; } 
-        .card-header { padding: 1rem 1.5rem; }
-    }
-
-    .section-title {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: #777;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
     .form-control, .form-select {
         border-radius: 8px;
-        border: 1.5px solid #e0e0e0;
-        font-size: 0.82rem;
-        padding: 8px 12px;
+        border: 1.5px solid #e0e3e8;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
         transition: all 0.2s;
-        width: 100%;
-    }
-    
-    @media (max-width: 575px) {
-        .form-control, .form-select { 
-            font-size: 16px; 
-            padding: 10px 12px; 
-            min-height: 44px;
-        }
+        background: #fafbfc;
     }
     
     .form-control:focus, .form-select:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(46,125,50,0.08);
-        outline: none;
+        box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+        background: #fff;
+    }
+    
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger) !important;
+        box-shadow: 0 0 0 3px rgba(229,57,53,0.1) !important;
+        background: #fff5f5;
+    }
+    
+    .error-message {
+        color: var(--danger);
+        font-size: 0.65rem;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .form-label {
@@ -73,458 +74,467 @@
         font-size: 0.75rem;
         color: #555;
         margin-bottom: 4px;
-        display: block;
     }
-    .form-label.small { font-size: 0.7rem; }
+    
+    .form-label.required::after {
+        content: ' *';
+        color: var(--danger);
+    }
 
-    /* Option Cards */
+    .section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        font-weight: 700;
+        margin: 1rem 0 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .section-title:first-child { margin-top: 0; }
+
+    .option-group { display: flex; gap: 0.5rem; }
+    
     .option-card {
+        flex: 1;
         cursor: pointer;
-        padding: 12px 8px;
+        padding: 0.75rem;
         border-radius: 10px;
-        border: 2px solid #e0e0e0;
+        border: 2px solid #e0e3e8;
         text-align: center;
         transition: all 0.2s;
-        background: #fafafa;
+        background: #fafbfc;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 4px;
-        min-height: 80px;
+        gap: 0.5rem;
         justify-content: center;
+        min-height: 48px;
     }
     
-    @media (max-width: 575px) {
-        .option-card { 
-            padding: 14px 8px; 
-            min-height: 90px;
-        }
-    }
+    .option-card:hover { border-color: #a5d6a7; background: #f8fdf9; }
     
-    .option-card:hover { border-color: #a5d6a7; }
     .option-card.active {
         border-color: var(--primary);
         background: var(--primary-light);
-    }
-    .option-card input { display: none; }
-    .option-card .option-icon {
-        font-size: 1.3rem;
-        color: #999;
-    }
-    .option-card.active .option-icon { color: var(--primary); }
-    .option-card .option-label {
-        font-size: 0.78rem;
-        font-weight: 500;
-        line-height: 1.2;
-    }
-    .option-card.active .option-label {
         font-weight: 600;
+    }
+    
+    .option-card input { display: none; }
+    .option-card .icon { font-size: 1.1rem; color: #999; }
+    .option-card.active .icon { color: var(--primary); }
+
+    .karung-group-belum {
+        background: #fff;
+        border: 1.5px solid #e8eaef;
+        border-radius: 12px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .karung-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #555;
+    }
+
+    .plastik-group {
+        background: #fff;
+        border: 1.5px solid #e8eaef;
+        border-radius: 12px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .plastik-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .plastik-group-title {
+        font-weight: 600;
+        font-size: 0.85rem;
         color: var(--primary);
     }
+    
+    .plastik-group-stats {
+        font-size: 0.7rem;
+        color: #777;
+    }
 
-    /* Item Row */
-    .item-row {
+    .karung-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: end;
+        margin-bottom: 0.5rem;
+        animation: slideIn 0.2s ease;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .karung-row .berat-input { flex: 1; }
+    .karung-row .harga-input, .karung-row .harga-input-belum { width: 130px; flex-shrink: 0; }
+
+    .input-hint {
+        font-size: 0.65rem;
+        color: #888;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    .input-hint i { font-size: 0.6rem; color: #bbb; }
+    
+    .harga-keterangan {
+        background: #fff8e1;
+        border: 1px solid #ffecb3;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.7rem;
+        color: #795548;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .harga-keterangan i { color: #f9a825; font-size: 0.8rem; margin-top: 2px; }
+    
+    .harga-keterangan.donasi {
+        background: #e8f5e9;
+        border-color: #c8e6c9;
+        color: #2e7d32;
+    }
+    
+    .harga-keterangan.donasi i { color: #2e7d32; }
+
+    .form-control::placeholder {
+        color: #bbb;
+        font-size: 0.75rem;
+        font-style: italic;
+    }
+
+    .btn {
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.15s;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .btn:active { transform: scale(0.97); }
+    
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #1b5e20; }
+    
+    .btn-outline-primary {
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        background: transparent;
+    }
+    .btn-outline-primary:hover { background: #f5f5f5; }
+    
+    .btn-sm { font-size: 0.7rem; padding: 0.35rem 0.75rem; min-height: 32px; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c62828; }
+    
+    .btn-add {
+        width: 100%;
+        border: 2px dashed #c8e6c9;
+        color: var(--primary);
+        background: #f8fdf9;
+        font-size: 0.78rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+    .btn-add:hover { background: var(--primary-light); }
+
+    .summary-card {
         background: #fff;
-        border: 1.5px solid #eee;
+        border: 1.5px solid #e8eaef;
         border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 10px;
-        position: relative;
-        transition: all 0.2s;
+        padding: 0.75rem;
     }
     
-    @media (max-width: 575px) {
-        .item-row { padding: 10px 8px; }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 0.8rem;
     }
     
-    .item-row:hover { border-color: #c8e6c9; }
+    .summary-item:last-child { border-bottom: none; }
+    
+    .summary-total {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 2px solid #e0e0e0;
+    }
 
-    .item-badge {
-        position: absolute;
-        top: -8px;
-        left: 12px;
+    .grand-total {
         background: var(--primary);
         color: #fff;
-        font-size: 0.6rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        z-index: 1;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: space-around;
+        text-align: center;
+    }
+    
+    .grand-total .item { font-size: 0.7rem; text-transform: uppercase; opacity: 0.9; }
+    .grand-total .value { font-size: 1.1rem; font-weight: 700; }
+
+    .alert-info {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        color: #1565c0;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 
-    .btn-remove-item {
-        position: absolute;
-        top: 8px;
-        right: 8px;
+    .btn-remove-karung {
         width: 28px;
         height: 28px;
         border-radius: 50%;
         border: 1px solid #ffcdd2;
         background: #fff;
-        color: #e53935;
+        color: var(--danger);
         cursor: pointer;
         font-size: 0.7rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
-        z-index: 1;
+        flex-shrink: 0;
+        padding: 0;
     }
-    
-    @media (max-width: 575px) {
-        .btn-remove-item {
-            width: 32px;
-            height: 32px;
-            top: 6px;
-            right: 6px;
-        }
-    }
-    
-    .btn-remove-item:hover {
-        background: #e53935;
+    .btn-remove-karung:hover {
+        background: var(--danger);
         color: #fff;
-        border-color: #e53935;
+        border-color: var(--danger);
     }
 
-    /* Summary */
-    .summary-card {
-        background: var(--primary);
-        border-radius: 12px;
-        padding: 12px;
-        color: #fff;
+    .info-tooltip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        color: #666;
+        font-size: 0.6rem;
+        cursor: help;
+        margin-left: 4px;
+    }
+    
+    .info-tooltip:hover { background: #bbb; color: #333; }
+
+    @media (max-width: 576px) {
+        .container-fluid { padding: 0.5rem; }
+        .card-body { padding: 0.75rem; }
+        .option-card { padding: 0.6rem; font-size: 0.8rem; }
+        .karung-row .harga-input, .karung-row .harga-input-belum { width: 110px; }
+        .grand-total { flex-direction: column; gap: 0.25rem; }
+        .karung-row { flex-wrap: wrap; }
     }
     
     @media (min-width: 768px) {
-        .summary-card { padding: 14px 18px; }
-    }
-    
-    .summary-label {
-        font-size: 0.62rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.85;
-        white-space: nowrap;
-    }
-    .summary-value {
-        font-size: 1rem;
-        font-weight: 700;
-        word-break: break-all;
-    }
-    
-    @media (min-width: 768px) {
-        .summary-value { font-size: 1.1rem; }
-    }
-
-    /* Info Alert */
-    .info-alert {
-        background: #fff8e1;
-        border: 1px solid #ffecb3;
-        border-radius: 8px;
-        padding: 10px;
-        font-size: 0.72rem;
-        color: #795548;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    .info-alert.success {
-        background: #e8f5e9;
-        border-color: #c8e6c9;
-        color: #2e7d32;
-    }
-    .info-alert i { flex-shrink: 0; margin-top: 2px; }
-
-    /* Buttons */
-    .btn-primary-green {
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        font-weight: 600;
-        font-size: 0.8rem;
-        padding: 8px 16px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        white-space: nowrap;
-        min-height: 40px;
-    }
-    .btn-primary-green:hover { background: #1b5e20; }
-    .btn-primary-green:active { transform: scale(0.98); }
-    
-    .btn-outline-green {
-        border: 2px solid var(--primary);
-        color: var(--primary);
-        background: transparent;
-        font-weight: 600;
-        font-size: 0.8rem;
-        padding: 8px 16px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        min-height: 40px;
-    }
-    .btn-outline-green:hover { background: #f5f5f5; }
-    .btn-outline-green:active { transform: scale(0.98); }
-    
-    .btn-add-item {
-        border: 2px dashed #c8e6c9;
-        color: var(--primary);
-        background: #f8fdf9;
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.78rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        min-height: 44px;
-        -webkit-tap-highlight-color: transparent;
-    }
-    .btn-add-item:hover { background: #e8f5e9; }
-    .btn-add-item:active { transform: scale(0.99); }
-
-    /* Grid improvements */
-    .row { margin-left: -6px; margin-right: -6px; }
-    .row > [class*='col-'] { padding-left: 6px; padding-right: 6px; }
-    
-    @media (max-width: 575px) {
-        .row { margin-left: -4px; margin-right: -4px; }
-        .row > [class*='col-'] { padding-left: 4px; padding-right: 4px; }
-        .btn-primary-green, .btn-outline-green { width: 100%; }
-        .d-flex.justify-content-end { flex-direction: column; }
-        .d-flex.justify-content-end .btn { margin-bottom: 8px; }
-    }
-
-    /* Smooth animations */
-    .item-row { animation: fadeIn 0.2s ease; }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Container fluid */
-    .container-fluid { 
-        padding-left: 12px; 
-        padding-right: 12px; 
-        max-width: 100%;
-    }
-    
-    @media (min-width: 768px) {
-        .container-fluid { padding-left: 20px; padding-right: 20px; }
-    }
-    
-    /* Prevent zoom on input focus for iOS */
-    @media screen and (max-width: 575px) {
-        input, select, textarea { font-size: 16px !important; }
-    }
-    
-    /* Touch-friendly */
-    @media (hover: none) and (pointer: coarse) {
-        .option-card, .btn-add-item, .btn-remove-item {
-            min-height: 44px;
-        }
+        .container-fluid { max-width: 720px; margin: 0 auto; }
     }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-10">
-
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0" style="color: var(--primary); font-size: 1rem;">
-                        <i class="fas fa-truck-loading me-2"></i>Form Penerimaan
-                    </h5>
-                    <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-sm btn-light rounded-3">
-                        <i class="fas fa-arrow-left me-1"></i>Kembali
-                    </a>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0" style="color: var(--primary);">
+                <i class="fas fa-truck-loading me-2"></i>Form Penerimaan
+            </h5>
+            <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+        
+        <div class="card-body">
+            <form action="{{ route('gudang.penerimaan.store') }}" method="POST" id="formPenerimaan" novalidate>
+                @csrf
+                
+                <div class="section-title">Informasi Dasar</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-6 mb-2">
+                        <label class="form-label required">Tanggal</label>
+                        <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}" required>
+                        <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Tanggal wajib diisi</div>
+                    </div>
+                    <div class="col-sm-6 mb-2">
+                        <label class="form-label required">Supplier</label>
+                        <select name="supplier_id" class="form-select" required>
+                            <option value="">Pilih Supplier</option>
+                            @foreach($suppliers as $s)
+                                <option value="{{ $s->id }}" {{ old('supplier_id') == $s->id ? 'selected' : '' }}>{{ $s->nama }}</option>
+                            @endforeach
+                        </select>
+                        <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Supplier wajib dipilih</div>
+                    </div>
                 </div>
-
-                <div class="card-body">
-                    <form action="{{ route('gudang.penerimaan.store') }}" method="POST" id="formPenerimaan" novalidate>
-                        @csrf
-
-                        {{-- Info Dasar --}}
-                        <div class="section-title">
-                            <i class="fas fa-info-circle"></i> Informasi Dasar
+                
+                <div class="section-title">Tipe Penerimaan</div>
+                <div class="option-group mb-2">
+                    <label class="option-card active" id="optBeli">
+                        <input type="radio" name="tipe" value="Beli" checked>
+                        <i class="fas fa-shopping-cart icon"></i> Pembelian
+                    </label>
+                    <label class="option-card" id="optDonasi">
+                        <input type="radio" name="tipe" value="Donasi">
+                        <i class="fas fa-hand-holding-heart icon"></i> Donasi
+                    </label>
+                </div>
+                
+                <div class="section-title">Kondisi Sampah</div>
+                <div class="option-group mb-2">
+                    <label class="option-card active" id="optBelum">
+                        <input type="radio" name="status_sortir" value="Belum" checked>
+                        <i class="fas fa-mix icon"></i> Belum Sortir
+                    </label>
+                    <label class="option-card" id="optSudah">
+                        <input type="radio" name="status_sortir" value="Sudah">
+                        <i class="fas fa-check-circle icon"></i> Sudah Bersih
+                    </label>
+                </div>
+                
+                <div class="alert-info mb-3" id="infoAlert">
+                    <i class="fas fa-info-circle mt-1"></i>
+                    <span id="infoText">Sampah kotor/campur. Perlu disortir sebelum masuk stok.</span>
+                </div>
+                
+                {{-- BELUM SORTIR --}}
+                <div id="belumSortirSection">
+                    <div class="section-title">Input Per Karung (Belum Sortir)</div>
+                    
+                    <div class="harga-keterangan" id="hargaKeteranganBelum">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Harga per Kilogram (Rp/Kg):</strong><br>
+                            <span>Masukkan harga beli per kilogram. Harga akan dikalikan dengan total berat untuk menghitung total pembayaran.</span>
                         </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label">Tanggal</label>
-                                <input type="date" name="tanggal" class="form-control" 
-                                       value="{{ old('tanggal', date('Y-m-d')) }}" required>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label">Supplier</label>
-                                <select name="supplier_id" class="form-select" required>
-                                    <option value="">-- Pilih Supplier --</option>
-                                    @foreach($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                            {{ $supplier->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                    </div>
+                    
+                    <div class="karung-group-belum">
+                        <div class="karung-group-header">
+                            <span><i class="fas fa-box me-1"></i> Daftar Karung</span>
+                            <span class="plastik-group-stats">
+                                <span class="stat-karung-belum">1 karung</span> | 
+                                <span class="stat-berat-belum">0 kg</span>
+                                <span class="stat-harga-belum" style="display:none;"> | Rp <span class="stat-harga-val-belum">0</span></span>
+                            </span>
                         </div>
-
-                        {{-- Tipe Penerimaan --}}
-                        <div class="section-title">
-                            <i class="fas fa-tag"></i> Tipe Penerimaan
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="option-card w-100" id="tipeBeliCard">
-                                    <input type="radio" name="tipe" value="Beli" {{ old('tipe', 'Beli') == 'Beli' ? 'checked' : '' }}>
-                                    <div class="option-icon"><i class="fas fa-shopping-cart"></i></div>
-                                    <div class="option-label">Pembelian</div>
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <label class="option-card w-100" id="tipeDonasiCard">
-                                    <input type="radio" name="tipe" value="Donasi" {{ old('tipe') == 'Donasi' ? 'checked' : '' }}>
-                                    <div class="option-icon"><i class="fas fa-hand-holding-heart"></i></div>
-                                    <div class="option-label">Donasi</div>
-                                </label>
-                            </div>
-                        </div>
-
-                        {{-- Kondisi Sampah --}}
-                        <div class="section-title">
-                            <i class="fas fa-clipboard-check"></i> Kondisi Sampah
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="option-card w-100" id="sortirBelumCard">
-                                    <input type="radio" name="status_sortir" value="Belum" {{ old('status_sortir', 'Belum') == 'Belum' ? 'checked' : '' }}>
-                                    <div class="option-icon"><i class="fas fa-mix"></i></div>
-                                    <div class="option-label">Belum Sortir</div>
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <label class="option-card w-100" id="sortirSudahCard">
-                                    <input type="radio" name="status_sortir" value="Sudah" {{ old('status_sortir') == 'Sudah' ? 'checked' : '' }}>
-                                    <div class="option-icon"><i class="fas fa-check-circle"></i></div>
-                                    <div class="option-label">Sudah Bersih</div>
-                                </label>
-                            </div>
-                        </div>
-
-                        {{-- Info Note --}}
-                        <div class="info-alert mb-3" id="infoAlert">
-                            <i class="fas fa-info-circle"></i>
-                            <div id="infoAlertText">
-                                Sampah masih kotor/campur. Perlu disortir sebelum masuk stok gudang.
-                            </div>
-                        </div>
-
-                        {{-- Detail Plastik --}}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="section-title mb-0">
-                                <i class="fas fa-cubes"></i> Detail Jenis Plastik
-                            </div>
-                            <small class="text-muted" style="font-size:0.65rem;">
-                                <span id="itemCount">1</span> jenis
-                            </small>
-                        </div>
-
-                        <div id="itemsContainer">
-                            @if(old('items'))
-                                @foreach(old('items') as $index => $item)
-                                <div class="item-row" data-index="{{ $index }}">
-                                    <span class="item-badge">Item #{{ $index + 1 }}</span>
-                                    @if($index > 0)
-                                    <button type="button" class="btn-remove-item"><i class="fas fa-times"></i></button>
-                                    @endif
-                                    <div class="row g-2 mt-2">
-                                        <div class="col-12 col-md-5">
-                                            <label class="form-label small">Jenis Plastik</label>
-                                            <select name="items[{{ $index }}][jenis_plastik_id]" class="form-select" required>
-                                                <option value="">-- Pilih --</option>
-                                                @foreach($jenisPlastik as $jp)
-                                                    <option value="{{ $jp->id }}" {{ ($item['jenis_plastik_id'] ?? '') == $jp->id ? 'selected' : '' }}>{{ $jp->nama }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-6 col-md-3">
-                                            <label class="form-label small">Berat (Kg)</label>
-                                            <input type="number" step="0.01" min="0.01" name="items[{{ $index }}][berat]" 
-                                                   class="form-control berat-input" value="{{ $item['berat'] ?? '' }}" placeholder="0.00" required>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <label class="form-label small harga-label">Harga/Kg (Rp)</label>
-                                            <input type="text" name="items[{{ $index }}][harga]" 
-                                                   class="form-control harga-input" value="{{ $item['harga'] ?? '' }}" placeholder="0">
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
-                            @else
-                                <div class="item-row" data-index="0">
-                                    <span class="item-badge">Item #1</span>
-                                    <div class="row g-2 mt-2">
-                                        <div class="col-12 col-md-5">
-                                            <label class="form-label small">Jenis Plastik</label>
-                                            <select name="items[0][jenis_plastik_id]" class="form-select" required>
-                                                <option value="">-- Pilih --</option>
-                                                @foreach($jenisPlastik as $jp)
-                                                    <option value="{{ $jp->id }}">{{ $jp->nama }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-6 col-md-3">
-                                            <label class="form-label small">Berat (Kg)</label>
-                                            <input type="number" step="0.01" min="0.01" name="items[0][berat]" 
-                                                   class="form-control berat-input" placeholder="0.00" required>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <label class="form-label small harga-label">Harga/Kg (Rp)</label>
-                                            <input type="text" name="items[0][harga]" class="form-control harga-input" placeholder="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <button type="button" class="btn-add-item mt-2" id="addItemBtn">
-                            <i class="fas fa-plus-circle me-1"></i>Tambah Jenis Plastik
+                        <div id="karungListBelum"></div>
+                        <button type="button" class="btn btn-add btn-sm mt-2" id="btnTambahKarungBelum">
+                            <i class="fas fa-plus"></i> Tambah Karung
                         </button>
-
-                        {{-- Ringkasan --}}
-                        <div class="summary-card mt-3">
-                            <div class="row text-center g-2">
-                                <div class="col-4">
-                                    <div class="summary-label">Total Berat</div>
-                                    <div class="summary-value"><span id="totalBerat">0</span> Kg</div>
-                                </div>
-                                <div class="col-4" id="totalHargaCol">
-                                    <div class="summary-label" id="totalHargaLabel">Total Bayar</div>
-                                    <div class="summary-value" id="totalHargaDisplay">Rp <span id="totalHarga">0</span></div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="summary-label">Jenis</div>
-                                    <div class="summary-value"><span id="totalJenis">1</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Keterangan --}}
-                        <div class="mt-3">
-                            <label class="form-label">Keterangan</label>
-                            <textarea name="keterangan" class="form-control" rows="2" placeholder="Catatan (opsional)...">{{ old('keterangan') }}</textarea>
-                        </div>
-
-                        {{-- Tombol --}}
-                        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-                            <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-outline-green">Batal</a>
-                            <button type="submit" class="btn btn-primary-green">
-                                <i class="fas fa-save me-1"></i>Simpan
-                            </button>
-                        </div>
-                    </form>
+                    </div>
+                    
+                    <div class="error-message" id="errorBelumSortir" style="display:none;">
+                        <i class="fas fa-exclamation-circle"></i> Minimal 1 karung harus diisi dengan berat
+                    </div>
+                    
+                    <div class="input-hint mt-2">
+                        <i class="fas fa-info-circle"></i> Input berat per karung. Total akan dijumlahkan otomatis.
+                    </div>
                 </div>
-            </div>
-
+                
+                {{-- SUDAH SORTIR --}}
+                <div id="sudahSortirSection" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="section-title" style="margin:0;border:none;">Detail Per Jenis Plastik</span>
+                    </div>
+                    
+                    <div class="harga-keterangan" id="hargaKeterangan">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Harga per Kilogram (Rp/Kg):</strong><br>
+                            <span id="hargaKeteranganText">Masukkan harga beli per kilogram untuk setiap jenis plastik. Harga akan dikalikan dengan total berat untuk menghitung total pembayaran.</span>
+                        </div>
+                    </div>
+                    
+                    <div id="plastikGroups"></div>
+                    
+                    <div class="error-message" id="errorSudahSortir" style="display:none;">
+                        <i class="fas fa-exclamation-circle"></i> Minimal 1 jenis plastik dengan berat harus diisi
+                    </div>
+                    
+                    <button type="button" class="btn btn-add mt-2" id="btnTambahJenis">
+                        <i class="fas fa-plus-circle"></i> Tambah Jenis Plastik
+                    </button>
+                    
+                    <div class="summary-card mt-3" id="summarySection" style="display:none;">
+                        <div class="section-title">Ringkasan</div>
+                        <div id="summaryContent"></div>
+                        <div class="summary-total d-flex justify-content-between">
+                            <span>Total</span>
+                            <span id="summaryGrandTotal"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grand-total mt-3">
+                    <div>
+                        <div class="item">Total Berat</div>
+                        <div class="value"><span id="grandBerat">0</span> Kg</div>
+                    </div>
+                    <div id="grandHargaWrap">
+                        <div class="item">Total Bayar</div>
+                        <div class="value">Rp <span id="grandHarga">0</span></div>
+                    </div>
+                    <div>
+                        <div class="item">Karung</div>
+                        <div class="value"><span id="grandKarung">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <label class="form-label">Keterangan</label>
+                    <textarea name="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan (opsional)..."></textarea>
+                    <div class="input-hint"><i class="fas fa-info-circle"></i> Tambahkan catatan jika diperlukan</div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                    <a href="{{ route('gudang.penerimaan.index') }}" class="btn btn-outline-primary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -532,189 +542,703 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
+    const jenisPlastikOptions = @json($jenisPlastik);
+    let plastikGroupCounter = 0;
+    let karungCounter = 0;
+    let karungBelumCounter = 0;
     
-    let itemIndex = document.querySelectorAll('.item-row').length;
-    const itemsContainer = document.getElementById('itemsContainer');
-    const tipeBeli = document.querySelector('input[value="Beli"]');
-    const tipeDonasi = document.querySelector('input[value="Donasi"]');
-    const sortirBelum = document.querySelector('input[value="Belum"]');
-    const sortirSudah = document.querySelector('input[value="Sudah"]');
-    const infoAlertText = document.getElementById('infoAlertText');
-    const infoAlert = document.getElementById('infoAlert');
-    const totalHargaCol = document.getElementById('totalHargaCol');
+    const $belumSection = document.getElementById('belumSortirSection');
+    const $sudahSection = document.getElementById('sudahSortirSection');
+    const $plastikGroups = document.getElementById('plastikGroups');
+    const $karungListBelum = document.getElementById('karungListBelum');
+    const $infoText = document.getElementById('infoText');
+    const $grandHargaWrap = document.getElementById('grandHargaWrap');
+    const $summarySection = document.getElementById('summarySection');
+    const $summaryContent = document.getElementById('summaryContent');
+    const $summaryGrandTotal = document.getElementById('summaryGrandTotal');
+    const $btnTambahJenis = document.getElementById('btnTambahJenis');
+    const $btnTambahKarungBelum = document.getElementById('btnTambahKarungBelum');
+    const $hargaKeterangan = document.getElementById('hargaKeterangan');
+    const $hargaKeteranganText = document.getElementById('hargaKeteranganText');
+    const $hargaKeteranganBelum = document.getElementById('hargaKeteranganBelum');
+    const $errorBelumSortir = document.getElementById('errorBelumSortir');
+    const $errorSudahSortir = document.getElementById('errorSudahSortir');
     
-    function formatRupiah(angka) {
-        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const $optBeli = document.getElementById('optBeli');
+    const $optDonasi = document.getElementById('optDonasi');
+    const $optBelum = document.getElementById('optBelum');
+    const $optSudah = document.getElementById('optSudah');
+    
+    function formatRupiah(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+    function parseRupiah(v) { return parseInt(v.replace(/[^0-9]/g, '')) || 0; }
+    function isBeli() { return document.querySelector('input[name="tipe"]:checked').value === 'Beli'; }
+    function isSudah() { return document.querySelector('input[name="status_sortir"]:checked').value === 'Sudah'; }
+    
+    function clearErrors() {
+        document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
     }
     
-    function parseRupiah(val) {
-        return parseInt(val.replace(/[^0-9]/g, '')) || 0;
-    }
-    
-    function updateTipeUI() {
-        document.querySelectorAll('input[name="tipe"]').forEach(r => {
-            r.closest('.option-card').classList.toggle('active', r.checked);
-        });
-        
-        if (tipeDonasi.checked) {
-            totalHargaCol.style.display = 'none';
-            document.querySelectorAll('.harga-input').forEach(el => {
-                el.value = '';
-                el.placeholder = 'Gratis';
-                el.disabled = true;
-                el.style.background = '#f5f5f5';
-            });
-        } else {
-            totalHargaCol.style.display = '';
-            document.querySelectorAll('.harga-input').forEach(el => {
-                el.placeholder = '0';
-                el.disabled = false;
-                el.style.background = '';
-            });
-        }
-        hitungTotal();
-    }
-    
-    function updateSortirUI() {
-        document.querySelectorAll('input[name="status_sortir"]').forEach(r => {
-            r.closest('.option-card').classList.toggle('active', r.checked);
-        });
-        
-        if (sortirSudah.checked) {
-            infoAlert.className = 'info-alert success mb-3';
-            infoAlertText.innerHTML = 'Sampah sudah bersih & terpilah. <strong>Langsung masuk stok gudang</strong> setelah disimpan.';
-        } else {
-            infoAlert.className = 'info-alert mb-3';
-            infoAlertText.innerHTML = 'Sampah masih kotor/campur. <strong>Perlu disortir</strong> sebelum masuk stok gudang.';
+    function showError(element, message) {
+        if (element) {
+            element.classList.add('is-invalid');
+            const errorEl = element.closest('.mb-2, .col-sm-6, .col-12')?.querySelector('.error-message') ||
+                           element.parentElement?.querySelector('.error-message');
+            if (errorEl) {
+                errorEl.style.display = 'flex';
+                if (message) errorEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            }
         }
     }
     
-    function hitungTotal() {
-        let totalBerat = 0, totalHarga = 0, totalJenis = 0;
-        const isDonasi = tipeDonasi.checked;
+    function validateForm() {
+        clearErrors();
+        let isValid = true;
+        let firstError = null;
         
-        document.querySelectorAll('.item-row').forEach(row => {
-            const berat = parseFloat(row.querySelector('.berat-input')?.value) || 0;
-            const harga = isDonasi ? 0 : parseRupiah(row.querySelector('.harga-input')?.value || '0');
-            if (berat > 0) totalJenis++;
-            totalBerat += berat;
-            totalHarga += berat * harga;
-        });
+        const tanggalInput = document.querySelector('input[name="tanggal"]');
+        if (!tanggalInput.value) {
+            showError(tanggalInput, 'Tanggal wajib diisi');
+            isValid = false;
+            if (!firstError) firstError = tanggalInput;
+        }
         
-        document.getElementById('totalBerat').textContent = totalBerat.toFixed(2);
-        document.getElementById('totalHarga').textContent = formatRupiah(Math.round(totalHarga));
-        document.getElementById('totalJenis').textContent = totalJenis || document.querySelectorAll('.item-row').length;
-        document.getElementById('itemCount').textContent = document.querySelectorAll('.item-row').length;
-    }
-    
-    // Add item
-    document.getElementById('addItemBtn').addEventListener('click', function() {
-        const isDonasi = tipeDonasi.checked;
-        const html = `
-            <div class="item-row" data-index="${itemIndex}">
-                <span class="item-badge">Item #${itemIndex + 1}</span>
-                <button type="button" class="btn-remove-item"><i class="fas fa-times"></i></button>
-                <div class="row g-2 mt-2">
-                    <div class="col-12 col-md-5">
-                        <label class="form-label small">Jenis Plastik</label>
-                        <select name="items[${itemIndex}][jenis_plastik_id]" class="form-select" required>
-                            <option value="">-- Pilih --</option>
-                            @foreach($jenisPlastik as $jp)
-                                <option value="{{ $jp->id }}">{{ $jp->nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <label class="form-label small">Berat (Kg)</label>
-                        <input type="number" step="0.01" min="0.01" name="items[${itemIndex}][berat]" class="form-control berat-input" placeholder="0.00" required>
-                    </div>
-                    <div class="col-6 col-md-4">
-                        <label class="form-label small harga-label">Harga/Kg (Rp)</label>
-                        <input type="text" name="items[${itemIndex}][harga]" class="form-control harga-input" placeholder="${isDonasi ? 'Gratis' : '0'}" ${isDonasi ? 'disabled style="background:#f5f5f5;"' : ''}>
-                    </div>
-                </div>
-            </div>`;
+        const supplierSelect = document.querySelector('select[name="supplier_id"]');
+        if (!supplierSelect.value) {
+            showError(supplierSelect, 'Supplier wajib dipilih');
+            isValid = false;
+            if (!firstError) firstError = supplierSelect;
+        }
         
-        itemsContainer.insertAdjacentHTML('beforeend', html);
-        itemIndex++;
-        attachRemoveEvents();
-        hitungTotal();
-        
-        const newRow = itemsContainer.lastElementChild;
-        setTimeout(() => newRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-    });
-    
-    // Remove item
-    function attachRemoveEvents() {
-        document.querySelectorAll('.btn-remove-item').forEach(btn => {
-            btn.onclick = function() {
-                if (document.querySelectorAll('.item-row').length <= 1) {
-                    alert('Minimal 1 item!');
-                    return;
+        if (!isSudah()) {
+            let totalBerat = 0;
+            let hasEmpty = false;
+            
+            $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
+                const beratInput = row.querySelector('.berat-input-belum');
+                const berat = parseFloat(beratInput?.value) || 0;
+                
+                if (berat > 0) {
+                    totalBerat += berat;
+                } else if (!beratInput.value || parseFloat(beratInput.value) <= 0) {
+                    hasEmpty = true;
+                    showError(beratInput, 'Berat karung harus diisi (min 0.01 Kg)');
+                    isValid = false;
+                    if (!firstError) firstError = beratInput;
                 }
-                const row = this.closest('.item-row');
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(30px)';
-                setTimeout(() => {
-                    row.remove();
-                    updateItemNumbers();
-                    hitungTotal();
-                }, 200);
-            };
-        });
-    }
-    
-    function updateItemNumbers() {
-        document.querySelectorAll('.item-row').forEach((row, i) => {
-            row.querySelector('.item-badge').textContent = `Item #${i + 1}`;
-            row.setAttribute('data-index', i);
-            row.querySelectorAll('[name]').forEach(el => {
-                el.name = el.name.replace(/items\[\d+\]/, `items[${i}]`);
+                
+                if (isBeli() && berat > 0) {
+                    const hargaInput = row.querySelector('.harga-input-belum');
+                    if (hargaInput && !hargaInput.disabled && (!hargaInput.value || parseRupiah(hargaInput.value) < 0)) {
+                        showError(hargaInput, 'Harga harus diisi (min 0)');
+                        isValid = false;
+                        if (!firstError) firstError = hargaInput;
+                    }
+                }
             });
-        });
-        itemIndex = document.querySelectorAll('.item-row').length;
+            
+            if (totalBerat <= 0 && !hasEmpty) {
+                $errorBelumSortir.style.display = 'flex';
+                isValid = false;
+            } else {
+                $errorBelumSortir.style.display = 'none';
+            }
+        } else {
+            let totalBeratSortir = 0;
+            let hasJenisEmpty = false;
+            let hasBeratEmpty = false;
+            
+            document.querySelectorAll('.plastik-group').forEach(group => {
+                const jenisSelect = group.querySelector('.jenis-select');
+                let groupHasBerat = false;
+                
+                if (!jenisSelect.value) {
+                    hasJenisEmpty = true;
+                    showError(jenisSelect, 'Jenis plastik wajib dipilih');
+                    isValid = false;
+                    if (!firstError) firstError = jenisSelect;
+                }
+                
+                group.querySelectorAll('.berat-input').forEach(el => {
+                    const berat = parseFloat(el.value) || 0;
+                    if (berat > 0) {
+                        totalBeratSortir += berat;
+                        groupHasBerat = true;
+                    } else if (el.value === '' || parseFloat(el.value) <= 0) {
+                        hasBeratEmpty = true;
+                        showError(el, 'Berat karung harus diisi (min 0.01 Kg)');
+                        isValid = false;
+                        if (!firstError) firstError = el;
+                    }
+                });
+                
+                if (jenisSelect.value && !groupHasBerat && !hasBeratEmpty) {
+                    const firstBeratInput = group.querySelector('.berat-input');
+                    if (firstBeratInput) {
+                        showError(firstBeratInput, 'Minimal 1 karung harus diisi');
+                        isValid = false;
+                        if (!firstError) firstError = firstBeratInput;
+                    }
+                }
+                
+                if (isBeli() && jenisSelect.value && groupHasBerat) {
+                    group.querySelectorAll('.harga-input').forEach(el => {
+                        if (!el.disabled && (!el.value || parseRupiah(el.value) < 0)) {
+                            showError(el, 'Harga harus diisi (min 0)');
+                            isValid = false;
+                            if (!firstError) firstError = el;
+                        }
+                    });
+                }
+            });
+            
+            if (totalBeratSortir <= 0 && !hasBeratEmpty && !hasJenisEmpty) {
+                $errorSudahSortir.style.display = 'flex';
+                isValid = false;
+            } else {
+                $errorSudahSortir.style.display = 'none';
+            }
+        }
+        
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => firstError.focus(), 300);
+        }
+        
+        return isValid;
     }
     
-    // Events
     document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('berat-input') || e.target.classList.contains('harga-input')) {
-            hitungTotal();
+        if (e.target.classList.contains('berat-input-belum') || 
+            e.target.classList.contains('harga-input-belum') ||
+            e.target.classList.contains('berat-input') ||
+            e.target.classList.contains('harga-input') ||
+            e.target.classList.contains('jenis-select') ||
+            e.target.name === 'tanggal' ||
+            e.target.name === 'supplier_id') {
+            
+            e.target.classList.remove('is-invalid');
+            const errorEl = e.target.closest('.mb-2, .col-sm-6, .col-12')?.querySelector('.error-message') ||
+                           e.target.parentElement?.querySelector('.error-message');
+            if (errorEl) errorEl.style.display = 'none';
+            $errorBelumSortir.style.display = 'none';
+            $errorSudahSortir.style.display = 'none';
         }
     });
     
-    document.addEventListener('change', function(e) {
-        if (e.target.name === 'tipe') updateTipeUI();
-        if (e.target.name === 'status_sortir') updateSortirUI();
-    });
+    // BELUM SORTIR
+    function tambahKarungBelum() {
+        karungBelumCounter++;
+        const row = document.createElement('div');
+        row.className = 'karung-row';
+        row.innerHTML = `
+            <div style="flex:1;">
+                <label class="form-label required" style="font-size:0.7rem;">Berat Karung (Kg)</label>
+                <input type="number" step="0.01" min="0.01" class="form-control berat-input-belum" placeholder="Berat karung" required>
+                <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Berat wajib diisi</div>
+            </div>
+            <div style="width:130px;flex-shrink:0;" class="harga-col-belum">
+                <label class="form-label harga-label-belum" style="font-size:0.7rem;display:${isBeli()?'':'none'};">
+                    ${isBeli() ? 'Harga/Kg (Rp) *' : ''}
+                    <span class="info-tooltip" title="Harga beli per kilogram">?</span>
+                </label>
+                <input type="text" class="form-control harga-input-belum" placeholder="${isBeli() ? 'Harga/Kg' : 'Gratis'}" 
+                       ${isBeli() ? 'required' : 'disabled'} style="background:${isBeli() ? '' : '#f5f5f5'};${isBeli() ? '' : 'display:none;'}">
+                <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Harga wajib diisi</div>
+                ${isBeli() ? '<div class="input-hint"></div>' : ''}
+            </div>
+            <button type="button" class="btn-remove-karung btn-remove-karung-belum" title="Hapus karung" style="align-self:flex-end;margin-bottom:4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        $karungListBelum.appendChild(row);
+        
+        row.querySelector('.berat-input-belum').addEventListener('input', updateGrandTotal);
+        row.querySelector('.harga-input-belum').addEventListener('input', function() {
+            if (isBeli()) {
+                const raw = this.value.replace(/[^0-9]/g, '');
+                this.value = raw ? formatRupiah(raw) : '';
+            }
+            updateGrandTotal();
+        });
+        
+        row.querySelector('.btn-remove-karung-belum').addEventListener('click', () => {
+            const rows = $karungListBelum.querySelectorAll('.karung-row');
+            if (rows.length > 1) {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                row.style.transition = 'all 0.2s';
+                setTimeout(() => { row.remove(); updateGrandTotal(); }, 200);
+            }
+        });
+        
+        updateGrandTotal();
+    }
     
-    // Format harga
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('harga-input') && !e.target.disabled) {
-            const raw = e.target.value.replace(/[^0-9]/g, '');
-            e.target.value = raw ? formatRupiah(raw) : '';
-            hitungTotal();
+    function updateStatsBelum() {
+        let totalBerat = 0, totalKarung = 0, totalHarga = 0, hargaPerKg = 0;
+        
+        $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
+            const berat = parseFloat(row.querySelector('.berat-input-belum').value) || 0;
+            const hargaInput = row.querySelector('.harga-input-belum');
+            const harga = parseRupiah(hargaInput?.value || '0');
+            
+            if (berat > 0) {
+                totalBerat += berat;
+                totalKarung++;
+                if (harga > 0) hargaPerKg = harga;
+            }
+        });
+        
+        totalHarga = totalBerat * hargaPerKg;
+        
+        document.querySelector('.stat-karung-belum').textContent = `${totalKarung} karung`;
+        document.querySelector('.stat-berat-belum').textContent = `${totalBerat.toFixed(2)} kg`;
+        
+        const hargaEl = document.querySelector('.stat-harga-belum');
+        const hargaVal = document.querySelector('.stat-harga-val-belum');
+        if (hargaEl && hargaVal) {
+            hargaEl.style.display = isBeli() ? '' : 'none';
+            hargaVal.textContent = formatRupiah(Math.round(totalHarga));
         }
-    });
+        
+        return { totalBerat, totalKarung, totalHarga };
+    }
     
-    // Submit
-    document.getElementById('formPenerimaan').addEventListener('submit', function(e) {
-        if (!this.checkValidity()) {
-            e.preventDefault();
-            this.reportValidity();
-            return;
+    // SUDAH SORTIR
+    function toggleSortir() {
+        clearErrors();
+        if (isSudah()) {
+            $belumSection.style.display = 'none';
+            $sudahSection.style.display = '';
+            $infoText.innerHTML = 'Sampah sudah bersih & terpilah. <strong>Langsung masuk stok</strong>.';
+            $hargaKeterangan.style.display = isBeli() ? '' : 'none';
+            $hargaKeteranganBelum.style.display = 'none';
+            if ($plastikGroups.children.length === 0) tambahJenisPlastik();
+        } else {
+            $belumSection.style.display = '';
+            $sudahSection.style.display = 'none';
+            $infoText.innerHTML = 'Sampah kotor/campur. <strong>Perlu disortir</strong> sebelum masuk stok.';
+            $hargaKeterangan.style.display = 'none';
+            $hargaKeteranganBelum.style.display = isBeli() ? '' : 'none';
+            if ($karungListBelum.children.length === 0) tambahKarungBelum();
+        }
+        updateGrandTotal();
+    }
+    
+    function toggleTipe() {
+        clearErrors();
+        $optBeli.classList.toggle('active', isBeli());
+        $optDonasi.classList.toggle('active', !isBeli());
+        $grandHargaWrap.style.display = isBeli() ? '' : 'none';
+        
+        if (isBeli()) {
+            $hargaKeterangan.className = 'harga-keterangan';
+            $hargaKeterangan.style.display = isSudah() ? '' : 'none';
+            $hargaKeteranganText.textContent = 'Masukkan harga beli per kilogram untuk setiap jenis plastik. Harga akan dikalikan dengan total berat untuk menghitung total pembayaran.';
+            $hargaKeteranganBelum.className = 'harga-keterangan';
+            $hargaKeteranganBelum.style.display = !isSudah() ? '' : 'none';
+        } else {
+            $hargaKeterangan.className = 'harga-keterangan donasi';
+            $hargaKeterangan.style.display = isSudah() ? '' : 'none';
+            $hargaKeteranganText.textContent = 'Untuk donasi, harga tidak diperlukan. Cukup masukkan berat sampah yang diterima.';
+            $hargaKeteranganBelum.className = 'harga-keterangan donasi';
+            $hargaKeteranganBelum.style.display = !isSudah() ? '' : 'none';
         }
         
         document.querySelectorAll('.harga-input').forEach(el => {
-            if (el.value && !el.disabled) el.value = parseRupiah(el.value).toString();
+            const row = el.closest('.karung-row');
+            if (isBeli()) {
+                el.disabled = false; el.style.background = ''; el.placeholder = 'Harga/Kg'; el.style.display = '';
+                if (row) { const label = row.querySelector('.harga-label-inline'); if (label) label.style.display = ''; }
+            } else {
+                el.disabled = true; el.style.background = '#f5f5f5'; el.value = ''; el.placeholder = 'Gratis'; el.style.display = 'none';
+                if (row) { const label = row.querySelector('.harga-label-inline'); if (label) label.style.display = 'none'; }
+            }
+        });
+        
+        document.querySelectorAll('.harga-input-belum').forEach(el => {
+            const row = el.closest('.karung-row');
+            if (isBeli()) {
+                el.disabled = false; el.style.background = ''; el.placeholder = 'Harga/Kg'; el.style.display = '';
+                if (row) { const label = row.querySelector('.harga-label-belum'); if (label) label.style.display = ''; }
+            } else {
+                el.disabled = true; el.style.background = '#f5f5f5'; el.value = ''; el.placeholder = 'Gratis'; el.style.display = 'none';
+                if (row) { const label = row.querySelector('.harga-label-belum'); if (label) label.style.display = 'none'; }
+            }
+        });
+        
+        const hargaElBelum = document.querySelector('.stat-harga-belum');
+        if (hargaElBelum) hargaElBelum.style.display = isBeli() ? '' : 'none';
+        
+        updateGrandTotal();
+    }
+    
+    function createJenisSelect(selectedId = '') {
+        let html = '<select class="form-select jenis-select" style="font-size:0.8rem;" required>';
+        html += '<option value="">-- Pilih Jenis Plastik --</option>';
+        jenisPlastikOptions.forEach(jp => {
+            html += `<option value="${jp.id}" ${jp.id == selectedId ? 'selected' : ''}>${jp.nama}</option>`;
+        });
+        html += '</select>';
+        html += '<div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Jenis plastik wajib dipilih</div>';
+        html += '<div class="input-hint"><i class="fas fa-info-circle"></i> Pilih jenis plastik untuk karung ini</div>';
+        return html;
+    }
+    
+    function tambahJenisPlastik(selectedId = '') {
+        plastikGroupCounter++;
+        const div = document.createElement('div');
+        div.className = 'plastik-group';
+        div.innerHTML = `
+            <div class="plastik-group-header">
+                <span class="plastik-group-title">Jenis Plastik</span>
+                <span class="plastik-group-stats">
+                    <span class="stat-karung">0 karung</span> | 
+                    <span class="stat-berat">0 kg</span>
+                    <span class="stat-harga" style="display:${isBeli()?'':'none'}"> | Rp <span class="stat-harga-val">0</span></span>
+                </span>
+                <button type="button" class="btn-remove-karung btn-remove-group" title="Hapus jenis plastik ini"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="mb-2">${createJenisSelect(selectedId)}</div>
+            <div class="karung-list"></div>
+            <button type="button" class="btn btn-add btn-add-karung btn-sm mt-1"><i class="fas fa-plus"></i> Tambah Karung</button>
+        `;
+        $plastikGroups.appendChild(div);
+        
+        tambahKarungSortir(div.querySelector('.karung-list'));
+        
+        div.querySelector('.btn-remove-group').addEventListener('click', () => {
+            if ($plastikGroups.children.length > 1) {
+                div.style.opacity = '0'; div.style.transform = 'scale(0.95)'; div.style.transition = 'all 0.2s';
+                setTimeout(() => { div.remove(); updateAll(); }, 200);
+            }
+        });
+        
+        div.querySelector('.btn-add-karung').addEventListener('click', () => tambahKarungSortir(div.querySelector('.karung-list')));
+        div.querySelector('.jenis-select').addEventListener('change', updateAll);
+    }
+    
+    function tambahKarungSortir(karungList) {
+        karungCounter++;
+        const row = document.createElement('div');
+        row.className = 'karung-row';
+        row.innerHTML = `
+            <div style="flex:1;">
+                <label class="form-label required" style="font-size:0.7rem;">Berat (Kg)</label>
+                <input type="number" step="0.01" min="0.01" class="form-control berat-input" placeholder="Berat karung" required>
+                <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Berat wajib diisi</div>
+            </div>
+            <div style="width:130px;flex-shrink:0;" class="harga-col">
+                <label class="form-label harga-label-inline" style="font-size:0.7rem;display:${isBeli()?'':'none'};">
+                    ${isBeli() ? 'Harga/Kg (Rp) *' : ''}
+                    <span class="info-tooltip" title="Harga beli per kilogram untuk jenis plastik ini">?</span>
+                </label>
+                <input type="text" class="form-control harga-input" placeholder="${isBeli() ? 'Harga/Kg' : 'Gratis'}" 
+                       ${isBeli() ? 'required' : 'disabled'} style="background:${isBeli() ? '' : '#f5f5f5'};${isBeli() ? '' : 'display:none;'}">
+                <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Harga wajib diisi</div>
+                ${isBeli() ? '<div class="input-hint"><i class="fas fa-info-circle"></i></div>' : ''}
+            </div>
+            <button type="button" class="btn-remove-karung" title="Hapus karung" style="align-self:flex-end;margin-bottom:4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        karungList.appendChild(row);
+        
+        row.querySelector('.berat-input').addEventListener('input', updateAll);
+        row.querySelector('.harga-input').addEventListener('input', function() {
+            if (isBeli()) { const raw = this.value.replace(/[^0-9]/g, ''); this.value = raw ? formatRupiah(raw) : ''; }
+            updateAll();
+        });
+        
+        row.querySelector('.btn-remove-karung').addEventListener('click', () => {
+            const group = row.closest('.plastik-group');
+            const rows = group.querySelectorAll('.karung-row');
+            if (rows.length > 1) {
+                row.style.opacity = '0'; row.style.transform = 'translateX(-20px)'; row.style.transition = 'all 0.2s';
+                setTimeout(() => { row.remove(); updateAll(); }, 200);
+            }
+        });
+        
+        updateAll();
+    }
+    
+    function getMergedData() {
+        if (!isSudah()) return null;
+        
+        const merged = {};
+        let totalKarung = 0;
+        
+        document.querySelectorAll('.plastik-group').forEach(group => {
+            const jenisSelect = group.querySelector('.jenis-select');
+            if (!jenisSelect || !jenisSelect.value) return;
+            
+            const jenisId = jenisSelect.value;
+            const jenisNama = jenisSelect.options[jenisSelect.selectedIndex].text;
+            
+            if (!merged[jenisId]) {
+                merged[jenisId] = { jenis_plastik_id: jenisId, jenis_nama: jenisNama, berat: 0, harga_per_kg: 0, karung: 0 };
+            }
+            
+            group.querySelectorAll('.karung-row').forEach(row => {
+                const berat = parseFloat(row.querySelector('.berat-input').value) || 0;
+                if (berat > 0) {
+                    merged[jenisId].berat += berat;
+                    merged[jenisId].karung++;
+                    totalKarung++;
+                    const hargaInput = row.querySelector('.harga-input');
+                    const harga = parseRupiah(hargaInput.value || '0');
+                    if (harga > 0) merged[jenisId].harga_per_kg = harga;
+                }
+            });
+        });
+        
+        const items = Object.values(merged);
+        const totalBerat = items.reduce((s, i) => s + i.berat, 0);
+        const totalHarga = items.reduce((s, i) => s + (i.berat * i.harga_per_kg), 0);
+        
+        return { totalBerat, totalHarga, totalKarung, items };
+    }
+    
+    function updateAll() {
+        const data = getMergedData();
+        if (!data) return;
+        
+        document.getElementById('grandBerat').textContent = data.totalBerat.toFixed(2);
+        document.getElementById('grandHarga').textContent = formatRupiah(Math.round(data.totalHarga));
+        document.getElementById('grandKarung').textContent = data.totalKarung;
+        
+        document.querySelectorAll('.plastik-group').forEach(group => {
+            let gBerat = 0, gKarung = 0, gHarga = 0;
+            
+            group.querySelectorAll('.karung-row').forEach(row => {
+                const b = parseFloat(row.querySelector('.berat-input').value) || 0;
+                const h = parseRupiah(row.querySelector('.harga-input').value || '0');
+                if (b > 0) { gBerat += b; gKarung++; if (h > 0) gHarga = h; }
+            });
+            
+            group.querySelector('.stat-karung').textContent = `${gKarung} karung`;
+            group.querySelector('.stat-berat').textContent = `${gBerat.toFixed(2)} kg`;
+            const hargaEl = group.querySelector('.stat-harga');
+            const hargaVal = group.querySelector('.stat-harga-val');
+            if (hargaEl && hargaVal) {
+                hargaEl.style.display = isBeli() ? '' : 'none';
+                hargaVal.textContent = formatRupiah(Math.round(gBerat * gHarga));
+            }
+        });
+        
+        if (data.items.length > 0) {
+            $summarySection.style.display = '';
+            let html = '';
+            data.items.forEach(item => {
+                const subtotal = item.berat * item.harga_per_kg;
+                html += `
+                    <div class="summary-item">
+                        <div><strong>${item.jenis_nama}</strong> <small class="text-muted">(${item.karung} karung)</small></div>
+                        <div class="text-end"><div>${item.berat.toFixed(2)} kg</div>${isBeli() ? `<small>Rp ${formatRupiah(Math.round(subtotal))}</small>` : ''}</div>
+                    </div>`;
+            });
+            $summaryContent.innerHTML = html;
+            $summaryGrandTotal.innerHTML = `${data.totalKarung} Karung | ${data.totalBerat.toFixed(2)} Kg${isBeli() ? ' | Rp ' + formatRupiah(Math.round(data.totalHarga)) : ''}`;
+        } else {
+            $summarySection.style.display = 'none';
+        }
+    }
+    
+    function updateGrandTotal() {
+        if (!isSudah()) {
+            const stats = updateStatsBelum();
+            document.getElementById('grandBerat').textContent = stats.totalBerat.toFixed(2);
+            document.getElementById('grandHarga').textContent = formatRupiah(Math.round(stats.totalHarga));
+            document.getElementById('grandKarung').textContent = stats.totalKarung;
+            $grandHargaWrap.style.display = isBeli() ? '' : 'none';
+        } else {
+            updateAll();
+        }
+    }
+    
+   function prepareFormData() {
+    // Hapus hidden input sebelumnya
+    document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
+    
+    let itemIdx = 0;
+    
+    if (!isSudah()) {
+        // BELUM SORTIR - Setiap karung jadi 1 item
+        $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
+            const beratInput = row.querySelector('.berat-input-belum');
+            const hargaInput = row.querySelector('.harga-input-belum');
+            if (!beratInput) return;
+            
+            const berat = parseFloat(beratInput.value) || 0;
+            if (berat <= 0) return; // Skip karung kosong
+            
+            const form = document.getElementById('formPenerimaan');
+            
+            // Berat
+            const hiddenBerat = document.createElement('input');
+            hiddenBerat.type = 'hidden'; 
+            hiddenBerat.name = `items[${itemIdx}][berat]`; 
+            hiddenBerat.value = berat;
+            form.appendChild(hiddenBerat); // DI SINI PERUBAHAN: append ke form, bukan ke row
+            
+            // Jenis Plastik ID (null untuk belum sortir)
+            const hiddenJenis = document.createElement('input');
+            hiddenJenis.type = 'hidden'; 
+            hiddenJenis.name = `items[${itemIdx}][jenis_plastik_id]`; 
+            hiddenJenis.value = '';
+            form.appendChild(hiddenJenis);
+            
+            // Harga per Kg
+            const harga = isBeli() ? parseRupiah(hargaInput?.value || '0') : 0;
+            const hiddenHarga = document.createElement('input');
+            hiddenHarga.type = 'hidden'; 
+            hiddenHarga.name = `items[${itemIdx}][harga_per_kg]`; 
+            hiddenHarga.value = harga;
+            form.appendChild(hiddenHarga);
+            
+            itemIdx++;
+        });
+    } else {
+        // SUDAH SORTIR - Setiap karung jadi 1 item
+        document.querySelectorAll('.plastik-group').forEach(group => {
+            const jenisSelect = group.querySelector('.jenis-select');
+            const jenisId = jenisSelect?.value || '';
+            
+            // Skip jika jenis plastik belum dipilih
+            if (!jenisId) return;
+            
+            group.querySelectorAll('.karung-row').forEach(row => {
+                const beratInput = row.querySelector('.berat-input');
+                const hargaInput = row.querySelector('.harga-input');
+                
+                const berat = parseFloat(beratInput?.value) || 0;
+                if (berat <= 0) return; // Skip karung kosong
+                
+                const form = document.getElementById('formPenerimaan');
+                
+                // Berat
+                const hiddenBerat = document.createElement('input');
+                hiddenBerat.type = 'hidden'; 
+                hiddenBerat.name = `items[${itemIdx}][berat]`; 
+                hiddenBerat.value = berat;
+                form.appendChild(hiddenBerat);
+                
+                // Jenis Plastik ID
+                const hiddenJenis = document.createElement('input');
+                hiddenJenis.type = 'hidden'; 
+                hiddenJenis.name = `items[${itemIdx}][jenis_plastik_id]`; 
+                hiddenJenis.value = jenisId;
+                form.appendChild(hiddenJenis);
+                
+                // Harga per Kg
+                const harga = isBeli() ? parseRupiah(hargaInput?.value || '0') : 0;
+                const hiddenHarga = document.createElement('input');
+                hiddenHarga.type = 'hidden'; 
+                hiddenHarga.name = `items[${itemIdx}][harga_per_kg]`; 
+                hiddenHarga.value = harga;
+                form.appendChild(hiddenHarga);
+                
+                itemIdx++;
+            });
+        });
+    }
+    
+    console.log(`Total items prepared: ${itemIdx}`); // Debug: cek di console browser
+}
+    
+    // Events
+    $optBelum.addEventListener('click', () => {
+        $optBelum.classList.add('active'); $optSudah.classList.remove('active');
+        document.querySelector('input[value="Belum"]').checked = true;
+        toggleSortir();
+    });
+    
+    $optSudah.addEventListener('click', () => {
+        $optBelum.classList.remove('active'); $optSudah.classList.add('active');
+        document.querySelector('input[value="Sudah"]').checked = true;
+        toggleSortir();
+    });
+    
+    $optBeli.addEventListener('click', () => {
+        $optBeli.classList.add('active'); $optDonasi.classList.remove('active');
+        document.querySelector('input[value="Beli"]').checked = true;
+        toggleTipe();
+    });
+    
+    $optDonasi.addEventListener('click', () => {
+        $optBeli.classList.remove('active'); $optDonasi.classList.add('active');
+        document.querySelector('input[value="Donasi"]').checked = true;
+        toggleTipe();
+    });
+    
+    $btnTambahJenis.addEventListener('click', () => tambahJenisPlastik());
+    $btnTambahKarungBelum.addEventListener('click', () => tambahKarungBelum());
+    
+    // Form submit
+    document.getElementById('formPenerimaan').addEventListener('submit', function(e) {
+        e.preventDefault();
+        prepareFormData();
+        
+        if (!validateForm()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Belum Lengkap',
+                text: 'Mohon lengkapi semua field yang wajib diisi (ditandai dengan * dan warna merah).',
+                confirmButtonColor: '#2e7d32',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        
+        const totalBeratFinal = document.getElementById('grandBerat').textContent;
+        const totalKarungFinal = document.getElementById('grandKarung').textContent;
+        const totalHargaFinal = isBeli() ? document.getElementById('grandHarga').textContent : '0';
+        
+        let confirmText = `
+            <div style="font-size:13px; text-align:left;">
+                <p><strong>Ringkasan Penerimaan:</strong></p>
+                <table style="width:100%;">
+                    <tr><td>Total Berat</td><td>: <strong>${totalBeratFinal} Kg</strong></td></tr>
+                    <tr><td>Total Karung</td><td>: <strong>${totalKarungFinal} karung</strong></td></tr>
+                    ${isBeli() ? `<tr><td>Total Bayar</td><td>: <strong>Rp ${totalHargaFinal}</strong></td></tr>` : ''}
+                    <tr><td>Kondisi</td><td>: <strong>${isSudah() ? 'Sudah Bersih' : 'Belum Sortir'}</strong></td></tr>
+                    <tr><td>Tipe</td><td>: <strong>${isBeli() ? 'Pembelian' : 'Donasi'}</strong></td></tr>
+                </table>
+            </div>
+        `;
+        
+        Swal.fire({
+            title: 'Konfirmasi Simpan',
+            html: confirmText,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#2e7d32',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-save me-1"></i> Simpan',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+                e.target.submit();
+            }
         });
     });
     
     // Init
-    attachRemoveEvents();
-    updateTipeUI();
-    updateSortirUI();
-    hitungTotal();
+    toggleSortir();
+    toggleTipe();
+    
+    if ($karungListBelum.children.length === 0) {
+        tambahKarungBelum();
+    }
 });
 </script>
 @endpush

@@ -17,12 +17,14 @@ class DetailPenerimaan extends Model
         'penerimaan_id',
         'jenis_plastik_id',
         'berat_datang_kg',
+        'jumlah_karung',  // PENTING: Tambahkan ini!
         'harga_per_kg',
         'subtotal'
     ];
 
     protected $casts = [
         'berat_datang_kg' => 'float',
+        'jumlah_karung' => 'integer',  // Tambahkan cast
         'harga_per_kg' => 'decimal:2',
         'subtotal' => 'decimal:2'
     ];

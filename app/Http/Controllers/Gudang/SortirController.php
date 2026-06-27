@@ -17,38 +17,60 @@ class SortirController extends Controller
      * HALAMAN INDEX - Riwayat Sortir
      */
  public function index(Request $request)
-{
-    // ✅ Stok kotor = total penerimaan Belum - total hasil sortir
-    $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')
-        ->sum('total_berat_kotor_kg');
-    
-    $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
-    
-    $totalBeratKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
-    
-    $totalBeratBersih = Stok::sum('total_berat');
-    $estimasiBersih = $totalBeratKotor * 0.85;
-    
-    $query = HasilSortir::with(['jenisPlastik']);
-    
-    if ($request->filled('jenis_plastik_id')) {
-        $query->where('jenis_plastik_id', $request->jenis_plastik_id);
+    {
+        // ✅ Stok kotor = total penerimaan Belum - total hasil sortir
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')
+            ->sum('total_berat_kotor_kg');
+        
+        $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
+        
+        $totalBeratKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
+        
+        // ✅ Jumlah karung kotor
+        $totalKarungKotor = DB::table('detail_penerimaan AS dp')
+            ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
+            ->where('p.status_sortir', 'Belum')
+            ->sum('dp.jumlah_karung');
+        
+        // Fallback: jika jumlah_karung = 0, hitung dari jumlah detail
+        if ($totalKarungKotor == 0) {
+            $totalKarungKotor = DB::table('detail_penerimaan AS dp')
+                ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
+                ->where('p.status_sortir', 'Belum')
+                ->count();
+        }
+        
+        // ✅ Total karung sudah disortir
+        $totalKarungSortir = HasilSortir::count();
+        
+        $totalBeratBersih = Stok::sum('total_berat');
+        $estimasiBersih = $totalBeratKotor * 0.85;
+        
+        $query = HasilSortir::with(['jenisPlastik']);
+        
+        if ($request->filled('jenis_plastik_id')) {
+            $query->where('jenis_plastik_id', $request->jenis_plastik_id);
+        }
+        if ($request->filled('dari_tanggal')) {
+            $query->whereDate('created_at', '>=', $request->dari_tanggal);
+        }
+        if ($request->filled('sampai_tanggal')) {
+            $query->whereDate('created_at', '<=', $request->sampai_tanggal);
+        }
+        
+        $riwayatSortir = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $jenisPlastik = JenisPlastik::orderBy('nama')->get();
+        
+        return view('dashboard.gudang.sortir.index', compact(
+            'totalBeratKotor', 
+            'totalBeratBersih', 
+            'estimasiBersih',
+            'totalKarungKotor',
+            'totalKarungSortir',
+            'riwayatSortir', 
+            'jenisPlastik'
+        ));
     }
-    if ($request->filled('dari_tanggal')) {
-        $query->whereDate('created_at', '>=', $request->dari_tanggal);
-    }
-    if ($request->filled('sampai_tanggal')) {
-        $query->whereDate('created_at', '<=', $request->sampai_tanggal);
-    }
-    
-    $riwayatSortir = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-    $jenisPlastik = JenisPlastik::orderBy('nama')->get();
-    
-    return view('dashboard.gudang.sortir.index', compact(
-        'totalBeratKotor', 'totalBeratBersih', 'estimasiBersih',
-        'riwayatSortir', 'jenisPlastik'
-    ));
-}
 
     /**
      * HALAMAN CREATE - Form Proses Sortir
@@ -63,6 +85,19 @@ class SortirController extends Controller
                 ->with('error', 'Stok kotor kosong! Tidak ada yang bisa disortir.');
         }
         
+        // ✅ Jumlah karung kotor
+        $totalKarungKotor = DB::table('detail_penerimaan AS dp')
+            ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
+            ->where('p.status_sortir', 'Belum')
+            ->sum('dp.jumlah_karung');
+        
+        if ($totalKarungKotor == 0) {
+            $totalKarungKotor = DB::table('detail_penerimaan AS dp')
+                ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
+                ->where('p.status_sortir', 'Belum')
+                ->count();
+        }
+        
         $totalBeratBersih = Stok::sum('total_berat');
         $estimasiBersih = $totalBeratKotor * 0.85;
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
@@ -71,6 +106,7 @@ class SortirController extends Controller
             'totalBeratKotor',
             'totalBeratBersih',
             'estimasiBersih',
+            'totalKarungKotor',
             'jenisPlastik'
         ));
     }
