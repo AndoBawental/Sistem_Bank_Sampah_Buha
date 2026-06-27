@@ -299,7 +299,7 @@ class PenerimaanController extends Controller
         return view('dashboard.gudang.penerimaan.edit', compact('penerimaan', 'suppliers', 'jenisPlastik'));
     }
 
-   public function update(Request $request, $id)
+  public function update(Request $request, $id)
 {
     $penerimaan = Penerimaan::findOrFail($id);
     
@@ -308,48 +308,88 @@ class PenerimaanController extends Controller
             ->with('error', 'Penerimaan yang sudah bersih tidak dapat diubah.');
     }
     
-    $request->validate([
+    $isSudahSortir = $request->status_sortir == 'Sudah';
+    
+    // Validasi dinamis
+    $rules = [
         'tanggal' => 'required|date',
         'supplier_id' => 'required|exists:supplier,id',
         'tipe' => 'required|in:Beli,Donasi',
         'status_sortir' => 'required|in:Belum,Sudah',
         'keterangan' => 'nullable|string|max:500',
         'items' => 'required|array|min:1',
-        'items.*.jenis_plastik_id' => 'required|exists:jenis_plastik,id',
         'items.*.berat' => 'required|numeric|min:0.01',
-        'items.*.harga_per_kg' => $request->tipe == 'Beli' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-    ]);
+    ];
+    
+    if ($isSudahSortir) {
+        $rules['items.*.jenis_plastik_id'] = 'required|exists:jenis_plastik,id';
+        if ($request->tipe == 'Beli') {
+            $rules['items.*.harga_per_kg'] = 'required|numeric|min:0';
+        }
+    } else {
+        // Untuk Belum Sortir, jenis_plastik_id boleh null
+        $rules['items.*.jenis_plastik_id'] = 'nullable';
+        if ($request->tipe == 'Beli') {
+            $rules['items.*.harga_per_kg'] = 'required|numeric|min:0';
+        } else {
+            $rules['items.*.harga_per_kg'] = 'nullable|numeric|min:0';
+        }
+    }
+    
+    $request->validate($rules);
 
     DB::beginTransaction();
     try {
-        // Kurangi stok jika sebelumnya Sudah
+        // Kurangi stok jika sebelumnya Sudah (rollback stok lama)
         if ($penerimaan->status_sortir == 'Sudah') {
             foreach ($penerimaan->detailPenerimaan as $detail) {
-                $stok = Stok::where('jenis_plastik_id', $detail->jenis_plastik_id)->first();
-                if ($stok) $stok->decrement('total_berat', $detail->berat_datang_kg);
+                if ($detail->jenis_plastik_id) {
+                    $stok = Stok::where('jenis_plastik_id', $detail->jenis_plastik_id)->first();
+                    if ($stok) $stok->decrement('total_berat', $detail->berat_datang_kg);
+                }
             }
         }
 
-        // Merge items
+        // Merge items by jenis_plastik_id
         $mergedItems = [];
+        
         foreach ($request->items as $item) {
-            $key = $item['jenis_plastik_id'];
+            $berat = floatval($item['berat']);
+            
+            // SKIP jika berat <= 0
+            if ($berat <= 0) continue;
+            
+            // Tentukan key untuk grouping
+            if ($isSudahSortir) {
+                $key = $item['jenis_plastik_id'];
+            } else {
+                $key = 'belum_sortir'; // Semua karung belum sortir digabung jadi 1
+            }
+            
             if (!isset($mergedItems[$key])) {
                 $mergedItems[$key] = [
-                    'jenis_plastik_id' => $key,
+                    'jenis_plastik_id' => $isSudahSortir ? $key : null,
                     'berat' => 0,
                     'harga_per_kg' => $request->tipe == 'Beli' ? floatval($item['harga_per_kg'] ?? 0) : 0,
                     'jumlah_karung' => 0,
                 ];
             }
-            $mergedItems[$key]['berat'] += floatval($item['berat']);
-            // HITUNG JUMLAH KARUNG
-            if (floatval($item['berat']) > 0) {
-                $mergedItems[$key]['jumlah_karung']++;
+            
+            $mergedItems[$key]['berat'] += $berat;
+            $mergedItems[$key]['jumlah_karung']++; // SETIAP ITEM = 1 KARUNG
+            
+            // Update harga per kg (ambil yang terakhir diisi jika ada)
+            if ($request->tipe == 'Beli' && isset($item['harga_per_kg'])) {
+                $harga = floatval($item['harga_per_kg']);
+                if ($harga > 0) {
+                    $mergedItems[$key]['harga_per_kg'] = $harga;
+                }
             }
         }
         
+        // Hitung total
         $totalBerat = array_sum(array_column($mergedItems, 'berat'));
+        $totalKarung = array_sum(array_column($mergedItems, 'jumlah_karung'));
         $totalBayar = 0;
         
         foreach ($mergedItems as $item) {
@@ -358,6 +398,7 @@ class PenerimaanController extends Controller
             }
         }
 
+        // Update penerimaan
         $penerimaan->update([
             'tanggal' => $request->tanggal . ' ' . now()->format('H:i:s'),
             'supplier_id' => $request->supplier_id,
@@ -368,21 +409,24 @@ class PenerimaanController extends Controller
             'keterangan' => $request->keterangan
         ]);
 
+        // Hapus detail lama
         $penerimaan->detailPenerimaan()->delete();
 
-        foreach ($mergedItems as $item) {
+        // Buat detail baru
+        foreach ($mergedItems as $key => $item) {
             $subtotal = ($request->tipe == 'Beli') ? ($item['berat'] * $item['harga_per_kg']) : 0;
             
             DetailPenerimaan::create([
                 'penerimaan_id' => $penerimaan->id,
-                'jenis_plastik_id' => $item['jenis_plastik_id'],
+                'jenis_plastik_id' => $item['jenis_plastik_id'], // null untuk belum sortir
                 'berat_datang_kg' => $item['berat'],
-                'jumlah_karung' => $item['jumlah_karung'], // SIMPAN JUMLAH KARUNG
+                'jumlah_karung' => $item['jumlah_karung'],
                 'harga_per_kg' => $item['harga_per_kg'],
                 'subtotal' => $subtotal
             ]);
 
-            if ($request->status_sortir == 'Sudah') {
+            // Update stok hanya jika sudah sortir
+            if ($isSudahSortir && $item['jenis_plastik_id']) {
                 $stok = Stok::firstOrCreate(
                     ['jenis_plastik_id' => $item['jenis_plastik_id']],
                     ['total_berat' => 0]
@@ -392,10 +436,17 @@ class PenerimaanController extends Controller
         }
 
         DB::commit();
-        return redirect()->route('gudang.penerimaan.index')->with('success', 'Penerimaan berhasil diperbarui.');
+        
+        $message = $isSudahSortir 
+            ? 'Penerimaan berhasil diperbarui. Stok langsung bertambah.' 
+            : 'Penerimaan berhasil diperbarui. Sampah perlu disortir.';
+        
+        return redirect()->route('gudang.penerimaan.index')
+            ->with('success', $message . ' Total: ' . number_format($totalBerat, 2) . ' Kg, ' . $totalKarung . ' Karung');
         
     } catch (\Exception $e) {
         DB::rollback();
+        \Log::error('Penerimaan update error: ' . $e->getMessage());
         return back()->with('error', 'Gagal memperbarui: ' . $e->getMessage())->withInput();
     }
 }
