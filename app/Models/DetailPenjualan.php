@@ -16,15 +16,23 @@ class DetailPenjualan extends Model
     protected $fillable = [
         'penjualan_id',
         'jenis_produk_id',
-        'qty',
-        'harga',
+        'jumlah_sak',
+        'berat_kirim_kg',
+        'potongan_persen',
+        'berat_potongan_kg',
+        'berat_nett_kg',
+        'harga_per_kg',
         'subtotal'
     ];
 
     protected $casts = [
-        'qty' => 'integer',
-        'harga' => 'decimal:2',
-        'subtotal' => 'decimal:2'
+        'jumlah_sak' => 'integer',
+        'berat_kirim_kg' => 'float',
+        'potongan_persen' => 'float',
+        'berat_potongan_kg' => 'float',
+        'berat_nett_kg' => 'float',
+        'harga_per_kg' => 'float',
+        'subtotal' => 'float'
     ];
 
     public function penjualan(): BelongsTo

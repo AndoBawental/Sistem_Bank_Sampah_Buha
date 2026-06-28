@@ -901,27 +901,30 @@
                     <h6 class="section-title"><i class="fas fa-fire text-danger me-2"></i>Produk Terlaris</h6>
                 </div>
                 <div class="card-body">
-                    @if($topProducts->count() > 0)
-                        @foreach($topProducts as $index => $product)
-                        <div class="rank-item">
-                            <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
-                                <span class="rank-badge {{ $index === 0 ? 'rank-1' : ($index === 1 ? 'rank-2' : ($index === 2 ? 'rank-3' : 'rank-n')) }}">
-                                    {{ $index + 1 }}
-                                </span>
-                                <div class="min-w-0">
-                                    <div class="fw-semibold text-truncate" style="font-size:0.8rem;">{{ $product->nama }}</div>
-                                    <div class="text-muted" style="font-size:0.65rem;">{{ number_format($product->total_qty, 0, ',', '.') }} unit</div>
-                                </div>
-                            </div>
-                            <span class="fw-bold text-primary ms-2" style="font-size:0.75rem;white-space:nowrap;">Rp {{ number_format($product->total_revenue, 0, ',', '.') }}</span>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="text-center py-3 py-md-4">
-                            <i class="fas fa-chart-line fa-2x text-muted mb-2 d-block"></i>
-                            <span class="text-muted" style="font-size:0.8rem;">Belum ada data</span>
-                        </div>
-                    @endif
+                   @if($topProducts->count() > 0)
+    @foreach($topProducts as $index => $product)
+    <div class="rank-item">
+        <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+            <span class="rank-badge {{ $index === 0 ? 'rank-1' : ($index === 1 ? 'rank-2' : ($index === 2 ? 'rank-3' : 'rank-n')) }}">
+                {{ $index + 1 }}
+            </span>
+            <div class="min-w-0">
+                <div class="fw-semibold text-truncate" style="font-size:0.8rem;">{{ $product->nama }}</div>
+                <div class="text-muted" style="font-size:0.65rem;">
+                    {{ number_format($product->total_sak ?? 0, 0, ',', '.') }} sak | 
+                    {{ number_format($product->total_berat ?? 0, 2, ',', '.') }} Kg
+                </div>
+            </div>
+        </div>
+        <span class="fw-bold text-primary ms-2" style="font-size:0.75rem;white-space:nowrap;">Rp {{ number_format($product->total_revenue, 0, ',', '.') }}</span>
+    </div>
+    @endforeach
+@else
+    <div class="text-center py-3 py-md-4">
+        <i class="fas fa-chart-line fa-2x text-muted mb-2 d-block"></i>
+        <span class="text-muted" style="font-size:0.8rem;">Belum ada data</span>
+    </div>
+@endif
                 </div>
             </div>
         </div>

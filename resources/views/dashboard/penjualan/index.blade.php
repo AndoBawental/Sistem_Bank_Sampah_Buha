@@ -6,444 +6,127 @@
 
 @push('styles')
 <style>
-    /* ========== CSS VARIABLES ========== */
-    :root {
-        --card-radius: 12px;
-        --card-radius-lg: 16px;
-        --transition: 0.25s cubic-bezier(.4,0,.2,1);
-        --blue: #0d6efd;
-        --blue-dark: #0b5ed7;
-    }
-
-    /* ========== WELCOME BANNER ========== */
+    :root { --primary: #2e7d32; --card-radius: 12px; }
+    
     .welcome-banner {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-        border-radius: var(--card-radius);
-        padding: 1.25rem;
-        color: white;
-        margin-bottom: 1.25rem;
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        border-radius: var(--card-radius); padding: 1rem 1.25rem; color: #fff; margin-bottom: 1rem;
     }
-    @media (min-width: 768px) {
-        .welcome-banner { 
-            border-radius: var(--card-radius-lg); 
-            padding: 1.5rem; 
-            margin-bottom: 1.5rem;
-        }
-    }
-    @media (min-width: 1024px) {
-        .welcome-banner { padding: 1.75rem 2rem; }
-    }
+    @media (min-width: 768px) { .welcome-banner { padding: 1.25rem 1.5rem; } }
     
-    .welcome-banner h4 {
-        font-size: 1.05rem;
-    }
-    @media (min-width: 768px) {
-        .welcome-banner h4 { font-size: 1.2rem; }
-    }
-    
-    .welcome-banner p {
-        font-size: 0.75rem;
-    }
-    @media (min-width: 768px) {
-        .welcome-banner p { font-size: 0.85rem; }
-    }
-
-    /* ========== STAT CARDS ========== */
     .stat-card {
-        background: white;
-        border-radius: var(--card-radius);
-        padding: 0.875rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border-left: 4px solid var(--blue);
-        transition: transform var(--transition), box-shadow var(--transition);
-        height: 100%;
+        background: #fff; border-radius: var(--card-radius); padding: 12px 14px;
+        border: 1px solid #e9ecef; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    @media (min-width: 768px) {
-        .stat-card { padding: 1.1rem 1.25rem; }
-    }
+    .stat-card .stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; margin-bottom: 8px; }
+    .stat-card .stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .stat-card .stat-value { font-size: 17px; font-weight: 700; color: #1f2937; }
+    .stat-card .stat-sub { font-size: 9px; color: #9ca3af; margin-top: 2px; }
     
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    }
-    @media (hover: none) {
-        .stat-card:hover { transform: none; }
-        .stat-card:active { transform: scale(0.98); }
-    }
+    .summary-card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: var(--card-radius); height: 100%; }
+    .summary-card .card-body { padding: 14px; }
     
-    .stat-card.success { border-left-color: #198754; }
-    .stat-card.warning { border-left-color: #f59e0b; }
-    .stat-card.info    { border-left-color: #0dcaf0; }
-    .stat-card.purple  { border-left-color: #6f42c1; }
+    .trans-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 12px;
+    }
+    .trans-item:last-child { border-bottom: none; }
     
-    .stat-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        flex-shrink: 0;
-    }
-    @media (min-width: 768px) {
-        .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            font-size: 1.2rem;
-        }
-    }
-    @media (min-width: 1024px) {
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            font-size: 1.3rem;
-        }
-    }
-    
-    .stat-card small.stat-label {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .stat-card small.stat-label { font-size: 0.7rem; }
-    }
-    
-    .stat-card h3, .stat-card h4 {
-        font-size: 1.1rem;
-    }
-    @media (min-width: 768px) {
-        .stat-card h3, .stat-card h4 { font-size: 1.25rem; }
-    }
-    @media (min-width: 1024px) {
-        .stat-card h3, .stat-card h4 { font-size: 1.4rem; }
-    }
-    
-    .stat-card .stat-footer {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .stat-card .stat-footer { font-size: 0.7rem; }
-    }
-
-    /* ========== SUMMARY CARDS (BULAN INI & KESELURUHAN) ========== */
-    .summary-card {
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-radius: var(--card-radius);
-        height: 100%;
-    }
-    @media (min-width: 768px) {
-        .summary-card { border-radius: var(--card-radius-lg); }
-    }
-    
-    .summary-card .card-body {
-        padding: 1rem;
-    }
-    @media (min-width: 768px) {
-        .summary-card .card-body { padding: 1.25rem; }
-    }
-    
-    .summary-card h6 {
-        font-size: 0.82rem;
-    }
-    @media (min-width: 768px) {
-        .summary-card h6 { font-size: 0.9rem; }
-    }
-    
-    .summary-card .summary-value {
-        font-size: 1rem;
-    }
-    @media (min-width: 768px) {
-        .summary-card .summary-value { font-size: 1.2rem; }
-    }
-    
-    .summary-card small {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .summary-card small { font-size: 0.7rem; }
-    }
-
-    /* ========== RECENT TRANSACTION ========== */
-    .recent-transaction {
-        border-left: 3px solid transparent;
-        transition: all var(--transition);
-        padding: 0.75rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction { padding: 0.875rem 1rem; }
-    }
-    
-    .recent-transaction:hover {
-        border-left-color: var(--blue);
-        background-color: #f8f9fa;
-    }
-    @media (hover: none) {
-        .recent-transaction:hover { border-left-color: transparent; }
-    }
-    
-    .recent-transaction .trans-id {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction .trans-id { font-size: 0.7rem; }
-    }
-    
-    .recent-transaction .trans-date {
-        font-size: 0.68rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction .trans-date { font-size: 0.72rem; }
-    }
-    
-    .recent-transaction .trans-name {
-        font-size: 0.78rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction .trans-name { font-size: 0.85rem; }
-    }
-    
-    .recent-transaction .trans-amount {
-        font-size: 0.82rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction .trans-amount { font-size: 0.9rem; }
-    }
-    
-    .recent-transaction .trans-cashier {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .recent-transaction .trans-cashier { font-size: 0.7rem; }
-    }
-
-    /* ========== PRODUCT RANKING ========== */
     .rank-item {
-        padding: 0.7rem;
-        border-bottom: 1px solid #f0f0f0;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 14px; border-bottom: 1px solid #f3f4f6; font-size: 11px;
     }
-    @media (min-width: 768px) {
-        .rank-item { padding: 0.85rem 1rem; }
-    }
-    
     .rank-item:last-child { border-bottom: none; }
-    
     .rank-badge {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: rgba(245, 158, 11, 0.1);
-        color: #f59e0b;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.72rem;
-        flex-shrink: 0;
-    }
-    @media (min-width: 768px) {
-        .rank-badge {
-            width: 32px;
-            height: 32px;
-            font-size: 0.8rem;
-        }
+        width: 24px; height: 24px; border-radius: 50%; background: #fef3c7; color: #92400e;
+        font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 8px;
     }
     
-    .rank-name {
-        font-size: 0.78rem;
-    }
-    @media (min-width: 768px) {
-        .rank-name { font-size: 0.85rem; }
-    }
-    
-    .rank-qty {
-        font-size: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .rank-qty { font-size: 0.7rem; }
-    }
-    
-    .rank-revenue {
-        font-size: 0.75rem;
-    }
-    @media (min-width: 768px) {
-        .rank-revenue { font-size: 0.82rem; }
-    }
-
-    /* ========== SECTION HEADER ========== */
-    .section-header h6 {
-        font-size: 0.82rem;
-    }
-    @media (min-width: 768px) {
-        .section-header h6 { font-size: 0.9rem; }
-    }
-
-    /* ========== GAP RESPONSIVE ========== */
     @media (max-width: 575px) {
-        .row.g-3 {
-            --bs-gutter-y: 0.5rem;
-            --bs-gutter-x: 0.5rem;
-        }
+        .stat-card { padding: 10px; }
+        .stat-card .stat-value { font-size: 14px; }
     }
-
-    /* ========== TOUCH FRIENDLY ========== */
-    @media (hover: none) and (pointer: coarse) {
-        .btn { min-height: 40px; }
-        .btn-sm { min-height: 36px; }
-        .btn-lg { min-height: 48px; }
-    }
-
-    /* ========== TEXT PURPLE (Fallback) ========== */
-    .text-purple { color: #6f42c1 !important; }
-    .bg-purple { background-color: #6f42c1 !important; }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-    {{-- ========== WELCOME BANNER ========== --}}
+    {{-- Welcome --}}
     <div class="welcome-banner">
-        <div class="row align-items-center">
-            <div class="col-md-7 col-lg-8">
-                <h4 class="mb-1 fw-bold">Selamat Datang, {{ auth()->user()->name }}!</h4>
-                <p class="mb-0 opacity-75">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    {{ now()->translatedFormat('l, d F Y') }}
-                </p>
-            </div>
-          
-        </div>
+        <h5 class="fw-bold mb-1">Selamat Datang, {{ auth()->user()->name }}!</h5>
+        <p class="mb-0 opacity-75" style="font-size:12px;">
+            <i class="fas fa-calendar-alt me-2"></i>{{ now()->translatedFormat('l, d F Y') }}
+        </p>
     </div>
 
-    {{-- ========== RINGKASAN HARI INI ========== --}}
-    <h6 class="text-muted mb-2 mb-md-3 fw-bold d-flex align-items-center gap-2" style="font-size: 0.75rem;">
-        <i class="fas fa-sun"></i> Ringkasan Hari Ini
-    </h6>
-    <div class="row g-2 g-md-3 mb-3 mb-md-4">
-        {{-- Transaksi Hari Ini --}}
-        <div class="col-6 col-xl-3">
+    {{-- Ringkasan Hari Ini --}}
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-2 mb-md-3">
-                    <div class="flex-grow-1 min-w-0">
-                        <small class="text-muted d-block stat-label">Transaksi Hari Ini</small>
-                        <h3 class="mb-0 fw-bold">{{ $totalTransaksiHariIni }}</h3>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary ms-2">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                </div>
-                <small class="text-muted stat-footer">
-                    <i class="fas fa-clock me-1"></i>Update real-time
-                </small>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-shopping-cart"></i></div>
+                <div class="stat-label">Transaksi Hari Ini</div>
+                <div class="stat-value">{{ $totalTransaksiHariIni }}</div>
+                <div class="stat-sub">Update real-time</div>
             </div>
         </div>
-
-        {{-- Pendapatan Hari Ini --}}
-        <div class="col-6 col-xl-3">
-            <div class="stat-card success">
-                <div class="d-flex justify-content-between align-items-start mb-2 mb-md-3">
-                    <div class="flex-grow-1 min-w-0">
-                        <small class="text-muted d-block stat-label">Pendapatan Hari Ini</small>
-                        <h4 class="mb-0 fw-bold text-success" style="font-size: clamp(0.9rem, 2vw, 1.1rem);">
-                            Rp {{ number_format($totalPendapatanHariIni, 0, ',', '.') }}
-                        </h4>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success ms-2">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                </div>
-                <small class="text-muted stat-footer">
-                    <i class="fas fa-chart-line me-1"></i>Pendapatan kotor
-                </small>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-money-bill"></i></div>
+                <div class="stat-label">Pendapatan Hari Ini</div>
+                <div class="stat-value" style="font-size:14px;">Rp {{ number_format($totalPendapatanHariIni, 0, ',', '.') }}</div>
+                <div class="stat-sub">Pendapatan kotor</div>
             </div>
         </div>
-
-        {{-- Rata-rata Transaksi --}}
-        <div class="col-6 col-xl-3">
-            <div class="stat-card info">
-                <div class="d-flex justify-content-between align-items-start mb-2 mb-md-3">
-                    <div class="flex-grow-1 min-w-0">
-                        <small class="text-muted d-block stat-label">Rata-rata Transaksi</small>
-                        <h4 class="mb-0 fw-bold text-info" style="font-size: clamp(0.9rem, 2vw, 1.1rem);">
-                            Rp {{ number_format($rataRataTransaksi, 0, ',', '.') }}
-                        </h4>
-                    </div>
-                    <div class="stat-icon bg-info bg-opacity-10 text-info ms-2">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                </div>
-                <small class="text-muted stat-footer">
-                    <i class="fas fa-info-circle me-1"></i>Per transaksi
-                </small>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="fas fa-calculator"></i></div>
+                <div class="stat-label">Rata-rata Transaksi</div>
+                <div class="stat-value" style="font-size:14px;">Rp {{ number_format($rataRataTransaksi, 0, ',', '.') }}</div>
+                <div class="stat-sub">Per transaksi</div>
             </div>
         </div>
-
-        {{-- Total Pembeli --}}
-        <div class="col-6 col-xl-3">
-            <div class="stat-card purple">
-                <div class="d-flex justify-content-between align-items-start mb-2 mb-md-3">
-                    <div class="flex-grow-1 min-w-0">
-                        <small class="text-muted d-block stat-label">Total Pembeli</small>
-                        <h3 class="mb-0 fw-bold text-purple">{{ $totalPembeli }}</h3>
-                    </div>
-                    <div class="stat-icon bg-purple bg-opacity-10 text-purple ms-2">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-                <small class="text-muted stat-footer">
-                    <i class="fas fa-database me-1"></i>Terdaftar
-                </small>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-users"></i></div>
+                <div class="stat-label">Total Pembeli</div>
+                <div class="stat-value">{{ $totalPembeli }}</div>
+                <div class="stat-sub">Terdaftar</div>
             </div>
         </div>
     </div>
 
-    {{-- ========== BULAN INI & KESELURUHAN ========== --}}
-    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+    {{-- Bulan Ini & Keseluruhan --}}
+    <div class="row g-2 mb-3">
         <div class="col-12 col-md-6">
             <div class="card summary-card">
                 <div class="card-body">
-                    <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center gap-2">
-                        <i class="fas fa-calendar-check text-primary"></i>Bulan Ini
-                    </h6>
-                    <div class="row text-center g-1">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-calendar-check text-primary me-1"></i>Bulan Ini</h6>
+                    <div class="row text-center">
                         <div class="col-6 border-end">
-                            <small class="text-muted d-block">Total Transaksi</small>
-                            <h4 class="mb-0 fw-bold summary-value">{{ $totalTransaksiBulanIni }}</h4>
-                            <small class="text-muted">transaksi</small>
+                            <small class="text-muted d-block">Transaksi</small>
+                            <strong style="font-size:16px;">{{ $totalTransaksiBulanIni }}</strong>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted d-block">Total Pendapatan</small>
-                            <h4 class="mb-0 fw-bold text-success summary-value">
-                                Rp {{ number_format($totalPendapatanBulanIni, 0, ',', '.') }}
-                            </h4>
-                            <small class="text-muted">rupiah</small>
+                            <small class="text-muted d-block">Pendapatan</small>
+                            <strong class="text-success" style="font-size:14px;">Rp {{ number_format($totalPendapatanBulanIni, 0, ',', '.') }}</strong>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-12 col-md-6">
             <div class="card summary-card">
                 <div class="card-body">
-                    <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center gap-2">
-                        <i class="fas fa-globe text-success"></i>Keseluruhan
-                    </h6>
-                    <div class="row text-center g-1">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-globe text-success me-1"></i>Keseluruhan</h6>
+                    <div class="row text-center">
                         <div class="col-6 border-end">
-                            <small class="text-muted d-block">Semua Transaksi</small>
-                            <h4 class="mb-0 fw-bold summary-value">{{ $totalSemuaTransaksi }}</h4>
-                            <small class="text-muted">transaksi</small>
+                            <small class="text-muted d-block">Transaksi</small>
+                            <strong style="font-size:16px;">{{ $totalSemuaTransaksi }}</strong>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted d-block">Total Pendapatan</small>
-                            <h4 class="mb-0 fw-bold text-success summary-value">
-                                Rp {{ number_format($totalSemuaPendapatan, 0, ',', '.') }}
-                            </h4>
-                            <small class="text-muted">rupiah</small>
+                            <small class="text-muted d-block">Pendapatan</small>
+                            <strong class="text-success" style="font-size:14px;">Rp {{ number_format($totalSemuaPendapatan, 0, ',', '.') }}</strong>
                         </div>
                     </div>
                 </div>
@@ -451,89 +134,56 @@
         </div>
     </div>
 
-    {{-- ========== TRANSAKSI TERBARU & PRODUK TERLARIS ========== --}}
-    <div class="row g-2 g-md-3">
-        {{-- Transaksi Terbaru --}}
+    {{-- Transaksi Terbaru & Produk Terlaris --}}
+    <div class="row g-2">
         <div class="col-12 col-lg-7">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-header bg-white border-0 pt-3 pb-2 px-3">
-                    <div class="d-flex justify-content-between align-items-center section-header">
-                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
-                            <i class="fas fa-history text-primary"></i>Transaksi Terbaru
-                        </h6>
-                        <a href="{{ route('penjualan.penjualan') }}" class="btn btn-sm btn-outline-primary rounded-pill">
-                            Semua <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
+            <div class="card summary-card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-history text-primary me-1"></i>Transaksi Terbaru</h6>
+                    <a href="{{ route('penjualan.penjualan') }}" class="btn btn-sm btn-outline-primary rounded-pill">Semua</a>
                 </div>
                 <div class="card-body p-0">
                     @forelse($transaksiTerbaru as $item)
-                    <div class="recent-transaction border-bottom">
-                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                    <span class="badge bg-light text-dark trans-id">
-                                        #{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}
-                                    </span>
-                                    <small class="text-muted trans-date">
-                                        {{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y H:i') }}
-                                    </small>
-                                </div>
-                                <span class="fw-semibold trans-name d-block text-truncate" style="max-width: 200px;">
-                                    {{ $item->pembeli->nama ?? 'Pembeli Umum' }}
-                                </span>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <h6 class="mb-0 text-success fw-bold trans-amount">
-                                    Rp {{ number_format($item->total_harga, 0, ',', '.') }}
-                                </h6>
-                                <small class="text-muted trans-cashier">
-                                    <i class="fas fa-user me-1"></i>{{ $item->user->name ?? '-' }}
-                                </small>
-                            </div>
+                    <div class="trans-item">
+                        <div>
+                            <span class="badge bg-light text-dark" style="font-size:9px;">#{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}</span>
+                            <span class="fw-semibold ms-2">{{ $item->pembeli->nama ?? 'Umum' }}</span>
+                            <small class="text-muted d-block" style="font-size:9px;">
+                                {{ $item->tanggal->format('d/m/Y H:i') }} | 
+                                {{ $item->detailPenjualan->sum('jumlah_sak') }} sak, 
+                                {{ number_format($item->detailPenjualan->sum('berat_nett_kg'), 2, ',', '.') }} Kg
+                            </small>
                         </div>
+                        <strong class="text-success">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</strong>
                     </div>
                     @empty
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
-                        <p class="small mb-0">Belum ada transaksi hari ini</p>
-                    </div>
+                    <div class="text-center py-4 text-muted">Belum ada transaksi</div>
                     @endforelse
                 </div>
             </div>
         </div>
 
-        {{-- Produk Terlaris --}}
         <div class="col-12 col-lg-5">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-header bg-white border-0 pt-3 pb-2 px-3">
-                    <h6 class="fw-bold mb-0 d-flex align-items-center gap-2 section-header">
-                        <i class="fas fa-star text-warning"></i>Produk Terlaris Bulan Ini
-                    </h6>
+            <div class="card summary-card">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-star text-warning me-1"></i>Produk Terlaris Bulan Ini</h6>
                 </div>
                 <div class="card-body p-0">
-                    @forelse($produkTerlaris as $index => $produk)
-                    <div class="rank-item d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                    @forelse($produkTerlaris as $index => $p)
+                    <div class="rank-item">
+                        <div class="d-flex align-items-center">
                             <div class="rank-badge">{{ $index + 1 }}</div>
-                            <div class="min-w-0">
-                                <span class="fw-semibold d-block rank-name text-truncate" style="max-width: 140px;">
-                                    {{ $produk->nama }}
-                                </span>
-                                <small class="text-muted rank-qty">
-                                    {{ number_format($produk->total_qty, 0) }} Unit terjual
+                            <div>
+                                <span class="fw-semibold">{{ $p->nama }}</span>
+                                <small class="text-muted d-block" style="font-size:9px;">
+                                    {{ $p->total_sak ?? 0 }} sak | {{ number_format($p->total_berat ?? 0, 2, ',', '.') }} Kg
                                 </small>
                             </div>
                         </div>
-                        <span class="fw-bold text-success rank-revenue ms-2 text-nowrap">
-                            Rp {{ number_format($produk->total_pendapatan, 0, ',', '.') }}
-                        </span>
+                        <strong class="text-success">Rp {{ number_format($p->total_pendapatan, 0, ',', '.') }}</strong>
                     </div>
                     @empty
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-box-open fa-2x mb-2 d-block opacity-25"></i>
-                        <p class="small mb-0">Belum ada data penjualan bulan ini</p>
-                    </div>
+                    <div class="text-center py-4 text-muted">Belum ada data</div>
                     @endforelse
                 </div>
             </div>
@@ -542,20 +192,3 @@
 
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Tooltip untuk teks terpotong
-        const truncatedElements = document.querySelectorAll('.text-truncate');
-        truncatedElements.forEach(function(el) {
-            if (el.scrollWidth > el.clientWidth) {
-                el.setAttribute('title', el.textContent.trim());
-            }
-        });
-        
-        // Format angka dengan pemisah ribuan (optional enhancement)
-        // Sudah di-handle oleh Blade number_format
-    });
-</script>
-@endpush

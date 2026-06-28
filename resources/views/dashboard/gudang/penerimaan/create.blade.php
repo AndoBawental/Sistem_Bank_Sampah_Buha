@@ -963,72 +963,180 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function tambahJenisPlastik(selectedId = '') {
-        plastikGroupCounter++;
-        const div = document.createElement('div');
-        div.className = 'plastik-group';
-        div.innerHTML = `
-            <button type="button" class="btn-remove-group" title="Hapus jenis plastik ini">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-            <div class="plastik-group-header">
-                <span class="plastik-group-title">Jenis Plastik</span>
-                <span class="plastik-group-stats">
-                    <span class="stat-karung">0 karung</span> | 
-                    <span class="stat-berat">0 kg</span>
-                    <span class="stat-harga" style="display:${isBeli()?'':'none'}"> | Rp <span class="stat-harga-val">0</span></span>
-                </span>
-            </div>
-            <div class="mb-2">${createJenisSelect(selectedId)}</div>
-            <div class="harga-per-kg-wrapper" style="display:${isBeli()?'':'none'};">
-                <label class="form-label required">Harga per Kg (Rp)</label>
-                <div class="input-group">
-                    <input type="text" class="form-control harga-per-kg-input" placeholder="Masukkan harga per Kg" style="max-width:200px;">
-                    <span style="font-size:0.75rem;color:#666;"><i class="fas fa-info-circle"></i> Berlaku untuk semua karung jenis ini</span>
-                </div>
-                <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Harga per Kg harus diisi</div>
-            </div>
-            <div class="karung-list-container">
-                <div class="karung-list"></div>
-                <button type="button" class="btn btn-add btn-add-karung btn-sm mt-1">
-                    <i class="fas fa-plus"></i> Tambah Karung
-                </button>
-            </div>
-        `;
-        $plastikGroups.appendChild(div);
-        
-        // Add first karung
-        tambahKarungSortir(div.querySelector('.karung-list'));
-        
-        // Event listeners
-        div.querySelector('.btn-remove-group').addEventListener('click', () => {
-            if ($plastikGroups.children.length > 1) {
-                div.style.opacity = '0'; 
-                div.style.transform = 'scale(0.95)'; 
-                div.style.transition = 'all 0.2s';
-                setTimeout(() => { 
-                    div.remove(); 
-                    updateAll(); 
-                }, 200);
-            }
-        });
-        
-        div.querySelector('.btn-add-karung').addEventListener('click', () => {
-            tambahKarungSortir(div.querySelector('.karung-list'));
-        });
-        
-        div.querySelector('.jenis-select').addEventListener('change', updateAll);
-        
-        const hargaInput = div.querySelector('.harga-per-kg-input');
-        if (hargaInput) {
-            hargaInput.addEventListener('input', function() {
-                if (isBeli()) {
-                    const raw = this.value.replace(/[^0-9]/g, '');
-                    this.value = raw ? formatRupiah(raw) : '';
-                }
-                updateAll();
+    // Cek duplikasi dulu
+    if (selectedId) {
+        const existingGroup = cariJenisPlastikExist(selectedId);
+        if (existingGroup) {
+            // Highlight existing group
+            existingGroup.style.borderColor = '#f59e0b';
+            existingGroup.style.transition = 'all 0.3s';
+            setTimeout(() => { existingGroup.style.borderColor = '#e8eaef'; }, 2000);
+            
+            // Tambah karung ke group yang sudah ada
+            tambahKarungSortir(existingGroup.querySelector('.karung-list'));
+            existingGroup.querySelector('.karung-list').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Jenis Sudah Ada!',
+                text: 'Karung baru ditambahkan ke jenis plastik yang sudah ada.',
+                timer: 2500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
             });
+            return;
         }
     }
+    
+    plastikGroupCounter++;
+    const div = document.createElement('div');
+    div.className = 'plastik-group';
+    div.innerHTML = `
+        <button type="button" class="btn-remove-group" title="Hapus jenis plastik ini">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+        <div class="plastik-group-header">
+            <span class="plastik-group-title">Jenis Plastik</span>
+            <span class="plastik-group-stats">
+                <span class="stat-karung">0 karung</span> | 
+                <span class="stat-berat">0 kg</span>
+                <span class="stat-harga" style="display:${isBeli()?'':'none'}"> | Rp <span class="stat-harga-val">0</span></span>
+            </span>
+        </div>
+        <div class="mb-2">${createJenisSelect(selectedId)}</div>
+        <div class="duplicate-warn" style="display:none;font-size:10px;color:#f59e0b;margin-top:2px;">
+            ⚠️ Jenis plastik ini sudah ada, karung akan digabung
+        </div>
+        <div class="harga-per-kg-wrapper" style="display:${isBeli()?'':'none'};">
+            <label class="form-label required">Harga per Kg (Rp)</label>
+            <div class="input-group">
+                <input type="text" class="form-control harga-per-kg-input" placeholder="Masukkan harga per Kg" style="max-width:200px;">
+                <span style="font-size:0.75rem;color:#666;"><i class="fas fa-info-circle"></i> Berlaku untuk semua karung jenis ini</span>
+            </div>
+            <div class="error-message" style="display:none;"><i class="fas fa-exclamation-circle"></i> Harga per Kg harus diisi</div>
+        </div>
+        <div class="karung-list-container">
+            <div class="karung-list"></div>
+            <button type="button" class="btn btn-add btn-add-karung btn-sm mt-1">
+                <i class="fas fa-plus"></i> Tambah Karung
+            </button>
+        </div>
+    `;
+    $plastikGroups.appendChild(div);
+    
+    // Add first karung
+    tambahKarungSortir(div.querySelector('.karung-list'));
+    
+    // Event listeners
+    div.querySelector('.btn-remove-group').addEventListener('click', () => {
+        if ($plastikGroups.children.length > 1) {
+            div.style.opacity = '0'; 
+            div.style.transform = 'scale(0.95)'; 
+            div.style.transition = 'all 0.2s';
+            setTimeout(() => { 
+                div.remove(); 
+                updateAll(); 
+            }, 200);
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Bisa',
+                text: 'Minimal 1 jenis plastik!',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    });
+    
+    div.querySelector('.btn-add-karung').addEventListener('click', () => {
+        tambahKarungSortir(div.querySelector('.karung-list'));
+    });
+    
+    div.querySelector('.jenis-select').addEventListener('change', function() {
+        cekDuplikatJenis(this);
+        updateAll();
+    });
+    
+    const hargaInput = div.querySelector('.harga-per-kg-input');
+    if (hargaInput) {
+        hargaInput.addEventListener('input', function() {
+            if (isBeli()) {
+                const raw = this.value.replace(/[^0-9]/g, '');
+                this.value = raw ? formatRupiah(raw) : '';
+            }
+            updateAll();
+        });
+    }
+}
+
+// ========== CEK DUPLIKAT JENIS PLASTIK ==========
+function cariJenisPlastikExist(jenisId) {
+    let found = null;
+    document.querySelectorAll('.plastik-group').forEach(group => {
+        const select = group.querySelector('.jenis-select');
+        if (select && select.value === jenisId) {
+            found = group;
+        }
+    });
+    return found;
+}
+
+function cekDuplikatJenis(selectEl) {
+    const currentGroup = selectEl.closest('.plastik-group');
+    const selectedId = selectEl.value;
+    if (!selectedId) return;
+    
+    // Cari group lain dengan jenis yang sama
+    let duplicateGroup = null;
+    document.querySelectorAll('.plastik-group').forEach(group => {
+        if (group === currentGroup) return;
+        const otherSelect = group.querySelector('.jenis-select');
+        if (otherSelect && otherSelect.value === selectedId) {
+            duplicateGroup = group;
+        }
+    });
+    
+    if (duplicateGroup) {
+        // Merge: pindahkan semua karung ke group yang sudah ada
+        const karungList = currentGroup.querySelector('.karung-list');
+        const targetKarungList = duplicateGroup.querySelector('.karung-list');
+        
+        if (karungList && targetKarungList) {
+            const karungRows = karungList.querySelectorAll('.karung-row');
+            karungRows.forEach(row => {
+                targetKarungList.appendChild(row);
+            });
+        }
+        
+        // Hapus group duplikat
+        currentGroup.style.opacity = '0';
+        currentGroup.style.transform = 'scale(0.95)';
+        currentGroup.style.transition = 'all 0.2s';
+        
+        setTimeout(() => {
+            currentGroup.remove();
+            updateAll();
+        }, 200);
+        
+        // Highlight target group
+        duplicateGroup.style.borderColor = '#f59e0b';
+        setTimeout(() => { duplicateGroup.style.borderColor = '#e8eaef'; }, 2000);
+        
+        Swal.fire({
+            icon: 'info',
+            title: 'Jenis Plastik Digabung!',
+            text: 'Jenis plastik yang sama otomatis digabungkan.',
+            timer: 2500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+    }
+}
+
     
     function tambahKarungSortir(karungList) {
         karungCounter++;
