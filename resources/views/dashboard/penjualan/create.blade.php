@@ -14,6 +14,7 @@
     @media (max-width: 575px) { .form-control, .form-select { font-size: 16px; padding: 10px; } }
     
     .produk-group { background: #fff; border: 2px solid #e8eaef; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .produk-group.duplicate { border-color: #f59e0b; background: #fffdf5; }
     .produk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
     .produk-title { font-weight: 700; font-size: 13px; color: #2e7d32; }
     
@@ -50,6 +51,7 @@
     .stok-warning { color: #ef4444; font-size: 10px; display: none; margin-top: 2px; }
     .nett-warning { color: #ef4444; font-size: 10px; display: none; margin-top: 2px; }
     .sak-error { border-color: #ef4444 !important; background: #fff5f5 !important; }
+    .duplicate-warn { display: none; font-size: 9px; color: #f59e0b; margin-top: 2px; }
 </style>
 @endpush
 
@@ -72,12 +74,12 @@
                 <div class="section-title"><i class="fas fa-info-circle text-success"></i>Informasi Penjualan</div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label">Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        <label class="form-label">Tanggal <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Pembeli</label>
-                        <select name="pembeli_id" class="form-select" required>
+                        <label class="form-label">Pembeli <span class="text-danger">*</span></label>
+                        <select name="pembeli_id" id="pembeli" class="form-select" required>
                             <option value="">Pilih Pembeli</option>
                             @foreach($pembeli as $p)
                                 <option value="{{ $p->id }}">{{ $p->nama }}</option>
@@ -151,11 +153,11 @@ function tambahProduk() {
         </div>
         <div class="row g-2 mb-3">
             <div class="col-12 col-md-6">
-                <label class="form-label">Jenis Produk</label>
-                <select name="items[${newIdx}][jenis_produk_id]" class="form-select produk-select" onchange="updateInfo(${newIdx})" required>${opt}</select>
+                <label class="form-label">Jenis Produk <span class="text-danger">*</span></label>
+                <select name="items[${newIdx}][jenis_produk_id]" class="form-select produk-select" onchange="cekDuplikatProduk(${newIdx});updateInfo(${newIdx})" required>${opt}</select>
             </div>
             <div class="col-6 col-md-3">
-                <label class="form-label">Harga/Kg (Rp)</label>
+                <label class="form-label">Harga/Kg (Rp) <span class="text-danger">*</span></label>
                 <input type="text" name="items[${newIdx}][harga_per_kg]" class="form-control harga-input" placeholder="0" oninput="formatHarga(this);hitungTotal();" required>
             </div>
             <div class="col-6 col-md-3">
@@ -163,9 +165,10 @@ function tambahProduk() {
                 <input type="text" class="form-control" id="stokDisplay${newIdx}" value="0 Kg" readonly style="background:#f0fdf4;font-weight:600;">
             </div>
         </div>
+        <div class="duplicate-warn" id="dupWarn${newIdx}">⚠️ Produk ini sudah ada, sak akan digabung</div>
         
         <div style="margin-bottom:6px;">
-            <span class="step-label"><span class="step-badge">2</span> Input Berat Kirim per Sak</span>
+            <span class="step-label"><span class="step-badge">2</span> Input Berat Kirim per Sak <span class="text-danger">*</span></span>
         </div>
         <div class="sak-list" id="sakList${newIdx}"></div>
         <button type="button" class="btn-add btn-add-sm" onclick="tambahSak(${newIdx})">
@@ -177,7 +180,7 @@ function tambahProduk() {
         <div class="stok-warning" id="stokWarning${newIdx}"></div>
         
         <div style="margin:12px 0 6px;">
-            <span class="step-label"><span class="step-badge">3</span> Input Berat Nett (Timbangan Pembeli)</span>
+            <span class="step-label"><span class="step-badge">3</span> Input Berat Nett <span class="text-danger">*</span></span>
         </div>
         <div class="row g-2">
             <div class="col-8 col-md-6">
@@ -217,11 +220,57 @@ function hapusProduk(idx) {
     }
     const el = document.getElementById('produk' + idx);
     if (el) {
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.95)';
-        el.style.transition = 'all 0.2s';
+        el.style.opacity = '0'; el.style.transform = 'scale(0.95)'; el.style.transition = 'all 0.2s';
         setTimeout(() => { el.remove(); renumberProduk(); hitungTotal(); updateGrandTotalVisibility(); }, 200);
     }
+}
+
+// ========== CEK DUPLIKAT PRODUK (AUTO-MERGE) ==========
+function cekDuplikatProduk(pIdx) {
+    const currentGroup = document.getElementById('produk' + pIdx);
+    if (!currentGroup) return;
+    
+    const currentSelect = currentGroup.querySelector('.produk-select');
+    const currentVal = currentSelect?.value;
+    if (!currentVal) return;
+    
+    let existingGroup = null;
+    document.querySelectorAll('.produk-group').forEach(g => {
+        const gId = parseInt(g.id.replace('produk', ''));
+        if (gId === pIdx) return;
+        if (g.querySelector('.produk-select')?.value === currentVal) existingGroup = g;
+    });
+    
+    if (existingGroup) {
+        // Merge: pindahkan sak dari current ke existing
+        const existingSakList = existingGroup.querySelector('.sak-list');
+        const currentSakList = currentGroup.querySelector('.sak-list');
+        
+        if (existingSakList && currentSakList) {
+            currentSakList.querySelectorAll('.sak-row').forEach(row => existingSakList.appendChild(row));
+        }
+        
+        // Hapus current group
+        currentGroup.style.opacity = '0'; currentGroup.style.transform = 'scale(0.95)'; currentGroup.style.transition = 'all 0.2s';
+        
+        const existIdx = parseInt(existingGroup.id.replace('produk', ''));
+        setTimeout(() => {
+            currentGroup.remove();
+            renumberProduk();
+            hitungTotal();
+        }, 200);
+        
+        existingGroup.style.borderColor = '#f59e0b';
+        setTimeout(() => { existingGroup.style.borderColor = '#e8eaef'; }, 2000);
+        
+        Swal.fire({
+            icon: 'info', title: 'Produk Digabung!',
+            text: 'Produk yang sama otomatis digabungkan.',
+            timer: 2500, showConfirmButton: false, toast: true, position: 'top-end'
+        });
+    }
+    
+    hitungTotal();
 }
 
 // ========== RENUMBER PRODUK ==========
@@ -241,7 +290,7 @@ function renumberProduk() {
         const produkSelect = g.querySelector('.produk-select');
         if (produkSelect) {
             produkSelect.setAttribute('name', `items[${newId}][jenis_produk_id]`);
-            produkSelect.setAttribute('onchange', `updateInfo(${newId})`);
+            produkSelect.setAttribute('onchange', `cekDuplikatProduk(${newId});updateInfo(${newId})`);
         }
         
         const hargaInput = g.querySelector('.harga-input');
@@ -252,6 +301,9 @@ function renumberProduk() {
         
         const sakList = g.querySelector('[id^="sakList"]');
         if (sakList) sakList.id = 'sakList' + newId;
+        
+        const dupWarn = g.querySelector('[id^="dupWarn"]');
+        if (dupWarn) dupWarn.id = 'dupWarn' + newId;
         
         g.querySelectorAll('.btn-add-sm').forEach(btn => {
             if (btn.textContent.includes('Sak')) btn.setAttribute('onclick', `tambahSak(${newId})`);
@@ -290,25 +342,19 @@ function tambahSak(pIdx) {
     const html = `
     <div class="sak-row">
         <span class="sak-nomor">#${count}</span>
-        <input type="number" step="0.01" min="0.01" 
-               class="form-control form-control-sm sak-input" 
-               placeholder="Berat (Kg)" 
-               oninput="cekStokSak(this);hitungTotal();" required 
-               style="flex:1;font-size:11px;">
-        <button type="button" class="btn-remove" 
-                onclick="this.closest('.sak-row').remove();hitungTotal();">&times;</button>
+        <input type="number" step="0.01" min="0.01" class="form-control form-control-sm sak-input" 
+               placeholder="Berat (Kg)" oninput="cekStokSak(this);hitungTotal();" required style="flex:1;font-size:11px;">
+        <button type="button" class="btn-remove" onclick="this.closest('.sak-row').remove();hitungTotal();">&times;</button>
     </div>`;
     list.insertAdjacentHTML('beforeend', html);
     hitungTotal();
 }
 
-// ========== CEK STOK SAAT INPUT SAK ==========
 function cekStokSak(inp) {
     const group = inp.closest('.produk-group');
     const sel = group.querySelector('.produk-select');
     const opt = sel?.selectedOptions[0];
     const stok = parseFloat(opt?.dataset?.stok) || 0;
-    
     if (!opt?.value) return;
     
     let totalKirim = 0;
@@ -318,18 +364,12 @@ function cekStokSak(inp) {
         const kelebihan = totalKirim - stok;
         const thisVal = parseFloat(inp.value) || 0;
         if (thisVal > kelebihan) inp.value = (thisVal - kelebihan).toFixed(2);
-        
-        Swal.fire({
-            icon: 'warning', title: 'Melebihi Stok!',
-            text: `Stok hanya ${formatNum(stok)} Kg. Disesuaikan otomatis.`,
-            timer: 2500, showConfirmButton: false, toast: true, position: 'top-end'
-        });
+        Swal.fire({ icon: 'warning', title: 'Melebihi Stok!', text: `Stok hanya ${formatNum(stok)} Kg.`, timer: 2500, showConfirmButton: false, toast: true, position: 'top-end' });
     }
     if (parseFloat(inp.value) < 0) inp.value = 0;
     hitungTotal();
 }
 
-// ========== UPDATE STOK INFO ==========
 function updateInfo(pIdx) {
     const sel = document.querySelector(`#produk${pIdx} .produk-select`);
     const opt = sel?.selectedOptions[0];
@@ -338,28 +378,20 @@ function updateInfo(pIdx) {
     hitungTotal();
 }
 
-// ========== CEK BATASAN NETT ==========
 function cekBatasanNett(inp) {
     const group = inp.closest('.produk-group');
     let gKirim = 0;
     group.querySelectorAll('.sak-row input').forEach(el => gKirim += parseFloat(el.value) || 0);
-    
     let val = parseFloat(inp.value) || 0;
     if (val > gKirim && gKirim > 0) {
         inp.value = gKirim;
-        Swal.fire({
-            icon: 'warning', title: 'Melebihi Berat Kirim!',
-            text: `Otomatis disesuaikan ke ${formatNum(gKirim)} Kg`,
-            timer: 2000, showConfirmButton: false, toast: true, position: 'top-end'
-        });
+        Swal.fire({ icon: 'warning', title: 'Melebihi Berat Kirim!', text: `Disesuaikan ke ${formatNum(gKirim)} Kg`, timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
     }
     hitungTotal();
 }
 
-// ========== HITUNG TOTAL ==========
 function hitungTotal() {
-    let totalSak = 0, totalKirim = 0, totalNett = 0, totalHarga = 0;
-    let isValid = true;
+    let totalSak = 0, totalKirim = 0, totalNett = 0, totalHarga = 0, isValid = true;
     
     document.querySelectorAll('.produk-group').forEach((g) => {
         const idx = parseInt(g.id.replace('produk', ''));
@@ -370,10 +402,7 @@ function hitungTotal() {
         const stok = parseFloat(opt?.dataset?.stok) || 0;
         
         let gSak = 0, gKirim = 0;
-        g.querySelectorAll('.sak-row input').forEach(el => {
-            const v = parseFloat(el.value) || 0;
-            if (v > 0) { gKirim += v; gSak++; }
-        });
+        g.querySelectorAll('.sak-row input').forEach(el => { const v = parseFloat(el.value) || 0; if (v > 0) { gKirim += v; gSak++; } });
         
         const harga = parseRupiah(g.querySelector('.harga-input')?.value || '0');
         const beratNett = parseFloat(g.querySelector('.nett-input')?.value) || 0;
@@ -381,62 +410,33 @@ function hitungTotal() {
         const potonganPersen = gKirim > 0 ? (beratPotongan / gKirim * 100) : 0;
         const subtotal = beratNett * harga;
         
-        totalSak += gSak;
-        totalKirim += gKirim;
-        totalNett += beratNett;
-        totalHarga += subtotal;
-        
+        totalSak += gSak; totalKirim += gKirim; totalNett += beratNett; totalHarga += subtotal;
         if (gSak === 0 || harga <= 0 || beratNett <= 0) isValid = false;
         if (!sel?.value) isValid = false;
         
-        // VALIDASI STOK
         const stokValid = !(gKirim > stok && stok > 0 && sel?.value);
         if (!stokValid) isValid = false;
         
-        g.querySelectorAll('.sak-row input').forEach(el => {
-            el.classList.toggle('sak-error', !stokValid && gKirim > 0);
-        });
+        g.querySelectorAll('.sak-row input').forEach(el => el.classList.toggle('sak-error', !stokValid && gKirim > 0));
         
-        // Update kirim summary
         const kirimSummary = document.getElementById('kirimSummary' + idx);
         if (kirimSummary) {
             kirimSummary.innerHTML = `Total Berat Kirim: <strong>${formatNum(gKirim)} Kg</strong> dari <strong>${gSak} Sak</strong>`;
             if (!stokValid) kirimSummary.innerHTML += ` <span style="color:#ef4444;">(Max: ${formatNum(stok)} Kg)</span>`;
         }
         
-        // Stok warning
         const stokWarn = document.getElementById('stokWarning' + idx);
-        if (stokWarn) {
-            stokWarn.style.display = !stokValid ? 'block' : 'none';
-            if (!stokValid) stokWarn.innerHTML = `⚠️ Total (${formatNum(gKirim)} Kg) melebihi Stok (${formatNum(stok)} Kg)!`;
-        }
+        if (stokWarn) { stokWarn.style.display = !stokValid ? 'block' : 'none'; if (!stokValid) stokWarn.innerHTML = `⚠️ Total (${formatNum(gKirim)} Kg) melebihi Stok (${formatNum(stok)} Kg)!`; }
         
-        // Nett warning
         const nettWarn = document.getElementById('nettWarning' + idx);
         if (nettWarn) nettWarn.style.display = beratNett > gKirim && gKirim > 0 ? 'block' : 'none';
         
-        // Update calc elements
-        const updates = {
-            maxNett: formatNum(gKirim) + ' Kg',
-            calcSak: gSak + ' Sak',
-            calcKirim: formatNum(gKirim) + ' Kg',
-            calcNett: formatNum(beratNett) + ' Kg',
-            calcHarga: 'Rp ' + formatRupiah(harga),
-            calcSubtotal: 'Rp ' + formatRupiah(subtotal),
-            calcPotonganKg: formatNum(beratPotongan) + ' Kg',
-            calcPotonganPersen: formatNum(potonganPersen) + '%'
-        };
+        const updates = { maxNett: formatNum(gKirim) + ' Kg', calcSak: gSak + ' Sak', calcKirim: formatNum(gKirim) + ' Kg', calcNett: formatNum(beratNett) + ' Kg', calcHarga: 'Rp ' + formatRupiah(harga), calcSubtotal: 'Rp ' + formatRupiah(subtotal), calcPotonganKg: formatNum(beratPotongan) + ' Kg', calcPotonganPersen: formatNum(potonganPersen) + '%' };
+        Object.entries(updates).forEach(([id, val]) => { const el = document.getElementById(id + idx); if (el) el.textContent = val; });
         
-        Object.entries(updates).forEach(([id, val]) => {
-            const el = document.getElementById(id + idx);
-            if (el) el.textContent = val;
-        });
-        
-        const rowPotongan = document.getElementById('rowPotongan' + idx);
-        const rowPotonganPersen = document.getElementById('rowPotonganPersen' + idx);
-        const showPotongan = beratPotongan > 0.001;
-        if (rowPotongan) rowPotongan.style.display = showPotongan ? 'flex' : 'none';
-        if (rowPotonganPersen) rowPotonganPersen.style.display = showPotongan ? 'flex' : 'none';
+        const rp = document.getElementById('rowPotongan' + idx), rpp = document.getElementById('rowPotonganPersen' + idx);
+        if (rp) rp.style.display = beratPotongan > 0.001 ? 'flex' : 'none';
+        if (rpp) rpp.style.display = beratPotongan > 0.001 ? 'flex' : 'none';
     });
     
     document.getElementById('totalSak').textContent = totalSak;
@@ -447,36 +447,53 @@ function hitungTotal() {
 }
 
 function updateGrandTotalVisibility() {
-    document.getElementById('grandTotalBox').style.display = 
-        document.querySelectorAll('.produk-group').length > 0 ? '' : 'none';
+    document.getElementById('grandTotalBox').style.display = document.querySelectorAll('.produk-group').length > 0 ? '' : 'none';
 }
 
 // ========== SIMPAN ==========
 function simpanTransaksi() {
     if (document.getElementById('btnSimpan').disabled) return;
     
-    document.querySelectorAll('.harga-input').forEach(inp => {
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = inp.name;
-        hidden.value = parseRupiah(inp.value);
-        inp.name = '';
-        inp.parentNode.appendChild(hidden);
-    });
+    // Validasi final
+    const tanggal = document.getElementById('tanggal').value;
+    const pembeli = document.getElementById('pembeli').value;
+    const totalSak = parseInt(document.getElementById('totalSak').textContent) || 0;
+    const totalHarga = document.getElementById('totalHarga').textContent;
     
-    document.querySelectorAll('.produk-group').forEach((g, pIdx) => {
-        g.querySelectorAll('.sak-row input').forEach((inp, sIdx) => {
-            inp.name = `items[${pIdx}][sak][${sIdx}][berat_kg]`;
-        });
-    });
+    if (!tanggal) return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Tanggal harus diisi!' });
+    if (!pembeli) return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Pembeli harus dipilih!' });
+    if (totalSak <= 0) return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Minimal 1 sak harus diisi!' });
     
+    // Konfirmasi
     Swal.fire({
-        title: 'Menyimpan...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
+        title: 'Konfirmasi Simpan',
+        html: `<div style="text-align:left;font-size:12px;">
+            <p><strong>Total Sak:</strong> ${totalSak}</p>
+            <p><strong>Total Harga:</strong> ${totalHarga}</p>
+        </div>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#2e7d32',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.querySelectorAll('.harga-input').forEach(inp => {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden'; hidden.name = inp.name; hidden.value = parseRupiah(inp.value);
+                inp.name = ''; inp.parentNode.appendChild(hidden);
+            });
+            document.querySelectorAll('.produk-group').forEach((g, pIdx) => {
+                g.querySelectorAll('.sak-row input').forEach((inp, sIdx) => {
+                    inp.name = `items[${pIdx}][sak][${sIdx}][berat_kg]`;
+                });
+            });
+            
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            document.getElementById('formPenjualan').submit();
+        }
     });
-    
-    document.getElementById('formPenjualan').submit();
 }
 
 // Init

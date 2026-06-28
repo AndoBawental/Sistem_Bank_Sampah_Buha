@@ -12,95 +12,72 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
-    protected $dariTanggal;
-    protected $sampaiTanggal;
     protected $filters;
 
-    public function __construct($dariTanggal = null, $sampaiTanggal = null, $filters = [])
+    public function __construct($filters = [])
     {
-        $this->dariTanggal = $dariTanggal;
-        $this->sampaiTanggal = $sampaiTanggal;
         $this->filters = $filters;
     }
 
     public function collection()
     {
-        // ✅ HAPUS 'hasilSortir'
         $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaan.jenisPlastik']);
         
-        if ($this->dariTanggal && $this->sampaiTanggal) {
-            $dari = $this->dariTanggal . ' 00:00:00';
-            $sampai = $this->sampaiTanggal . ' 23:59:59';
-            $query->whereBetween('tanggal', [$dari, $sampai]);
+        if (!empty($this->filters['dari_tanggal']) && !empty($this->filters['sampai_tanggal'])) {
+            $query->whereBetween('tanggal', [
+                $this->filters['dari_tanggal'] . ' 00:00:00',
+                $this->filters['sampai_tanggal'] . ' 23:59:59'
+            ]);
         }
-        
-        if (!empty($this->filters['supplier_id'])) {
-            $query->where('supplier_id', $this->filters['supplier_id']);
-        }
-        if (!empty($this->filters['tipe'])) {
-            $query->where('tipe', $this->filters['tipe']);
-        }
-        if (!empty($this->filters['status_sortir'])) {
-            $query->where('status_sortir', $this->filters['status_sortir']);
-        }
+        if (!empty($this->filters['supplier_id'])) $query->where('supplier_id', $this->filters['supplier_id']);
+        if (!empty($this->filters['tipe'])) $query->where('tipe', $this->filters['tipe']);
+        if (!empty($this->filters['status_sortir'])) $query->where('status_sortir', $this->filters['status_sortir']);
         
         return $query->orderBy('tanggal', 'desc')->get();
     }
 
     public function headings(): array
     {
-        return [
-            'TANGGAL',
-            'SUPPLIER',
-            'TIPE',
-            'JENIS PLASTIK',
-            'BERAT (Kg)',
-            'STATUS',
-            'PEMBAYARAN (Rp)',
-            'PETUGAS',
-        ];
+        return ['TANGGAL', 'SUPPLIER', 'TIPE', 'JENIS PLASTIK', 'KARUNG', 'BERAT (Kg)', 'STATUS', 'BAYAR (Rp)', 'PETUGAS'];
     }
 
-    public function map($penerimaan): array
+    public function map($p): array
     {
-        $jenisPlastik = $penerimaan->detailPenerimaan->map(function($detail) {
-            return $detail->jenisPlastik->nama ?? '-';
-        })->implode(', ');
+        $rows = [];
+        $bayar = $p->tipe == 'Beli' ? $p->total_bayar : 0;
         
-        $berat = $penerimaan->detailPenerimaan->sum('berat_datang_kg');
-        $bayar = $penerimaan->tipe == 'Beli' ? $penerimaan->total_bayar : 0;
-        
-        return [
-            $penerimaan->tanggal->format('d/m/Y'),
-            $penerimaan->supplier->nama ?? '-',
-            $penerimaan->tipe == 'Beli' ? 'Pembelian' : 'Donasi',
-            $jenisPlastik,
-            $berat,
-            $penerimaan->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor',
-            $bayar,
-            $penerimaan->user->name ?? '-',
-        ];
+        foreach ($p->detailPenerimaan as $i => $d) {
+            $rows[] = [
+                $i === 0 ? $p->tanggal->format('d/m/Y') : '',
+                $i === 0 ? ($p->supplier->nama ?? '-') : '',
+                $i === 0 ? ($p->tipe == 'Beli' ? 'Pembelian' : 'Donasi') : '',
+                $d->jenisPlastik->nama ?? 'Belum Dipilah',
+                $d->jumlah_karung ?: 1,
+                $d->berat_datang_kg,
+                $i === 0 ? ($p->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor') : '',
+                $i === 0 ? $bayar : '',
+                $i === 0 ? ($p->user->name ?? '-') : '',
+            ];
+        }
+        return $rows;
     }
 
     public function styles(Worksheet $sheet)
     {
         $lastRow = $sheet->getHighestRow();
         
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+        $sheet->getStyle('A1:I1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
             'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D6EFD']],
             'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        $sheet->getStyle('A1:H' . $lastRow)->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => 'CCCCCC']]],
+        $sheet->getStyle('A1:I' . $lastRow)->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
         
-        $sheet->getStyle('E2:E' . $lastRow)->getAlignment()->setHorizontal('right');
-        $sheet->getStyle('G2:G' . $lastRow)->getAlignment()->setHorizontal('right');
-        
-        $sheet->getDefaultRowDimension()->setRowHeight(20);
-        $sheet->getRowDimension(1)->setRowHeight(25);
+        $sheet->getStyle('E2:F' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal('right');
         $sheet->freezePane('A2');
         
         return [];

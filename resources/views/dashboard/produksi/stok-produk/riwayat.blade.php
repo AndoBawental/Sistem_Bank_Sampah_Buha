@@ -193,7 +193,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <div class="stok-label">STOK SAAT INI</div>
-                <div class="stok-value">{{ number_format($stokSekarang, 2, ',', '.') }} <span style="font-size:0.9rem;">Unit</span></div>
+              <div class="stok-value">{{ number_format($stokSekarang, 2, ',', '.') }} <span style="font-size:0.9rem;">Kg</span></div>
             </div>
             <span class="badge-status {{ $statusClass }}">
                 <i class="fas fa-{{ $statusText === 'Aman' ? 'check-circle' : ($statusText === 'Menipis' ? 'exclamation-triangle' : 'times-circle') }} me-1"></i>
@@ -306,8 +306,8 @@
                                     <div>{{ $item['keterangan'] }}</div>
                                     <small class="text-muted">{{ $item['referensi'] }}</small>
                                     @if($item['tipe'] === 'keluar' && isset($item['harga']))
-                                        <br><small class="text-secondary">Rp {{ number_format($item['harga'], 0, ',', '.') }}/Unit</small>
-                                    @endif
+    <br><small class="text-secondary">Rp {{ number_format($item['harga'], 0, ',', '.') }}/Kg</small>
+@endif
                                 </td>
                                 <td>
                                     <small class="text-muted">{{ $item['user'] }}</small>

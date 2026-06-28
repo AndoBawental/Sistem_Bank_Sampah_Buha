@@ -24,14 +24,8 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         text-align: center;
     }
-    .stat-card .stat-label {
-        font-size: 0.6rem; color: #999; text-transform: uppercase;
-        letter-spacing: 0.3px; font-weight: 600;
-    }
-    .stat-card .stat-value {
-        font-size: 1.05rem; font-weight: 700; color: #333;
-        font-variant-numeric: tabular-nums;
-    }
+    .stat-card .stat-label { font-size: 0.6rem; color: #999; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; }
+    .stat-card .stat-value { font-size: 1.05rem; font-weight: 700; color: #333; }
     .stat-card .stat-sub { font-size: 0.58rem; color: #aaa; margin-top: 2px; }
 
     .filter-bar {
@@ -43,38 +37,22 @@
         font-size: 0.7rem; padding: 5px 8px; min-height: 32px; border-radius: 6px;
     }
 
-    .card {
-        border: none; border-radius: var(--radius-lg);
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden;
-    }
-    .card-header {
-        background: #fff; border-bottom: 1px solid #f0f0f0;
-        padding: 10px 14px; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
+    .card { border: none; border-radius: var(--radius-lg); box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
 
     .table th {
-        font-size: 0.62rem; font-weight: 700; color: #888; text-transform: uppercase;
-        background: #fafbfc; padding: 10px 8px; white-space: nowrap;
-        border-bottom: 2px solid #e9ecef;
+        font-size: 0.6rem; font-weight: 700; color: #888; text-transform: uppercase;
+        background: #fafbfc; padding: 8px 6px; white-space: nowrap; border-bottom: 2px solid #e9ecef;
     }
     .table td {
-        font-size: 0.72rem; padding: 10px 8px; vertical-align: middle;
+        font-size: 0.7rem; padding: 8px 6px; vertical-align: middle;
         border-bottom: 1px solid #f5f5f5; color: #444;
     }
-    .table tr:last-child td { border-bottom: none; }
 
-    .badge-status {
-        font-size: 0.6rem; padding: 3px 8px; border-radius: 20px; font-weight: 600;
-    }
+    .badge-status { font-size: 0.6rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
     .badge-beli { background: #fef3c7; color: #92400e; }
     .badge-donasi { background: #dbeafe; color: #1e40af; }
     .badge-belum { background: #fee2e2; color: #991b1b; }
     .badge-selesai { background: #d1fae5; color: #065f46; }
-
-    .btn-sm { font-size: 0.68rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
-
-    .empty-state { text-align: center; padding: 2.5rem 1rem; }
-    .empty-state i { opacity: 0.2; font-size: 3rem; }
 
     /* Mobile Cards */
     .mobile-cards { display: none; }
@@ -84,20 +62,11 @@
         
         .rpt-card {
             background: #fff; border: 1px solid #e5e7eb; border-radius: var(--radius);
-            padding: 12px; margin-bottom: 10px;
+            padding: 10px; margin-bottom: 8px; font-size: 0.7rem;
         }
-        .rpt-card .rpt-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
-        }
-        .rpt-card .rpt-body { font-size: 0.7rem; }
-        .rpt-card .rpt-row {
-            display: flex; justify-content: space-between; padding: 3px 0;
-        }
-        .rpt-card .rpt-sub {
-            background: #f9fafb; border-radius: 6px; padding: 6px 8px; margin-top: 6px;
-            font-size: 0.65rem;
-        }
+        .rpt-card .rpt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .rpt-card .rpt-row { display: flex; justify-content: space-between; padding: 2px 0; }
+        .rpt-card .rpt-sub { background: #f9fafb; border-radius: 6px; padding: 5px 7px; margin-top: 4px; font-size: 0.65rem; }
     }
 </style>
 @endpush
@@ -180,12 +149,17 @@
         <div class="stat-card">
             <div class="stat-label">Berat Kotor</div>
             <div class="stat-value text-warning">{{ number_format($totalBeratKotor, 1, ',', '.') }} Kg</div>
-            <div class="stat-sub">Sebelum sortir</div>
+            <div class="stat-sub">Semua penerimaan</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Berat Bersih</div>
-            <div class="stat-value text-success">{{ number_format($totalBeratBersih, 1, ',', '.') }} Kg</div>
-            <div class="stat-sub">Dari supplier (sudah bersih)</div>
+            <div class="stat-label">Total Karung</div>
+            @php
+                $totalKarungLaporan = $penerimaan->sum(function($p) {
+                    return $p->detailPenerimaan->sum('jumlah_karung') ?: $p->detailPenerimaan->count();
+                });
+            @endphp
+            <div class="stat-value text-info">{{ number_format($totalKarungLaporan, 0, ',', '.') }}</div>
+            <div class="stat-sub">Karung</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Bayar</div>
@@ -205,6 +179,7 @@
                             <th>Supplier</th>
                             <th>Tipe</th>
                             <th>Jenis Plastik</th>
+                            <th class="text-center">Karung</th>
                             <th class="text-end">Berat (Kg)</th>
                             <th>Status</th>
                             <th>Petugas</th>
@@ -223,7 +198,8 @@
                                             </span>
                                         </td>
                                     @endif
-                                    <td>{{ $detail->jenisPlastik->nama ?? '-' }}</td>
+                                    <td>{{ $detail->jenisPlastik->nama ?? 'Belum Dipilah' }}</td>
+                                    <td class="text-center fw-semibold">{{ $detail->jumlah_karung ?: 1 }}</td>
                                     <td class="text-end fw-semibold">{{ number_format($detail->berat_datang_kg, 2, ',', '.') }}</td>
                                     @if($i === 0)
                                         <td rowspan="{{ $p->detailPenerimaan->count() }}">
@@ -236,7 +212,7 @@
                                 </tr>
                             @endforeach
                             <tr class="table-light">
-                                <td colspan="4" class="text-end fw-bold small">Subtotal</td>
+                                <td colspan="5" class="text-end fw-bold small">Subtotal</td>
                                 <td class="text-end fw-bold small">{{ number_format($p->total_berat_kotor_kg, 2, ',', '.') }} Kg</td>
                                 <td colspan="2">
                                     @if($p->tipe == 'Beli')
@@ -247,7 +223,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p class="text-muted mt-2 mb-0">Tidak ada data</p></div></td></tr>
+                            <tr><td colspan="8" class="text-center py-4 text-muted">Tidak ada data</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -276,12 +252,11 @@
                 </div>
                 <div class="rpt-body">
                     <div class="rpt-row"><span>Supplier</span><strong>{{ $p->supplier->nama ?? '-' }}</strong></div>
-                    <div class="rpt-row"><span>Petugas</span><span>{{ $p->user->name ?? '-' }}</span></div>
                     @foreach($p->detailPenerimaan as $detail)
                         <div class="rpt-sub">
                             <div class="rpt-row">
-                                <span>{{ $detail->jenisPlastik->nama ?? '-' }}</span>
-                                <strong>{{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg</strong>
+                                <span>{{ $detail->jenisPlastik->nama ?? 'Belum Dipilah' }}</span>
+                                <strong>{{ $detail->jumlah_karung ?: 1 }} krg | {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg</strong>
                             </div>
                         </div>
                     @endforeach
@@ -295,7 +270,7 @@
                 </div>
             </div>
         @empty
-            <div class="empty-state"><i class="fas fa-inbox"></i><p class="text-muted mt-2 mb-0">Tidak ada data</p></div>
+            <div class="text-center py-4 text-muted">Tidak ada data</div>
         @endforelse
         @if($penerimaan->hasPages())
             <div class="text-center mt-3">{{ $penerimaan->appends(request()->query())->links('pagination::bootstrap-5') }}</div>

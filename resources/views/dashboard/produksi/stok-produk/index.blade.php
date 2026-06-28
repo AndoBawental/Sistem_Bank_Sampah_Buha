@@ -46,6 +46,12 @@
     }
     .btn-riwayat:hover { background: #0dcaf0; color: #fff; }
     
+    .btn-adjust {
+        font-size: 10px; padding: 4px 10px; border-radius: 20px;
+        border: 1px solid #f59e0b; color: #f59e0b; text-decoration: none; font-weight: 600;
+    }
+    .btn-adjust:hover { background: #f59e0b; color: #fff; }
+    
     .progress-mini { height: 4px; background: #e9ecef; border-radius: 2px; min-width: 60px; overflow: hidden; }
     .progress-mini .fill { height: 100%; border-radius: 2px; }
     .fill.aman { background: var(--safe); }
@@ -92,7 +98,7 @@
         </div>
         <div class="stat-card yellow">
             <div class="lbl">Terjual Bulan Ini</div>
-            <div class="val">{{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Unit</small></div>
+            <div class="val">{{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Sak</small></div>
             <div class="sub">Dari penjualan</div>
         </div>
         <div class="stat-card red">
@@ -143,7 +149,7 @@
                             <th>#</th>
                             <th>Jenis Produk</th>
                             <th class="text-end">Hasil Produksi (Kg)</th>
-                            <th class="text-end">Terjual (Unit)</th>
+                            <th class="text-end">Terjual (Sak)</th>
                             <th class="text-end">Stok (Kg)</th>
                             <th>Level</th>
                             <th>Status</th>
@@ -181,7 +187,12 @@
                                 </td>
                                 <td><span class="badge-status {{ $bc }}">{{ $status }}</span></td>
                                 <td class="text-center">
-                                    <a href="{{ route('produksi.stok.riwayat', $item->jenis_produk_id) }}" class="btn-riwayat"><i class="fas fa-history"></i> Riwayat</a>
+                                    <a href="{{ route('produksi.stok.riwayat', $item->jenis_produk_id) }}" class="btn-riwayat me-1" title="Riwayat">
+                                        <i class="fas fa-history"></i>
+                                    </a>
+                                    <a href="{{ route('produksi.stok.adjustment', $item->jenis_produk_id) }}" class="btn-adjust" title="Adjustment">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @empty
@@ -216,15 +227,20 @@
                 </div>
                 <div class="prd-stats">
                     <div><div class="l">Produksi</div><div class="v text-success">{{ $masuk > 0 ? number_format($masuk, 1) : '-' }} Kg</div></div>
-                    <div><div class="l">Terjual</div><div class="v text-danger">{{ $keluar > 0 ? number_format($keluar, 0) : '-' }} Unit</div></div>
+                    <div><div class="l">Terjual</div><div class="v text-danger">{{ $keluar > 0 ? number_format($keluar, 0) : '-' }} Sak</div></div>
                     <div><div class="l">Stok</div><div class="v">{{ number_format($stokKg, 1) }} Kg</div></div>
                 </div>
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <div class="progress-mini flex-grow-1"><div class="fill {{ $fc }}" style="width:{{ $pct }}%"></div></div>
                     <small style="font-size:9px;">{{ round($pct) }}%</small>
                 </div>
-                <div class="text-end">
-                    <a href="{{ route('produksi.stok.riwayat', $item->jenis_produk_id) }}" class="btn-riwayat"><i class="fas fa-history"></i> Riwayat</a>
+                <div class="d-flex gap-1 justify-content-end">
+                    <a href="{{ route('produksi.stok.riwayat', $item->jenis_produk_id) }}" class="btn-riwayat" title="Riwayat">
+                        <i class="fas fa-history"></i> Riwayat
+                    </a>
+                    <a href="{{ route('produksi.stok.adjustment', $item->jenis_produk_id) }}" class="btn-adjust" title="Adjustment">
+                        <i class="fas fa-pen"></i>
+                    </a>
                 </div>
             </div>
         @empty
@@ -238,11 +254,47 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto submit filter
     document.querySelectorAll('.filter-auto').forEach(s => {
         s.addEventListener('change', () => document.getElementById('filterForm').submit());
     });
+    
+    // ========== NOTIFIKASI SESSION ==========
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            timer: 3000,
+            timerProgressBar: true,
+            confirmButtonColor: '#198754'
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: '{{ session('error') }}',
+            timer: 4000,
+            timerProgressBar: true,
+            confirmButtonColor: '#dc3545'
+        });
+    @endif
+
+    @if(session('warning'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian!',
+            text: '{{ session('warning') }}',
+            timer: 3500,
+            timerProgressBar: true,
+            confirmButtonColor: '#f59e0b'
+        });
+    @endif
 });
 </script>
 @endpush

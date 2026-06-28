@@ -126,6 +126,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/{id}/edit', [ProduksiController::class, 'edit'])->name('edit');
     Route::put('/{id}', [ProduksiController::class, 'update'])->name('update');
+
+    Route::get('/stok/{jenisProduk}/adjustment', [StokProdukController::class, 'adjustment'])->name('stok.adjustment');
+Route::post('/stok/{jenisProduk}/adjustment', [StokProdukController::class, 'storeAdjustment'])->name('stok.store-adjustment');
         
         Route::get('/{id}', [ProduksiController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [ProduksiController::class, 'edit'])->name('edit');
@@ -196,9 +199,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/penjualan', [LaporanController::class, 'penjualan'])->name('penjualan');
         Route::get('/penjualan/export-pdf', [LaporanController::class, 'exportPenjualanPdf'])->name('penjualan.pdf');
         Route::get('/penjualan/export-excel', [LaporanController::class, 'exportPenjualanExcel'])->name('penjualan.excel');
-        Route::get('/stok', [LaporanController::class, 'stok'])->name('stok');
-        Route::get('/stok/export-pdf', [LaporanController::class, 'exportStokPdf'])->name('stok.pdf');
-        Route::get('/stok/export-excel', [LaporanController::class, 'exportStokExcel'])->name('stok.excel');
     });
 });
 

@@ -12,34 +12,25 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
-    protected $dariTanggal;
-    protected $sampaiTanggal;
     protected $filters;
 
-    public function __construct($dariTanggal = null, $sampaiTanggal = null, $filters = [])
+    public function __construct($filters = [])
     {
-        $this->dariTanggal = $dariTanggal;
-        $this->sampaiTanggal = $sampaiTanggal;
         $this->filters = $filters;
     }
 
     public function collection()
     {
-        $query = Produksi::with([
-            'user', 
-            'jenisProduk',
-            'detailBahanProduksi.jenisPlastik', 
-            'detailHasilProduksi.jenisProduk'
-        ]);
+        $query = Produksi::with(['user', 'detailBahanProduksi.jenisPlastik', 'detailHasilProduksi.jenisProduk']);
         
-        if ($this->dariTanggal && $this->sampaiTanggal) {
-            $query->whereBetween('tanggal', [$this->dariTanggal, $this->sampaiTanggal]);
+        if (!empty($this->filters['dari_tanggal']) && !empty($this->filters['sampai_tanggal'])) {
+            $query->whereBetween('tanggal', [
+                $this->filters['dari_tanggal'] . ' 00:00:00',
+                $this->filters['sampai_tanggal'] . ' 23:59:59'
+            ]);
         }
-        
         if (!empty($this->filters['jenis_produk_id'])) {
-            $query->whereHas('detailHasilProduksi', function ($q) {
-                $q->where('jenis_produk_id', $this->filters['jenis_produk_id']);
-            });
+            $query->whereHas('detailHasilProduksi', fn($q) => $q->where('jenis_produk_id', $this->filters['jenis_produk_id']));
         }
         
         return $query->orderBy('tanggal', 'desc')->get();
@@ -47,82 +38,56 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
 
     public function headings(): array
     {
-        return [
-            'TANGGAL',
-            'PRODUK',
-            'BAHAN BAKU',
-            'BAHAN (Kg)',
-            'HASIL (Unit)',
-            'PETUGAS',
-            'KETERANGAN',
-        ];
+        return ['TANGGAL', 'PRODUK', 'BAHAN BAKU', 'BERAT BAHAN (Kg)', 'SAK', 'HASIL (Kg)', 'PETUGAS', 'KETERANGAN'];
     }
 
     public function map($produksi): array
     {
-        $totalBahan = $produksi->detailBahanProduksi->sum('berat');
-        $totalHasil = $produksi->detailHasilProduksi->sum('jumlah');
+        $rows = [];
+        $totalBahan = $produksi->detailBahanProduksi->sum('berat_kg');
+        $totalSak = $produksi->detailHasilProduksi->sum('jumlah_sak');
+        $totalHasil = $produksi->detailHasilProduksi->sum('total_berat_kg');
+        $produkList = $produksi->detailHasilProduksi->map(fn($d) => $d->jenisProduk->nama ?? '-')->implode(', ');
         
-        // Gabungkan bahan baku
-        $bahanList = $produksi->detailBahanProduksi->map(function($b) {
-            return $b->jenisPlastik->nama . ' (' . number_format($b->berat, 1, ',', '.') . ' Kg)';
-        })->implode(', ');
+        foreach ($produksi->detailBahanProduksi as $i => $b) {
+            $rows[] = [
+                $i === 0 ? $produksi->tanggal->format('d/m/Y') : '',
+                $i === 0 ? $produkList : '',
+                $b->jenisPlastik->nama ?? '-',
+                $b->berat_kg,
+                $i === 0 ? $totalSak : '',
+                $i === 0 ? $totalHasil : '',
+                $i === 0 ? ($produksi->user->name ?? '-') : '',
+                $i === 0 ? ($produksi->keterangan ?: '-') : '',
+            ];
+        }
         
-        return [
-            $produksi->tanggal->format('d/m/Y'),
-            $produksi->jenisProduk->nama ?? '-',
-            $bahanList ?: '-',
-            $totalBahan,
-            $totalHasil,
-            $produksi->user->name ?? '-',
-            $produksi->keterangan ?: '-',
-        ];
+        if ($produksi->detailBahanProduksi->isEmpty()) {
+            $rows[] = [
+                $produksi->tanggal->format('d/m/Y'), $produkList, '-', 0, $totalSak, $totalHasil,
+                $produksi->user->name ?? '-', $produksi->keterangan ?: '-'
+            ];
+        }
+        
+        return $rows;
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Style header
-        $sheet->getStyle('A1:G1')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 11,
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '28A745'],
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-        
         $lastRow = $sheet->getHighestRow();
         
-        // Border semua cell
-        $sheet->getStyle('A1:G' . $lastRow)->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => 'CCCCCC'],
-                ],
-            ],
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '28A745']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        // Alignment
-        $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('D2:E' . $lastRow)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1:H' . $lastRow)->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ]);
         
-        // Tinggi baris
-        $sheet->getDefaultRowDimension()->setRowHeight(20);
-        $sheet->getRowDimension(1)->setRowHeight(25);
-        
-        // Freeze header
+        $sheet->getStyle('D2:F' . $lastRow)->getAlignment()->setHorizontal('right');
         $sheet->freezePane('A2');
-        
-        // Auto filter
-        $sheet->setAutoFilter('A1:G1');
         
         return [];
     }

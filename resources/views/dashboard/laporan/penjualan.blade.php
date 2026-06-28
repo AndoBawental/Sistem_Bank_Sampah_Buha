@@ -7,285 +7,165 @@
 @push('styles')
 <style>
     .stat-card {
-        background: white;
-        border-radius: 10px;
-        padding: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        border: 1px solid #f0f0f0;
+        background: #fff; border-radius: 10px; padding: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; text-align: center;
     }
-    .stat-label {
-        font-size: 0.65rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .stat-value {
-        font-size: 1.1rem;
-        font-weight: 700;
-    }
+    .stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; }
+    .stat-value { font-size: 17px; font-weight: 700; color: #1f2937; }
     
-    @media (max-width: 575.98px) {
-        .stat-card { padding: 0.6rem; }
-        .stat-value { font-size: 0.9rem; }
-        .stat-label { font-size: 0.6rem; }
-        .table-penjualan th, .table-penjualan td {
-            font-size: 0.7rem;
-            padding: 0.4rem;
-        }
+    .filter-bar { background: #f9fafb; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid #e5e7eb; }
+    
+    .table th { font-size: 10px; font-weight: 700; color: #6b7280; background: #f9fafb; padding: 8px 6px; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
+    .table td { font-size: 11px; padding: 8px 6px; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
+    
+    .badge-potongan { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 10px; font-size: 9px; }
+    
+    @media (max-width: 767px) {
+        .desktop-table { display: none; }
+        .mobile-cards { display: block; }
+        .rpt-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 11px; }
     }
+    @media (min-width: 768px) { .mobile-cards { display: none; } .desktop-table { display: block; } }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-2 px-md-3 mt-3 mb-4">
+<div class="container-fluid px-2 px-md-3">
 
     {{-- Header --}}
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:34px;height:34px;">
+            <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle" style="width:34px;height:34px;">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h5 class="mb-0 fw-bold">🛒 Laporan Penjualan</h5>
+            <h6 class="fw-bold mb-0">Laporan Penjualan</h6>
         </div>
-        <div class="d-flex gap-1 w-100 w-sm-auto">
-            <a href="{{ route('laporan.penjualan.pdf', request()->query()) }}" class="btn btn-danger btn-sm w-100 w-sm-auto">
-                <i class="fas fa-file-pdf"></i> <span class="d-none d-sm-inline">PDF</span>
-            </a>
-            <a href="{{ route('laporan.penjualan.excel', request()->query()) }}" class="btn btn-success btn-sm w-100 w-sm-auto">
-                <i class="fas fa-file-excel"></i> <span class="d-none d-sm-inline">Excel</span>
-            </a>
+        <div class="d-flex gap-1">
+            <a href="{{ route('laporan.penjualan.pdf', request()->query()) }}" class="btn btn-danger btn-sm rounded-pill"><i class="fas fa-file-pdf me-1"></i>PDF</a>
+            <a href="{{ route('laporan.penjualan.excel', request()->query()) }}" class="btn btn-success btn-sm rounded-pill"><i class="fas fa-file-excel me-1"></i>Excel</a>
         </div>
     </div>
 
     {{-- Filter --}}
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body p-2 p-md-3">
-            <form method="GET" class="row g-2 align-items-end">
+    <div class="filter-bar">
+        <form method="GET">
+            <div class="row g-2 align-items-end">
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Dari</label>
+                    <label class="form-label" style="font-size:10px;">Dari</label>
                     <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ $dariTanggal }}">
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Sampai</label>
+                    <label class="form-label" style="font-size:10px;">Sampai</label>
                     <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ $sampaiTanggal }}">
                 </div>
                 <div class="col-6 col-md-3">
-                    <label class="form-label small mb-1">Pembeli</label>
+                    <label class="form-label" style="font-size:10px;">Pembeli</label>
                     <select name="pembeli_id" class="form-select form-select-sm">
-                        <option value="">Semua Pembeli</option>
+                        <option value="">Semua</option>
                         @foreach($pembeliList as $p)
                             <option value="{{ $p->id }}" {{ request('pembeli_id') == $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label small mb-1">Tampil</label>
-                    <select name="per_page" class="form-select form-select-sm">
-                        @foreach([10, 25, 50, 100] as $val)
-                            <option value="{{ $val }}" {{ request('per_page', 10) == $val ? 'selected' : '' }}>{{ $val }}</option>
-                        @endforeach
-                    </select>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-success btn-sm flex-fill rounded-pill"><i class="fas fa-search me-1"></i>Cari</button>
+                        <a href="{{ route('laporan.penjualan') }}" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="fas fa-redo"></i></a>
+                    </div>
                 </div>
-                <div class="col-6 col-md-3 d-flex gap-1">
-                    <button type="submit" class="btn btn-warning btn-sm flex-fill">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
-                    <a href="{{ route('laporan.penjualan') }}" class="btn btn-outline-secondary btn-sm" title="Reset">
-                        <i class="fas fa-redo"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    {{-- Statistik --}}
+    {{-- Stats --}}
     <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Transaksi</div>
-                <div class="stat-value text-primary">{{ $totalTransaksi }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">penjualan</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Total Unit</div>
-                <div class="stat-value text-success">{{ number_format($totalBerat, 0, ',', '.') }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">Unit terjual</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Pendapatan</div>
-                <div class="stat-value text-warning">Rp {{ number_format($totalHarga, 0, ',', '.') }}</div>
-                <small class="text-muted" style="font-size:0.6rem;">total penjualan</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-label">Periode</div>
-                <div class="stat-value text-info" style="font-size:0.8rem;">
-                    {{ date('d/m/Y', strtotime($dariTanggal)) }} - {{ date('d/m/Y', strtotime($sampaiTanggal)) }}
-                </div>
-            </div>
-        </div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Transaksi</div><div class="stat-value">{{ $totalTransaksi }}</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Total Sak</div><div class="stat-value">{{ number_format($totalSak, 0, ',', '.') }}</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Total Nett</div><div class="stat-value text-success">{{ number_format($totalBerat, 1, ',', '.') }} Kg</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-label">Total Harga</div><div class="stat-value text-danger" style="font-size:14px;">Rp {{ number_format($totalHarga, 0, ',', '.') }}</div></div></div>
     </div>
 
-    {{-- Tabel Desktop & Tablet --}}
-    <div class="card shadow-sm border-0 d-none d-md-block">
+    {{-- Desktop Table --}}
+    <div class="card desktop-table">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-penjualan mb-0">
-                    <thead class="table-light">
+                <table class="table mb-0">
+                    <thead>
                         <tr>
-                            <th class="ps-3">Tgl</th>
-                            <th>Invoice</th>
+                            <th>Tanggal</th>
                             <th>Pembeli</th>
                             <th>Produk</th>
-                            <th class="text-end">Unit</th>
+                            <th class="text-center">Sak</th>
+                            <th class="text-end">Berat Kirim</th>
+                            <th class="text-center">Potongan</th>
+                            <th class="text-end">Berat Nett</th>
                             <th class="text-end">Total</th>
                             <th>Kasir</th>
-                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($penjualan as $p)
-                            @php $totalUnit = $p->detailPenjualan->sum('qty'); @endphp
-                            <tr>
-                                <td class="ps-3">{{ date('d/m/Y', strtotime($p->tanggal)) }}</td>
-                                <td><small>INV-{{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</small></td>
-                                <td>{{ $p->pembeli->nama ?? 'Umum' }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#produk-{{ $p->id }}">
-                                        {{ $p->detailPenjualan->count() }} produk
-                                    </button>
-                                </td>
-                                <td class="text-end">{{ number_format($totalUnit, 0, ',', '.') }}</td>
-                                <td class="text-end fw-bold text-warning">Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
-                                <td><small>{{ $p->user->name ?? '-' }}</small></td>
-                                <td class="text-center">
-                                    <div class="d-flex gap-1 justify-content-center">
-                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#detail-{{ $p->id }}" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                       
-                                    </div>
-                                </td>
-                            </tr>
-                            {{-- Detail Produk --}}
-                            <tr class="collapse" id="produk-{{ $p->id }}">
-                                <td colspan="8" class="p-0 bg-light">
-                                    <div class="p-2 small">
-                                        @foreach($p->detailPenjualan as $detail)
-                                            <div class="d-flex justify-content-between border-bottom py-1">
-                                                <span>{{ $detail->jenisProduk->nama ?? '-' }}</span>
-                                                <span>{{ $detail->qty }} Unit x Rp {{ number_format($detail->harga, 0, ',', '.') }} = <strong>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</strong></span>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </td>
-                            </tr>
-                            {{-- Detail Transaksi --}}
-                            <tr class="collapse" id="detail-{{ $p->id }}">
-                                <td colspan="8" class="p-0 bg-light">
-                                    <div class="p-2 small">
-                                        <div class="row g-2">
-                                            <div class="col-6">
-                                                <strong>Invoice:</strong> INV-{{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}<br>
-                                                <strong>Tanggal:</strong> {{ date('d/m/Y H:i', strtotime($p->tanggal)) }}<br>
-                                                <strong>Kasir:</strong> {{ $p->user->name ?? '-' }}
-                                            </div>
-                                            <div class="col-6">
-                                                <strong>Pembeli:</strong> {{ $p->pembeli->nama ?? 'Umum' }}<br>
-                                                @if($p->pembeli)
-                                                    <strong>Telepon:</strong> {{ $p->pembeli->telepon ?: '-' }}<br>
-                                                    <strong>Alamat:</strong> {{ $p->pembeli->alamat ?: '-' }}
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
+                            @foreach($p->detailPenjualan as $i => $d)
+                                @php $potonganPersen = $d->berat_kirim_kg > 0 ? round(($d->berat_potongan_kg / $d->berat_kirim_kg) * 100, 1) : 0; @endphp
+                                <tr>
+                                    @if($i === 0)
+                                        <td rowspan="{{ $p->detailPenjualan->count() }}">{{ $p->tanggal->format('d/m/Y') }}</td>
+                                        <td rowspan="{{ $p->detailPenjualan->count() }}">{{ $p->pembeli->nama ?? '-' }}</td>
+                                    @endif
+                                    <td>{{ $d->jenisProduk->nama ?? '-' }}</td>
+                                    <td class="text-center">{{ $d->jumlah_sak }}</td>
+                                    <td class="text-end">{{ number_format($d->berat_kirim_kg, 2, ',', '.') }} Kg</td>
+                                    <td class="text-center">
+                                        @if($d->berat_potongan_kg > 0.01)
+                                            <span class="badge-potongan">{{ $potonganPersen }}%</span>
+                                        @else - @endif
+                                    </td>
+                                    <td class="text-end fw-semibold">{{ number_format($d->berat_nett_kg, 2, ',', '.') }} Kg</td>
+                                    @if($i === 0)
+                                        <td rowspan="{{ $p->detailPenjualan->count() }}" class="text-end fw-bold text-success">Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
+                                        <td rowspan="{{ $p->detailPenjualan->count() }}">{{ $p->user->name ?? '-' }}</td>
+                                    @endif
+                                </tr>
+                            @endforeach
                         @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">
-                                    <i class="fas fa-inbox fa-2x d-block mb-2 opacity-25"></i>
-                                    Tidak ada data penjualan
-                                </td>
-                            </tr>
+                            <tr><td colspan="9" class="text-center py-4 text-muted">Tidak ada data</td></tr>
                         @endforelse
                     </tbody>
-                    @if($penjualan->count() > 0)
-                        <tfoot class="table-light">
-                            <tr>
-                                <th colspan="4" class="text-end">Total:</th>
-                                <th class="text-end">{{ number_format($totalBerat, 0, ',', '.') }} Unit</th>
-                                <th class="text-end">Rp {{ number_format($totalHarga, 0, ',', '.') }}</th>
-                                <th colspan="2"></th>
-                            </tr>
-                        </tfoot>
-                    @endif
                 </table>
             </div>
         </div>
         @if($penjualan->hasPages())
-            <div class="card-footer bg-white py-2">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <small class="text-muted">{{ $penjualan->firstItem() }}-{{ $penjualan->lastItem() }} dari {{ $penjualan->total() }}</small>
-                    {{ $penjualan->appends(request()->query())->links() }}
-                </div>
-            </div>
+        <div class="card-footer bg-white py-2">{{ $penjualan->appends(request()->query())->links('pagination::bootstrap-5') }}</div>
         @endif
     </div>
 
-    {{-- Mobile Card View --}}
-    <div class="d-block d-md-none">
+    {{-- Mobile Cards --}}
+    <div class="mobile-cards">
         @forelse($penjualan as $p)
-            @php $totalUnit = $p->detailPenjualan->sum('qty'); @endphp
-            <div class="card shadow-sm border-0 mb-2">
-                <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <div>
-                            <small class="text-muted">INV-{{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</small>
-                            <br><small>{{ date('d/m/Y', strtotime($p->tanggal)) }}</small>
-                        </div>
-                        <strong class="text-warning">Rp {{ number_format($p->total_harga, 0, ',', '.') }}</strong>
-                    </div>
-                    
-                    <div class="small">
-                        <strong>Pembeli:</strong> {{ $p->pembeli->nama ?? 'Umum' }}<br>
-                        <strong>Unit:</strong> {{ number_format($totalUnit, 0, ',', '.') }} | 
-                        <strong>Kasir:</strong> {{ $p->user->name ?? '-' }}
-                    </div>
-                    
-                    <button class="btn btn-sm btn-outline-info w-100 mt-1" data-bs-toggle="collapse" data-bs-target="#mproduk-{{ $p->id }}">
-                        📦 {{ $p->detailPenjualan->count() }} Produk
-                    </button>
-                    <div class="collapse bg-light rounded-2 p-2 mt-1 small" id="mproduk-{{ $p->id }}">
-                        @foreach($p->detailPenjualan as $detail)
-                            <div class="d-flex justify-content-between border-bottom py-1">
-                                <span>{{ $detail->jenisProduk->nama ?? '-' }}</span>
-                                <span>{{ $detail->qty }} x Rp {{ number_format($detail->harga, 0, ',', '.') }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                   
+            <div class="rpt-card">
+                <div class="d-flex justify-content-between mb-1">
+                    <strong>{{ $p->tanggal->format('d/m/Y') }}</strong>
+                    <strong class="text-success">Rp {{ number_format($p->total_harga, 0, ',', '.') }}</strong>
                 </div>
+                <div style="font-size:10px;">👤 {{ $p->pembeli->nama ?? '-' }} | 🧑 {{ $p->user->name ?? '-' }}</div>
+                @foreach($p->detailPenjualan as $d)
+                    @php $potonganPersen = $d->berat_kirim_kg > 0 ? round(($d->berat_potongan_kg / $d->berat_kirim_kg) * 100, 1) : 0; @endphp
+                    <div class="bg-light rounded p-1 mt-1" style="font-size:9px;">
+                        📦 {{ $d->jenisProduk->nama ?? '-' }}: {{ $d->jumlah_sak }} sak | 
+                        Kirim: {{ number_format($d->berat_kirim_kg, 1) }} Kg | 
+                        Nett: {{ number_format($d->berat_nett_kg, 1) }} Kg
+                        @if($d->berat_potongan_kg > 0.01)
+                            <br>🔻 Potongan: {{ $potonganPersen }}% ({{ number_format($d->berat_potongan_kg, 2) }} Kg)
+                        @endif
+                    </div>
+                @endforeach
             </div>
         @empty
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-inbox fa-3x d-block mb-2 opacity-25"></i>
-                <small>Tidak ada data penjualan</small>
-            </div>
+            <div class="text-center py-4 text-muted">Tidak ada data</div>
         @endforelse
-        
         @if($penjualan->hasPages())
-            <div class="d-flex justify-content-center mt-3">
-                {{ $penjualan->appends(request()->query())->links() }}
-            </div>
+            <div class="text-center mt-3">{{ $penjualan->appends(request()->query())->links('pagination::bootstrap-5') }}</div>
         @endif
     </div>
-
 </div>
 @endsection
