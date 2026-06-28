@@ -123,6 +123,9 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/stok', [StokProdukController::class, 'index'])->name('stok.index');
         Route::get('/stok/{jenisProduk}/riwayat', [StokProdukController::class, 'riwayat'])->name('stok.riwayat');
+
+        Route::get('/{id}/edit', [ProduksiController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ProduksiController::class, 'update'])->name('update');
         
         Route::get('/{id}', [ProduksiController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [ProduksiController::class, 'edit'])->name('edit');

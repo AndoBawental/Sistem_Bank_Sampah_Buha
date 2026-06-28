@@ -15,12 +15,13 @@ class DetailBahanProduksi extends Model
     
     protected $fillable = [
         'produksi_id',
+        'stok_id',           
         'jenis_plastik_id',
-        'berat'
+        'berat_kg'           
     ];
 
     protected $casts = [
-        'berat' => 'float'
+        'berat_kg' => 'float' 
     ];
 
     public function produksi(): BelongsTo
