@@ -57,6 +57,8 @@
     .fill.aman { background: var(--safe); }
     .fill.menipis { background: var(--warn); }
     .fill.habis { background: var(--danger); }
+    
+    .sub-text { font-size: 9px; color: #999; display: block; }
 
     @media (max-width: 767px) {
         .desktop-table { display: none; }
@@ -68,7 +70,7 @@
         .product-card .prd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .product-card .prd-name { font-weight: 700; font-size: 13px; }
         .product-card .prd-stats {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
             text-align: center; padding: 8px 0; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; margin-bottom: 8px;
         }
         .product-card .prd-stats .v { font-weight: 700; font-size: 12px; }
@@ -84,34 +86,34 @@
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-   {{-- STATS --}}
-<div class="stat-grid">
-    <div class="stat-card blue">
-        <div class="lbl">Total Stok</div>
-        <div class="val">{{ number_format($totalStok ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
-        <div class="sub">{{ $jenisProdukCount ?? 0 }} jenis produk</div>
-    </div>
-    <div class="stat-card green">
-        <div class="lbl">Produksi Bulan Ini</div>
-        <div class="val">{{ number_format($stokMasukBulanIni ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
-        <div class="sub">Hasil produksi</div>
-    </div>
-    <div class="stat-card yellow">
-        <div class="lbl">Terjual Bulan Ini</div>
-        <div class="val">
-            {{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Sak</small>
-            <span style="font-size:11px;display:block;color:#92400e;">
-                {{ number_format($beratTerjualBulanIni ?? 0, 1, ',', '.') }} Kg
-            </span>
+    {{-- STATS --}}
+    <div class="stat-grid">
+        <div class="stat-card blue">
+            <div class="lbl">Total Stok</div>
+            <div class="val">{{ number_format($totalStok ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
+            <div class="sub">{{ $jenisProdukCount ?? 0 }} jenis produk</div>
         </div>
-        <div class="sub">Dari penjualan</div>
+        <div class="stat-card green">
+            <div class="lbl">Produksi Bulan Ini</div>
+            <div class="val">{{ number_format($stokMasukBulanIni ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
+            <div class="sub">Hasil produksi</div>
+        </div>
+        <div class="stat-card yellow">
+            <div class="lbl">Terjual Bulan Ini</div>
+            <div class="val">
+                {{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Sak</small>
+                <span style="font-size:11px;display:block;color:#92400e;">
+                    {{ number_format($beratTerjualBulanIni ?? 0, 1, ',', '.') }} Kg
+                </span>
+            </div>
+            <div class="sub">Dari penjualan</div>
+        </div>
+        <div class="stat-card red">
+            <div class="lbl">Perlu Perhatian</div>
+            <div class="val">{{ ($stokMenipis ?? 0) + ($stokHabis ?? 0) }}</div>
+            <div class="sub">{{ $stokHabis ?? 0 }} habis, {{ $stokMenipis ?? 0 }} menipis</div>
+        </div>
     </div>
-    <div class="stat-card red">
-        <div class="lbl">Perlu Perhatian</div>
-        <div class="val">{{ ($stokMenipis ?? 0) + ($stokHabis ?? 0) }}</div>
-        <div class="sub">{{ $stokHabis ?? 0 }} habis, {{ $stokMenipis ?? 0 }} menipis</div>
-    </div>
-</div>
 
     {{-- FILTER --}}
     <div class="filter-bar">
@@ -153,8 +155,8 @@
                         <tr>
                             <th>#</th>
                             <th>Jenis Produk</th>
-                            <th class="text-end">Hasil Produksi (Kg)</th>
-                            <th class="text-end">Terjual (Sak)</th>
+                            <th class="text-end">Hasil Produksi</th>
+                            <th class="text-end">Terjual</th>
                             <th class="text-end">Stok (Kg)</th>
                             <th>Level</th>
                             <th>Status</th>
@@ -165,8 +167,14 @@
                         @forelse($stok as $i => $item)
                             @php
                                 $masuk = (float)($item->stok_masuk ?? 0);
-                                $keluar = (float)($item->stok_keluar ?? 0);
+                                $keluarSak = (float)($item->stok_keluar ?? 0);
+                                $keluarBerat = (float)($item->stok_keluar_berat ?? 0);
                                 $stokKg = (float)($item->total_berat ?? 0);
+                                
+                                // Hitung produksi dalam sak (estimasi 1 sak = 25-30 kg, atau ambil dari detail)
+                                $produksiSak = (float)($item->produksi_sak ?? 0);
+                                $produksiBerat = $masuk;
+                                
                                 $pct = $stokKg > 0 ? min(100, ($stokKg / 500) * 100) : 0;
                                 
                                 if ($stokKg <= 0) { $status = 'Habis'; $bc = 'badge-habis'; $fc = 'habis'; }
@@ -178,11 +186,17 @@
                                 <td>
                                     <span class="fw-semibold">{{ $item->nama ?? '-' }}</span>
                                     @if($item->keterangan)
-                                        <small class="text-muted d-block" style="font-size:9px;">{{ \Str::limit($item->keterangan, 40) }}</small>
+                                        <small class="sub-text">{{ \Str::limit($item->keterangan, 40) }}</small>
                                     @endif
                                 </td>
-                                <td class="text-end text-success fw-semibold">{{ $masuk > 0 ? number_format($masuk, 1, ',', '.') : '-' }}</td>
-                                <td class="text-end text-danger fw-semibold">{{ $keluar > 0 ? number_format($keluar, 0, ',', '.') : '-' }}</td>
+                                <td class="text-end">
+                                    <span class="text-success fw-semibold">{{ $produksiSak > 0 ? number_format($produksiSak, 0, ',', '.') . ' Sak' : '-' }}</span>
+                                    <span class="sub-text">{{ $produksiBerat > 0 ? number_format($produksiBerat, 1, ',', '.') . ' Kg' : '' }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="text-danger fw-semibold">{{ $keluarSak > 0 ? number_format($keluarSak, 0, ',', '.') . ' Sak' : '-' }}</span>
+                                    <span class="sub-text">{{ $keluarBerat > 0 ? number_format($keluarBerat, 1, ',', '.') . ' Kg' : '' }}</span>
+                                </td>
                                 <td class="text-end fw-bold">{{ number_format($stokKg, 1, ',', '.') }}</td>
                                 <td style="min-width:100px;">
                                     <div class="d-flex align-items-center gap-2">
@@ -217,8 +231,11 @@
         @forelse($stok as $i => $item)
             @php
                 $masuk = (float)($item->stok_masuk ?? 0);
-                $keluar = (float)($item->stok_keluar ?? 0);
+                $keluarSak = (float)($item->stok_keluar ?? 0);
+                $keluarBerat = (float)($item->stok_keluar_berat ?? 0);
                 $stokKg = (float)($item->total_berat ?? 0);
+                $produksiSak = (float)($item->produksi_sak ?? 0);
+                $produksiBerat = $masuk;
                 $pct = $stokKg > 0 ? min(100, ($stokKg / 500) * 100) : 0;
                 
                 if ($stokKg <= 0) { $status = 'Habis'; $bc = 'badge-habis'; $fc = 'habis'; }
@@ -231,14 +248,26 @@
                     <span class="badge-status {{ $bc }}">{{ $status }}</span>
                 </div>
                 <div class="prd-stats">
-                    <div><div class="l">Produksi</div><div class="v text-success">{{ $masuk > 0 ? number_format($masuk, 1) : '-' }} Kg</div></div>
-                    <div><div class="l">Terjual</div><div class="v text-danger">{{ $keluar > 0 ? number_format($keluar, 0) : '-' }} Sak</div></div>
-                    <div><div class="l">Stok</div><div class="v">{{ number_format($stokKg, 1) }} Kg</div></div>
+                    <div>
+                        <div class="l">📦 Produksi</div>
+                        <div class="v text-success">
+                            {{ $produksiSak > 0 ? number_format($produksiSak, 0) . ' Sak' : '-' }}
+                            <div class="sub-text">{{ $produksiBerat > 0 ? number_format($produksiBerat, 1) . ' Kg' : '' }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="l">💰 Terjual</div>
+                        <div class="v text-danger">
+                            {{ $keluarSak > 0 ? number_format($keluarSak, 0) . ' Sak' : '-' }}
+                            <div class="sub-text">{{ $keluarBerat > 0 ? number_format($keluarBerat, 1) . ' Kg' : '' }}</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <div class="progress-mini flex-grow-1"><div class="fill {{ $fc }}" style="width:{{ $pct }}%"></div></div>
-                    <small style="font-size:9px;">{{ round($pct) }}%</small>
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">Stok: <strong>{{ number_format($stokKg, 1) }} Kg</strong></small>
+                    <small>{{ round($pct) }}%</small>
                 </div>
+                <div class="progress-mini mb-2"><div class="fill {{ $fc }}" style="width:{{ $pct }}%"></div></div>
                 <div class="d-flex gap-1 justify-content-end">
                     <a href="{{ route('produksi.stok.riwayat', $item->jenis_produk_id) }}" class="btn-riwayat" title="Riwayat">
                         <i class="fas fa-history"></i> Riwayat
@@ -262,43 +291,18 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto submit filter
     document.querySelectorAll('.filter-auto').forEach(s => {
         s.addEventListener('change', () => document.getElementById('filterForm').submit());
     });
     
-    // ========== NOTIFIKASI SESSION ==========
     @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            confirmButtonColor: '#198754'
-        });
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000, timerProgressBar: true, confirmButtonColor: '#198754' });
     @endif
-
     @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: '{{ session('error') }}',
-            timer: 4000,
-            timerProgressBar: true,
-            confirmButtonColor: '#dc3545'
-        });
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}', timer: 4000, timerProgressBar: true, confirmButtonColor: '#dc3545' });
     @endif
-
     @if(session('warning'))
-        Swal.fire({
-            icon: 'warning',
-            title: 'Perhatian!',
-            text: '{{ session('warning') }}',
-            timer: 3500,
-            timerProgressBar: true,
-            confirmButtonColor: '#f59e0b'
-        });
+        Swal.fire({ icon: 'warning', title: 'Perhatian!', text: '{{ session('warning') }}', timer: 3500, timerProgressBar: true, confirmButtonColor: '#f59e0b' });
     @endif
 });
 </script>

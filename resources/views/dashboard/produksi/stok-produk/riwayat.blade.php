@@ -52,6 +52,7 @@
     
     .badge-masuk { background: #d1e7dd; color: #0a3622; }
     .badge-keluar { background: #f8d7da; color: #721c24; }
+    .badge-adjustment { background: #fff3cd; color: #856404; }
     
     .filter-bar {
         background: #f8f9fa;
@@ -97,6 +98,8 @@
         background: #f8f9ff;
     }
     
+    .detail-sub { font-size: 0.68rem; color: #888; }
+    
     /* Mobile Card */
     .riwayat-mobile-card {
         background: white;
@@ -128,31 +131,15 @@
         font-size: 0.72rem;
     }
     
-    /* Responsive */
     @media (max-width: 768px) {
-        .stok-header .stok-value {
-            font-size: 1.4rem;
-        }
-        
-        .table-riwayat th,
-        .table-riwayat td {
-            padding: 0.5rem;
-            font-size: 0.7rem;
-        }
+        .stok-header .stok-value { font-size: 1.4rem; }
+        .table-riwayat th, .table-riwayat td { padding: 0.5rem; font-size: 0.7rem; }
     }
     
     @media (max-width: 575px) {
-        .stok-header {
-            padding: 0.75rem 1rem;
-        }
-        
-        .stok-header .stok-value {
-            font-size: 1.2rem;
-        }
-        
-        .filter-bar {
-            padding: 0.75rem;
-        }
+        .stok-header { padding: 0.75rem 1rem; }
+        .stok-header .stok-value { font-size: 1.2rem; }
+        .filter-bar { padding: 0.75rem; }
     }
 </style>
 @endpush
@@ -160,7 +147,7 @@
 @section('content')
 <div class="container-fluid px-2 px-md-3 py-3">
 
-    {{-- Header --}}
+    {{-- Breadcrumb --}}
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
         <div>
             <nav class="small text-muted mb-1">
@@ -193,7 +180,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <div class="stok-label">STOK SAAT INI</div>
-              <div class="stok-value">{{ number_format($stokSekarang, 2, ',', '.') }} <span style="font-size:0.9rem;">Kg</span></div>
+                <div class="stok-value">{{ number_format($stokSekarang, 2, ',', '.') }} <span style="font-size:0.9rem;">Kg</span></div>
             </div>
             <span class="badge-status {{ $statusClass }}">
                 <i class="fas fa-{{ $statusText === 'Aman' ? 'check-circle' : ($statusText === 'Menipis' ? 'exclamation-triangle' : 'times-circle') }} me-1"></i>
@@ -206,15 +193,15 @@
     <div class="row g-2 mb-3">
         <div class="col-6 col-md-3">
             <div class="bg-white border rounded-3 p-2 text-center">
-                <small class="text-muted d-block">Masuk</small>
-                <strong class="text-success">{{ number_format($totalMasuk, 2, ',', '.') }}</strong>
+                <small class="text-muted d-block">Masuk (Produksi)</small>
+                <strong class="text-success">{{ number_format($totalMasuk, 2, ',', '.') }} Kg</strong>
                 <small class="text-muted d-block">{{ $countMasuk }} transaksi</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="bg-white border rounded-3 p-2 text-center">
-                <small class="text-muted d-block">Keluar</small>
-                <strong class="text-danger">{{ number_format($totalKeluar, 2, ',', '.') }}</strong>
+                <small class="text-muted d-block">Keluar (Penjualan)</small>
+                <strong class="text-danger">{{ number_format($totalKeluar, 2, ',', '.') }} Sak</strong>
                 <small class="text-muted d-block">{{ $countKeluar }} transaksi</small>
             </div>
         </div>
@@ -248,8 +235,9 @@
                     <label class="form-label">Tipe</label>
                     <select name="tipe" class="form-select form-select-sm">
                         <option value="semua" {{ $filterTipe == 'semua' ? 'selected' : '' }}>Semua</option>
-                        <option value="masuk" {{ $filterTipe == 'masuk' ? 'selected' : '' }}>Masuk</option>
-                        <option value="keluar" {{ $filterTipe == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                        <option value="masuk" {{ $filterTipe == 'masuk' ? 'selected' : '' }}>Masuk (Produksi)</option>
+                        <option value="keluar" {{ $filterTipe == 'keluar' ? 'selected' : '' }}>Keluar (Penjualan)</option>
+                        <option value="adjustment" {{ $filterTipe == 'adjustment' ? 'selected' : '' }}>Adjustment</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-2">
@@ -291,23 +279,62 @@
                     </thead>
                     <tbody>
                         @forelse($riwayatPaginate as $item)
+                            @php
+                                $isMasuk = $item['tipe'] === 'masuk';
+                                $isAdjustment = str_starts_with($item['id'] ?? '', 'a-');
+                                
+                                if ($isAdjustment) {
+                                    $badgeClass = 'badge-adjustment';
+                                    $icon = 'cog';
+                                    $label = 'Adjustment';
+                                } elseif ($isMasuk) {
+                                    $badgeClass = 'badge-masuk';
+                                    $icon = 'arrow-down';
+                                    $label = 'Masuk';
+                                } else {
+                                    $badgeClass = 'badge-keluar';
+                                    $icon = 'arrow-up';
+                                    $label = 'Keluar';
+                                }
+                            @endphp
                             <tr>
                                 <td class="text-nowrap">{{ \Carbon\Carbon::parse($item['tanggal'])->format('d M Y') }}</td>
                                 <td>
-                                    <span class="badge-tipe {{ $item['tipe'] === 'masuk' ? 'badge-masuk' : 'badge-keluar' }}">
-                                        <i class="fas fa-{{ $item['tipe'] === 'masuk' ? 'arrow-down' : 'arrow-up' }}"></i>
-                                        {{ $item['tipe'] === 'masuk' ? 'Masuk' : 'Keluar' }}
+                                    <span class="badge-tipe {{ $badgeClass }}">
+                                        <i class="fas fa-{{ $icon }}"></i>
+                                        {{ $label }}
                                     </span>
                                 </td>
-                                <td class="text-end fw-bold {{ $item['tipe'] === 'masuk' ? 'text-success' : 'text-danger' }}">
-                                    {{ $item['tipe'] === 'masuk' ? '+' : '-' }}{{ number_format($item['jumlah'], 2, ',', '.') }}
+                                <td class="text-end">
+                                    @if($isAdjustment)
+                                        {{-- Adjustment: hanya Berat --}}
+                                        <span class="fw-bold {{ $isMasuk ? 'text-success' : 'text-danger' }}">
+                                            {{ $isMasuk ? '+' : '-' }}{{ number_format($item['jumlah'], 2, ',', '.') }} Kg
+                                        </span>
+                                    @elseif($isMasuk)
+                                        {{-- Produksi: Sak + Berat --}}
+                                        <div>
+                                            <span class="fw-bold text-success">
+                                                +{{ number_format($item['jumlah_sak'] ?? 0, 0, ',', '.') }} Sak
+                                            </span>
+                                            <div class="detail-sub">+{{ number_format($item['jumlah'], 2, ',', '.') }} Kg</div>
+                                        </div>
+                                    @else
+                                        {{-- Penjualan: Sak + Berat --}}
+                                        <div>
+                                            <span class="fw-bold text-danger">
+                                                -{{ number_format($item['jumlah'], 0, ',', '.') }} Sak
+                                            </span>
+                                            <div class="detail-sub">-{{ number_format($item['jumlah_berat'] ?? $item['jumlah'], 2, ',', '.') }} Kg</div>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td>
                                     <div>{{ $item['keterangan'] }}</div>
-                                    <small class="text-muted">{{ $item['referensi'] }}</small>
-                                    @if($item['tipe'] === 'keluar' && isset($item['harga']))
-    <br><small class="text-secondary">Rp {{ number_format($item['harga'], 0, ',', '.') }}/Kg</small>
-@endif
+                                    <small class="text-muted detail-sub">{{ $item['referensi'] }}</small>
+                                    @if(!$isMasuk && !$isAdjustment && isset($item['harga']) && $item['harga'] > 0)
+                                        <div class="detail-sub">Rp {{ number_format($item['harga'], 0, ',', '.') }}/Kg</div>
+                                    @endif
                                 </td>
                                 <td>
                                     <small class="text-muted">{{ $item['user'] }}</small>
@@ -339,20 +366,50 @@
     {{-- Mobile Card View --}}
     <div class="d-block d-md-none">
         @forelse($riwayatPaginate as $item)
+            @php
+                $isMasuk = $item['tipe'] === 'masuk';
+                $isAdjustment = str_starts_with($item['id'] ?? '', 'a-');
+                
+                if ($isAdjustment) {
+                    $badgeClass = 'badge-adjustment';
+                    $icon = 'cog';
+                    $label = 'Adjustment';
+                } elseif ($isMasuk) {
+                    $badgeClass = 'badge-masuk';
+                    $icon = 'arrow-down';
+                    $label = 'Masuk';
+                } else {
+                    $badgeClass = 'badge-keluar';
+                    $icon = 'arrow-up';
+                    $label = 'Keluar';
+                }
+            @endphp
             <div class="riwayat-mobile-card">
                 <div class="rm-header">
-                    <span class="badge-tipe {{ $item['tipe'] === 'masuk' ? 'badge-masuk' : 'badge-keluar' }}">
-                        <i class="fas fa-{{ $item['tipe'] === 'masuk' ? 'arrow-down' : 'arrow-up' }}"></i>
-                        {{ $item['tipe'] === 'masuk' ? 'Masuk' : 'Keluar' }}
+                    <span class="badge-tipe {{ $badgeClass }}">
+                        <i class="fas fa-{{ $icon }}"></i>
+                        {{ $label }}
                     </span>
                     <small class="text-muted">{{ \Carbon\Carbon::parse($item['tanggal'])->format('d M Y') }}</small>
                 </div>
                 
                 <div class="rm-info">
                     <span>Jumlah:</span>
-                    <strong class="{{ $item['tipe'] === 'masuk' ? 'text-success' : 'text-danger' }}">
-                        {{ $item['tipe'] === 'masuk' ? '+' : '-' }}{{ number_format($item['jumlah'], 2, ',', '.') }}
-                    </strong>
+                    @if($isAdjustment)
+                        <strong class="{{ $isMasuk ? 'text-success' : 'text-danger' }}">
+                            {{ $isMasuk ? '+' : '-' }}{{ number_format($item['jumlah'], 2, ',', '.') }} Kg
+                        </strong>
+                    @elseif($isMasuk)
+                        <div class="text-end">
+                            <strong class="text-success">+{{ number_format($item['jumlah_sak'] ?? 0, 0, ',', '.') }} Sak</strong>
+                            <div class="detail-sub">+{{ number_format($item['jumlah'], 2, ',', '.') }} Kg</div>
+                        </div>
+                    @else
+                        <div class="text-end">
+                            <strong class="text-danger">-{{ number_format($item['jumlah'], 0, ',', '.') }} Sak</strong>
+                            <div class="detail-sub">-{{ number_format($item['jumlah_berat'] ?? $item['jumlah'], 2, ',', '.') }} Kg</div>
+                        </div>
+                    @endif
                 </div>
                 
                 <div class="rm-detail">
@@ -364,10 +421,10 @@
                         <span class="text-muted">Ref:</span>
                         <span>{{ $item['referensi'] }}</span>
                     </div>
-                    @if($item['tipe'] === 'keluar' && isset($item['harga']))
+                    @if(!$isMasuk && !$isAdjustment && isset($item['harga']) && $item['harga'] > 0)
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Harga:</span>
-                            <span>Rp {{ number_format($item['harga'], 0, ',', '.') }}/Unit</span>
+                            <span>Rp {{ number_format($item['harga'], 0, ',', '.') }}/Kg</span>
                         </div>
                     @endif
                     <div class="d-flex justify-content-between mt-1 pt-1 border-top">
@@ -392,3 +449,20 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000, timerProgressBar: true, confirmButtonColor: '#198754' });
+    @endif
+    @if(session('error'))
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}', timer: 4000, timerProgressBar: true, confirmButtonColor: '#dc3545' });
+    @endif
+    @if(session('warning'))
+        Swal.fire({ icon: 'warning', title: 'Perhatian!', text: '{{ session('warning') }}', timer: 3500, timerProgressBar: true, confirmButtonColor: '#f59e0b' });
+    @endif
+});
+</script>
+@endpush
