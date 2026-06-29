@@ -13,103 +13,96 @@ use Carbon\Carbon;
 
 class StokProdukController extends Controller
 {
-    public function index(Request $request)
-    {
-        $stokQuery = JenisProduk::select(
-                'jenis_produk.id as jenis_produk_id',
-                'jenis_produk.nama',
-                'jenis_produk.keterangan',
-                // Stok Masuk (Kg) - dari produksi
-                DB::raw('COALESCE((
-                    SELECT SUM(dhp.total_berat_kg)
-                    FROM detail_hasil_produksi dhp
-                    WHERE dhp.jenis_produk_id = jenis_produk.id
-                ), 0) as stok_masuk'),
-                // Stok Keluar (Sak) - dari penjualan
-                DB::raw('COALESCE((
-                    SELECT SUM(dp.jumlah_sak)
-                    FROM detail_penjualan dp
-                    WHERE dp.jenis_produk_id = jenis_produk.id
-                ), 0) as stok_keluar'),
-                // ⬇️ Total Stok (Kg) - produksi + adjustment
-                DB::raw('GREATEST(0, 
-                    COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
-                    + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
-                ) as total_berat')
-            );
+  public function index(Request $request)
+{
+    $stokQuery = JenisProduk::select(
+            'jenis_produk.id as jenis_produk_id',
+            'jenis_produk.nama',
+            'jenis_produk.keterangan',
+            DB::raw('COALESCE((
+                SELECT SUM(dhp.total_berat_kg)
+                FROM detail_hasil_produksi dhp
+                WHERE dhp.jenis_produk_id = jenis_produk.id
+            ), 0) as stok_masuk'),
+            DB::raw('COALESCE((
+                SELECT SUM(dp.jumlah_sak)
+                FROM detail_penjualan dp
+                WHERE dp.jenis_produk_id = jenis_produk.id
+            ), 0) as stok_keluar'),
+            DB::raw('GREATEST(0, 
+                COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
+            ) as total_berat')
+        );
 
-        if ($request->filled('jenis_produk_id')) {
-            $stokQuery->where('jenis_produk.id', $request->jenis_produk_id);
-        }
-
-        if ($request->filled('filter')) {
-            if ($request->filter === 'menipis') {
-                $stokQuery->havingRaw('total_berat < 100 AND total_berat > 0');
-            } elseif ($request->filter === 'habis') {
-                $stokQuery->havingRaw('total_berat <= 0');
-            }
-        }
-
-        $stok = $stokQuery->orderBy('jenis_produk.nama')->paginate(10);
-
-        // Statistik
-        $totalStokMasuk = DetailHasilProduksi::sum('total_berat_kg') ?? 0;
-        $totalStokKeluar = DetailPenjualan::sum('jumlah_sak') ?? 0;
-        
-        // Total stok = produksi + adjustment
-        $adjustmentTotal = \App\Models\StokProdukAdjustmentLog::sum(
-            DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')
-        ) ?? 0;
-        $totalStok = max(0, $totalStokMasuk + $adjustmentTotal);
-        $jenisProdukCount = JenisProduk::count();
-
-        // Masuk bulan ini (Kg)
-        $stokMasukBulanIni = DetailHasilProduksi::whereHas('produksi', function ($q) {
-            $q->whereMonth('tanggal', now()->month)
-              ->whereYear('tanggal', now()->year);
-        })->sum('total_berat_kg') ?? 0;
-
-        // Keluar bulan ini (Sak)
-        $stokKeluarBulanIni = DetailPenjualan::whereHas('penjualan', function ($q) {
-            $q->whereMonth('tanggal', now()->month)
-              ->whereYear('tanggal', now()->year);
-        })->sum('jumlah_sak') ?? 0;
-
-        // Hitung menipis & habis (dengan adjustment)
-        $semuaProduk = JenisProduk::select(
-                'jenis_produk.id',
-                DB::raw('GREATEST(0, 
-                    COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
-                    + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
-                ) as total')
-            )
-            ->get();
-
-        $stokMenipis = 0;
-        $stokHabis = 0;
-        
-        foreach ($semuaProduk as $produk) {
-            $total = (float) $produk->total;
-            if ($total <= 0) {
-                $stokHabis++;
-            } elseif ($total < 100) {
-                $stokMenipis++;
-            }
-        }
-
-        $jenisProduk = JenisProduk::orderBy('nama')->get();
-
-        return view('dashboard.produksi.stok-produk.index', compact(
-            'stok',
-            'totalStok',
-            'jenisProdukCount',
-            'stokMasukBulanIni',
-            'stokKeluarBulanIni',
-            'stokMenipis',
-            'stokHabis',
-            'jenisProduk'
-        ));
+    if ($request->filled('jenis_produk_id')) {
+        $stokQuery->where('jenis_produk.id', $request->jenis_produk_id);
     }
+
+    if ($request->filled('filter')) {
+        if ($request->filter === 'menipis') {
+            $stokQuery->havingRaw('total_berat < 100 AND total_berat > 0');
+        } elseif ($request->filter === 'habis') {
+            $stokQuery->havingRaw('total_berat <= 0');
+        }
+    }
+
+    $stok = $stokQuery->orderBy('jenis_produk.nama')->paginate(10);
+
+    // Statistik
+    $totalStokMasuk = DetailHasilProduksi::sum('total_berat_kg') ?? 0;
+    $totalStokKeluar = DetailPenjualan::sum('jumlah_sak') ?? 0;
+    
+    $adjustmentTotal = \App\Models\StokProdukAdjustmentLog::sum(
+        DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')
+    ) ?? 0;
+    $totalStok = max(0, $totalStokMasuk + $adjustmentTotal);
+    $jenisProdukCount = JenisProduk::count();
+
+    // Masuk bulan ini (Kg)
+    $stokMasukBulanIni = DetailHasilProduksi::whereHas('produksi', function ($q) {
+        $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year);
+    })->sum('total_berat_kg') ?? 0;
+
+    // Keluar bulan ini (Sak)
+    $stokKeluarBulanIni = DetailPenjualan::whereHas('penjualan', function ($q) {
+        $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year);
+    })->sum('jumlah_sak') ?? 0;
+
+    // Berat terjual bulan ini (Kg)
+    $beratTerjualBulanIni = DetailPenjualan::whereHas('penjualan', function ($q) {
+        $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year);
+    })->sum('berat_nett_kg') ?? 0;
+
+    // Hitung menipis & habis
+    $semuaProduk = JenisProduk::select(
+            'jenis_produk.id',
+            DB::raw('GREATEST(0, 
+                COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
+            ) as total')
+        )->get();
+
+    $stokMenipis = 0;
+    $stokHabis = 0;
+    
+    foreach ($semuaProduk as $produk) {
+        $total = (float) $produk->total;
+        if ($total <= 0) {
+            $stokHabis++;
+        } elseif ($total < 100) {
+            $stokMenipis++;
+        }
+    }
+
+    $jenisProduk = JenisProduk::orderBy('nama')->get();
+
+    return view('dashboard.produksi.stok-produk.index', compact(
+        'stok', 'totalStok', 'jenisProdukCount',
+        'stokMasukBulanIni', 'stokKeluarBulanIni', 'beratTerjualBulanIni',
+        'stokMenipis', 'stokHabis', 'jenisProduk'
+    ));
+}
 
     /**
      * Halaman form adjustment stok produk

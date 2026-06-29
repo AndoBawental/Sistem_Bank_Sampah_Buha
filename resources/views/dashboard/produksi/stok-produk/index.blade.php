@@ -84,29 +84,34 @@
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-    {{-- STATS --}}
-    <div class="stat-grid">
-        <div class="stat-card blue">
-            <div class="lbl">Total Stok</div>
-            <div class="val">{{ number_format($totalStok ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
-            <div class="sub">{{ $jenisProdukCount ?? 0 }} jenis produk</div>
-        </div>
-        <div class="stat-card green">
-            <div class="lbl">Produksi Bulan Ini</div>
-            <div class="val">{{ number_format($stokMasukBulanIni ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
-            <div class="sub">Hasil produksi</div>
-        </div>
-        <div class="stat-card yellow">
-            <div class="lbl">Terjual Bulan Ini</div>
-            <div class="val">{{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Sak</small></div>
-            <div class="sub">Dari penjualan</div>
-        </div>
-        <div class="stat-card red">
-            <div class="lbl">Perlu Perhatian</div>
-            <div class="val">{{ ($stokMenipis ?? 0) + ($stokHabis ?? 0) }}</div>
-            <div class="sub">{{ $stokHabis ?? 0 }} habis, {{ $stokMenipis ?? 0 }} menipis</div>
-        </div>
+   {{-- STATS --}}
+<div class="stat-grid">
+    <div class="stat-card blue">
+        <div class="lbl">Total Stok</div>
+        <div class="val">{{ number_format($totalStok ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
+        <div class="sub">{{ $jenisProdukCount ?? 0 }} jenis produk</div>
     </div>
+    <div class="stat-card green">
+        <div class="lbl">Produksi Bulan Ini</div>
+        <div class="val">{{ number_format($stokMasukBulanIni ?? 0, 1, ',', '.') }} <small style="font-size:0.6em;">Kg</small></div>
+        <div class="sub">Hasil produksi</div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="lbl">Terjual Bulan Ini</div>
+        <div class="val">
+            {{ number_format($stokKeluarBulanIni ?? 0, 0, ',', '.') }} <small style="font-size:0.6em;">Sak</small>
+            <span style="font-size:11px;display:block;color:#92400e;">
+                {{ number_format($beratTerjualBulanIni ?? 0, 1, ',', '.') }} Kg
+            </span>
+        </div>
+        <div class="sub">Dari penjualan</div>
+    </div>
+    <div class="stat-card red">
+        <div class="lbl">Perlu Perhatian</div>
+        <div class="val">{{ ($stokMenipis ?? 0) + ($stokHabis ?? 0) }}</div>
+        <div class="sub">{{ $stokHabis ?? 0 }} habis, {{ $stokMenipis ?? 0 }} menipis</div>
+    </div>
+</div>
 
     {{-- FILTER --}}
     <div class="filter-bar">
