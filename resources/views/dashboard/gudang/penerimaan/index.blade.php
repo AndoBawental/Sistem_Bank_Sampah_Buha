@@ -128,11 +128,13 @@
     .plastik-tag .berat { color: #6b7280; font-size: 9px; }
 
     .action-link {
-        font-size: 12px; text-decoration: none; white-space: nowrap;
-        padding: 5px 8px; border-radius: 4px; display: inline-flex;
-        align-items: center; gap: 3px; transition: all 0.15s;
+        font-size: 11px; text-decoration: none; white-space: nowrap;
+        padding: 4px 7px; border-radius: 4px; display: inline-flex;
+        align-items: center; gap: 2px; transition: all 0.15s;
     }
     .action-link:hover { background: #f3f4f6; font-weight: 600; }
+    .action-link.print-link { color: #6366f1; }
+    .action-link.print-link:hover { background: #eef2ff; }
     
     .btn-action-mobile {
         font-size: 10px; padding: 5px 10px; border-radius: 6px;
@@ -141,6 +143,7 @@
         background: #fff; color: #374151; transition: all 0.15s;
     }
     .btn-action-mobile:active { background: #f3f4f6; transform: scale(0.95); }
+    .btn-action-mobile.print-mobile { color: #6366f1; border-color: #c7d2fe; }
 
     .pagination { margin: 0; font-size: 12px; }
 
@@ -313,161 +316,162 @@
 
         <div class="card-body p-0">
             {{-- DESKTOP TABLE --}}
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th class="text-center" style="width:4%;">#</th>
-                <th style="width:10%;">Tanggal</th>
-                <th style="width:12%;">Supplier</th>
-                <th style="width:26%;">Jenis Plastik</th>
-                <th class="text-center" style="width:6%;">Tipe</th>
-                <th class="text-center" style="width:8%;">Karung</th>
-                <th class="text-end" style="width:10%;">Berat</th>
-                <th class="text-center" style="width:8%;">Status</th>
-                <th class="text-center" style="width:10%;">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($penerimaan as $i => $item)
-            <tr onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'">
-                <td class="text-center text-muted" style="font-size:11px;">{{ $penerimaan->firstItem() + $i }}</td>
-                <td>
-                    <div class="fw-semibold" style="font-size:11px;">{{ $item->tanggal->format('d/m/Y') }}</div>
-                    <small class="text-muted" style="font-size:9px;">{{ $item->tanggal->format('H:i') }}</small>
-                </td>
-                <td><span class="fw-semibold" style="font-size:11px;">{{ $item->supplier->nama }}</span></td>
-                <td>
-                    <div class="plastik-tags">
-                        @if($item->status_sortir == 'Belum')
-                            <span class="plastik-tag belum-sortir" title="Belum disortir">
-                                <i class="fas fa-triangle-exclamation me-1"></i>Belum Dipilah
-                                <span class="berat">({{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }}kg)</span>
-                            </span>
-                        @else
-                            @foreach($item->detailPenerimaan->take(3) as $detail)
-                                <span class="plastik-tag" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg">
-                                    {{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 8) }}
-                                    <span class="berat">{{ number_format($detail->berat_datang_kg, 1, ',', '.') }}</span>
-                                    @if($detail->jumlah_karung > 0)
-                                        <small style="font-size:8px;color:#888;">({{ $detail->jumlah_karung }}krg)</small>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:4%;">#</th>
+                            <th style="width:10%;">Tanggal</th>
+                            <th style="width:10%;">Supplier</th>
+                            <th style="width:24%;">Jenis Plastik</th>
+                            <th class="text-center" style="width:5%;">Tipe</th>
+                            <th class="text-center" style="width:7%;">Karung</th>
+                            <th class="text-end" style="width:9%;">Berat</th>
+                            <th class="text-center" style="width:7%;">Status</th>
+                            <th class="text-center" style="width:14%;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($penerimaan as $i => $item)
+                        <tr onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'">
+                            <td class="text-center text-muted" style="font-size:11px;">{{ $penerimaan->firstItem() + $i }}</td>
+                            <td>
+                                <div class="fw-semibold" style="font-size:11px;">{{ $item->tanggal->format('d/m/Y') }}</div>
+                                <small class="text-muted" style="font-size:9px;">{{ $item->tanggal->format('H:i') }}</small>
+                            </td>
+                            <td><span class="fw-semibold" style="font-size:11px;">{{ $item->supplier->nama }}</span></td>
+                            <td>
+                                <div class="plastik-tags">
+                                    @if($item->status_sortir == 'Belum')
+                                        <span class="plastik-tag belum-sortir" title="Belum disortir">
+                                            <i class="fas fa-triangle-exclamation me-1"></i>Belum Dipilah
+                                            <span class="berat">({{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }}kg)</span>
+                                        </span>
+                                    @else
+                                        @foreach($item->detailPenerimaan->take(3) as $detail)
+                                            <span class="plastik-tag" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg">
+                                                {{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 8) }}
+                                                <span class="berat">{{ number_format($detail->berat_datang_kg, 1, ',', '.') }}</span>
+                                                @if($detail->jumlah_karung > 0)
+                                                    <small style="font-size:8px;color:#888;">({{ $detail->jumlah_karung }}krg)</small>
+                                                @endif
+                                            </span>
+                                        @endforeach
+                                        @if($item->detailPenerimaan->count() > 3)
+                                            <span class="plastik-tag" style="background:#f0f0f0; color:#888;">+{{ $item->detailPenerimaan->count() - 3 }}</span>
+                                        @endif
                                     @endif
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-status {{ $item->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">{{ $item->tipe == 'Beli' ? 'Beli' : 'Donasi' }}</span>
+                            </td>
+                            <td class="text-center">
+                                @if($item->status_sortir == 'Belum')
+                                    @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
+                                    <span class="badge-karung" title="{{ $totalKarung }} karung belum dipilah">
+                                        <i class="fas fa-box me-1"></i>{{ $totalKarung }}
+                                    </span>
+                                @else
+                                    <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+                                        @foreach($item->detailPenerimaan->take(2) as $detail)
+                                            <span style="font-size:9px; color:#666; white-space:nowrap;" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ $detail->jumlah_karung ?: 1 }} karung">
+                                                <span style="color:#888;">{{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 6) }}:</span> 
+                                                <strong>{{ $detail->jumlah_karung ?: 1 }}</strong>krg
+                                            </span>
+                                        @endforeach
+                                        @php $sisa = $item->detailPenerimaan->count() - 2; @endphp
+                                        @if($sisa > 0)
+                                            <span style="font-size:8px; color:#aaa;">+{{ $sisa }} lainnya</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold" style="font-size:11px;">{{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }}</span>
+                                <small class="text-muted">Kg</small>
+                                @if($item->tipe == 'Beli' && $item->total_bayar > 0)
+                                    <div class="small text-success fw-semibold" style="font-size:9px;">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</div>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-status {{ $item->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
+                                    {{ $item->status_sortir == 'Sudah' ? '✅ Bersih' : '⏳ Kotor' }}
                                 </span>
-                            @endforeach
-                            @if($item->detailPenerimaan->count() > 3)
-                                <span class="plastik-tag" style="background:#f0f0f0; color:#888;">+{{ $item->detailPenerimaan->count() - 3 }}</span>
-                            @endif
-                        @endif
-                    </div>
-                </td>
-                <td class="text-center">
-                    <span class="badge-status {{ $item->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">{{ $item->tipe == 'Beli' ? 'Beli' : 'Donasi' }}</span>
-                </td>
-                <td class="text-center">
-                    @if($item->status_sortir == 'Belum')
-                        @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
-                        <span class="badge-karung" title="{{ $totalKarung }} karung belum dipilah">
-                            <i class="fas fa-box me-1"></i>{{ $totalKarung }}
-                        </span>
-                    @else
-                        <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-                            @foreach($item->detailPenerimaan->take(2) as $detail)
-                                <span style="font-size:9px; color:#666; white-space:nowrap;" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ $detail->jumlah_karung ?: 1 }} karung">
-                                    <span style="color:#888;">{{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 6) }}:</span> 
-                                    <strong>{{ $detail->jumlah_karung ?: 1 }}</strong>krg
-                                </span>
-                            @endforeach
-                            @php $sisa = $item->detailPenerimaan->count() - 2; @endphp
-                            @if($sisa > 0)
-                                <span style="font-size:8px; color:#aaa;">+{{ $sisa }} lainnya</span>
-                            @endif
-                        </div>
-                    @endif
-                </td>
-                <td class="text-end">
-                    <span class="fw-bold" style="font-size:11px;">{{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }}</span>
-                    <small class="text-muted">Kg</small>
-                    @if($item->tipe == 'Beli' && $item->total_bayar > 0)
-                        <div class="small text-success fw-semibold" style="font-size:9px;">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</div>
-                    @endif
-                </td>
-                <td class="text-center">
-                    <span class="badge-status {{ $item->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
-                        {{ $item->status_sortir == 'Sudah' ? '✅ Bersih' : '⏳ Kotor' }}
-                    </span>
-                </td>
-                <td class="text-center" onclick="event.stopPropagation()">
-                    <div class="d-flex justify-content-center gap-1">
-                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="action-link text-info" title="Detail"><i class="fas fa-eye"></i></a>
-                        @if($item->status_sortir != 'Sudah')
-                        <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="action-link text-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                        @endif
-                        <a href="#" class="action-link text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus"><i class="fas fa-trash"></i></a>
-                        <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="9" class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data penerimaan</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                            </td>
+                            <td class="text-center" onclick="event.stopPropagation()">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="action-link text-info" title="Detail"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="action-link print-link" title="Cetak Nota" target="_blank"><i class="fas fa-print"></i></a>
+                                    @if($item->status_sortir != 'Sudah')
+                                    <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="action-link text-warning" title="Edit"><i class="fas fa-edit"></i></a>
+                                    @endif
+                                    <a href="#" class="action-link text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus"><i class="fas fa-trash"></i></a>
+                                    <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="9" class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data penerimaan</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
             {{-- MOBILE CARDS --}}
-<div class="mobile-cards p-2">
-    @forelse($penerimaan as $i => $item)
-    <div class="penerimaan-card" onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'">
-        <div class="card-header-mobile">
-            <div>
-                <span class="badge-status {{ $item->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
-                    {{ $item->status_sortir == 'Sudah' ? '✅ Bersih' : '⏳ Kotor' }}
-                </span>
-                <span class="ms-1" style="font-size:10px; color:#6b7280;">#{{ $penerimaan->firstItem() + $i }}</span>
+            <div class="mobile-cards p-2">
+                @forelse($penerimaan as $i => $item)
+                <div class="penerimaan-card" onclick="window.location='{{ route('gudang.penerimaan.show', $item->id) }}'">
+                    <div class="card-header-mobile">
+                        <div>
+                            <span class="badge-status {{ $item->status_sortir == 'Sudah' ? 'badge-selesai' : 'badge-belum' }}">
+                                {{ $item->status_sortir == 'Sudah' ? '✅ Bersih' : '⏳ Kotor' }}
+                            </span>
+                            <span class="ms-1" style="font-size:10px; color:#6b7280;">#{{ $penerimaan->firstItem() + $i }}</span>
+                        </div>
+                        <span class="badge-status {{ $item->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">{{ $item->tipe }}</span>
+                    </div>
+                    <div class="card-body-mobile">
+                        <div class="info-row"><span class="info-label">📅 Tanggal</span><span class="info-value">{{ $item->tanggal->format('d/m/Y H:i') }}</span></div>
+                        <div class="info-row"><span class="info-label">👤 Supplier</span><span class="info-value">{{ $item->supplier->nama }}</span></div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">📦 Karung</span>
+                            <span class="info-value" style="font-size:10px;">
+                                @if($item->status_sortir == 'Belum')
+                                    @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
+                                    <strong>{{ $totalKarung }} karung</strong> (belum dipilah)
+                                @else
+                                    @foreach($item->detailPenerimaan as $detail)
+                                        <div style="white-space:nowrap;">
+                                            <span style="color:#888;">{{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 10) }}:</span>
+                                            <strong>{{ $detail->jumlah_karung ?: 1 }}krg</strong>
+                                            <span style="color:#aaa;">({{ number_format($detail->berat_datang_kg, 1, ',', '.') }}kg)</span>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </span>
+                        </div>
+                        
+                        <div class="info-row"><span class="info-label">⚖️ Total Berat</span><span class="info-value">{{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }} Kg</span></div>
+                        @if($item->tipe == 'Beli' && $item->total_bayar > 0)
+                        <div class="info-row"><span class="info-label">💰 Bayar</span><span class="info-value" style="color:#059669;">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</span></div>
+                        @endif
+                    </div>
+                    <div class="card-actions-mobile" onclick="event.stopPropagation()">
+                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn-action-mobile text-info"><i class="fas fa-eye"></i></a>
+                        <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="btn-action-mobile print-mobile" target="_blank"><i class="fas fa-print"></i></a>
+                        @if($item->status_sortir != 'Sudah')
+                        <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="btn-action-mobile text-warning"><i class="fas fa-edit"></i></a>
+                        @endif
+                        <a href="#" class="btn-action-mobile text-danger btn-delete" data-id="{{ $item->id }}"><i class="fas fa-trash"></i></a>
+                        <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
+                    </div>
+                </div>
+                @empty
+                <div class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data</div>
+                @endforelse
             </div>
-            <span class="badge-status {{ $item->tipe == 'Beli' ? 'badge-beli' : 'badge-donasi' }}">{{ $item->tipe }}</span>
-        </div>
-        <div class="card-body-mobile">
-            <div class="info-row"><span class="info-label">📅 Tanggal</span><span class="info-value">{{ $item->tanggal->format('d/m/Y H:i') }}</span></div>
-            <div class="info-row"><span class="info-label">👤 Supplier</span><span class="info-value">{{ $item->supplier->nama }}</span></div>
-            
-            {{-- Karung per jenis --}}
-            <div class="info-row">
-                <span class="info-label">📦 Karung</span>
-                <span class="info-value" style="font-size:10px;">
-                    @if($item->status_sortir == 'Belum')
-                        @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
-                        <strong>{{ $totalKarung }} karung</strong> (belum dipilah)
-                    @else
-                        @foreach($item->detailPenerimaan as $detail)
-                            <div style="white-space:nowrap;">
-                                <span style="color:#888;">{{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 10) }}:</span>
-                                <strong>{{ $detail->jumlah_karung ?: 1 }}krg</strong>
-                                <span style="color:#aaa;">({{ number_format($detail->berat_datang_kg, 1, ',', '.') }}kg)</span>
-                            </div>
-                        @endforeach
-                    @endif
-                </span>
-            </div>
-            
-            <div class="info-row"><span class="info-label">⚖️ Total Berat</span><span class="info-value">{{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }} Kg</span></div>
-            @if($item->tipe == 'Beli' && $item->total_bayar > 0)
-            <div class="info-row"><span class="info-label">💰 Bayar</span><span class="info-value" style="color:#059669;">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</span></div>
-            @endif
-        </div>
-        <div class="card-actions-mobile" onclick="event.stopPropagation()">
-            <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn-action-mobile text-info"><i class="fas fa-eye"></i></a>
-            @if($item->status_sortir != 'Sudah')
-            <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="btn-action-mobile text-warning"><i class="fas fa-edit"></i></a>
-            @endif
-            <a href="#" class="btn-action-mobile text-danger btn-delete" data-id="{{ $item->id }}"><i class="fas fa-trash"></i></a>
-            <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
-        </div>
-    </div>
-    @empty
-    <div class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data</div>
-    @endforelse
-</div>
         </div>
 
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -479,12 +483,11 @@
 @endsection
 
 @push('scripts')
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
-    // ========== PER PAGE SELECT ==========
+    // Per Page Select
     document.getElementById('perPageSelect')?.addEventListener('change', function() {
         const url = new URL(window.location.href);
         url.searchParams.set('per_page', this.value);
@@ -492,10 +495,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     });
     
-    // ========== AUTO SUBMIT FILTER ==========
+    // Auto submit filter
     document.querySelectorAll('.filter-auto').forEach(el => el.addEventListener('change', () => document.getElementById('filterForm').submit()));
     
-    // ========== KONFIRMASI HAPUS DENGAN SWEETALERT ==========
+    // Konfirmasi hapus
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -520,74 +523,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 focusCancel: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Tampilkan loading
                     Swal.fire({
                         title: 'Menghapus...',
                         text: 'Mohon tunggu sebentar',
                         allowOutsideClick: false,
                         didOpen: () => Swal.showLoading()
                     });
-                    
-                    // Submit form
                     document.getElementById('deleteForm' + id).submit();
                 }
             });
         });
     });
     
-    // ========== NOTIFIKASI SUKSES/ERROR DARI SESSION ==========
+    // Notifikasi
     @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: true,
-            confirmButtonColor: '#2e7d32',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000, timerProgressBar: true, showConfirmButton: true, confirmButtonColor: '#2e7d32', confirmButtonText: 'OK' });
     @endif
-
     @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: '{{ session('error') }}',
-            timer: 4000,
-            timerProgressBar: true,
-            showConfirmButton: true,
-            confirmButtonColor: '#e53935',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}', timer: 4000, timerProgressBar: true, showConfirmButton: true, confirmButtonColor: '#e53935', confirmButtonText: 'OK' });
     @endif
-
     @if(session('warning'))
-        Swal.fire({
-            icon: 'warning',
-            title: 'Perhatian!',
-            text: '{{ session('warning') }}',
-            timer: 3500,
-            timerProgressBar: true,
-            showConfirmButton: true,
-            confirmButtonColor: '#f59e0b',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire({ icon: 'warning', title: 'Perhatian!', text: '{{ session('warning') }}', timer: 3500, timerProgressBar: true, showConfirmButton: true, confirmButtonColor: '#f59e0b', confirmButtonText: 'OK' });
     @endif
-
     @if(session('info'))
-        Swal.fire({
-            icon: 'info',
-            title: 'Informasi',
-            text: '{{ session('info') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: true,
-            confirmButtonColor: '#0ea5e9',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire({ icon: 'info', title: 'Informasi', text: '{{ session('info') }}', timer: 3000, timerProgressBar: true, showConfirmButton: true, confirmButtonColor: '#0ea5e9', confirmButtonText: 'OK' });
     @endif
-    
 });
 </script>
 @endpush
