@@ -81,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/adjustment', [StokController::class, 'storeAdjustment'])->name('store-adjustment');
         });
 
-        // ========================
+         // ========================
         // PENERIMAAN
         // ========================
         Route::resource('penerimaan', PenerimaanController::class);
@@ -89,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('penerimaan/{penerimaan}')->name('penerimaan.')->group(function () {
             Route::get('/sortir', [PenerimaanController::class, 'sortir'])->name('sortir');
             Route::post('/sortir', [PenerimaanController::class, 'storeSortir'])->name('store-sortir');
+            Route::get('/print', [PenerimaanController::class, 'print'])->name('print');
         });
 
         // ========================

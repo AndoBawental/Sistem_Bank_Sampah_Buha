@@ -451,6 +451,19 @@ class PenerimaanController extends Controller
     }
 }
 
+public function print($id)
+{
+    $penerimaan = Penerimaan::with([
+        'supplier', 
+        'user', 
+        'detailPenerimaan.jenisPlastik'
+    ])->findOrFail($id);
+    
+    $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: $penerimaan->detailPenerimaan->count();
+    
+    return view('dashboard.gudang.penerimaan.print', compact('penerimaan', 'totalKarung'));
+}
+
     public function destroy($id)
     {
         DB::beginTransaction();

@@ -8,16 +8,7 @@
 <div class="container-fluid px-2 px-md-4 mt-3">
     <h4 class="mb-3">Data Jenis Plastik</h4>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <a href="{{ route('data-utama.jenis-plastik.create') }}" 
-       onclick="return confirm('Tambah data baru?')" 
-       class="btn btn-primary mb-3">
+    <a href="{{ route('data-utama.jenis-plastik.create') }}" class="btn btn-primary mb-3">
         <i class="bi bi-plus-lg"></i> Tambah Data
     </a>
 
@@ -43,17 +34,13 @@
                         <td>
                             <div class="d-flex gap-1">
                                 <a href="{{ route('data-utama.jenis-plastik.edit', $item->id) }}" 
-                                   onclick="return confirm('Edit data ini?')" 
                                    class="btn btn-warning btn-sm">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form action="{{ route('data-utama.jenis-plastik.destroy', $item->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button onclick="return confirm('Hapus data?')" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <button onclick="hapusData('{{ route('data-utama.jenis-plastik.destroy', $item->id) }}', '{{ addslashes($item->nama) }}')" 
+                                        class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -71,3 +58,65 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function hapusData(url, nama) {
+    Swal.fire({
+        title: 'Hapus Data?',
+        html: `
+            <div style="text-align:center;">
+                <p style="margin-bottom:8px;">Yakin ingin menghapus?</p>
+                <p style="font-size:16px;font-weight:700;color:#e53935;margin-bottom:4px;">${nama}</p>
+                <small style="color:#888;">Data yang dihapus tidak bisa dikembalikan</small>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e53935',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-trash"></i> Hapus',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Menghapus...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.innerHTML = '@csrf @method('DELETE')';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        timer: 2500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+    });
+    @endif
+
+    @if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: '{{ session('success') }}',
+        confirmButtonColor: '#e53935'
+    });
+    @endif
+});
+</script>
+@endpush

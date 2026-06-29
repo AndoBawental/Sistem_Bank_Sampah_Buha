@@ -1,17 +1,17 @@
 <?php
-// app/Http/Controllers/DataUtama/JenisProdukController.php
 
 namespace App\Http\Controllers\DataUtama;
 
 use App\Http\Controllers\Controller;
 use App\Models\JenisProduk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class JenisProdukController extends Controller
 {
     public function index()
     {
-        $jenisProduk = JenisProduk::orderBy('created_at', 'desc')->get();
+        $jenisProduk = JenisProduk::orderBy('nama')->paginate(10);
         return view('dashboard.data-utama.jenis-produk.index', compact('jenisProduk'));
     }
 
@@ -23,20 +23,15 @@ class JenisProdukController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255|unique:jenis_produk,nama',
-            'keterangan' => 'nullable|string',
+            'nama' => 'required|string|max:100|unique:jenis_produk,nama',
+            'keterangan' => 'nullable|string|max:500',
         ], [
-            'nama.required' => 'Nama jenis produk wajib diisi',
-            'nama.unique' => 'Nama jenis produk sudah ada',
+            'nama.required' => 'Nama wajib diisi.',
+            'nama.unique' => 'Nama sudah ada.',
         ]);
 
-        JenisProduk::create([
-            'nama' => $request->nama,
-            'keterangan' => $request->keterangan,
-        ]);
-
-        return redirect()->route('data-utama.jenis-produk.index')
-            ->with('success', 'Jenis produk berhasil ditambahkan');
+        JenisProduk::create($request->only('nama', 'keterangan'));
+        return redirect()->route('data-utama.jenis-produk.index')->with('success', 'Data berhasil ditambahkan!');
     }
 
     public function edit($id)
@@ -47,31 +42,32 @@ class JenisProdukController extends Controller
 
     public function update(Request $request, $id)
     {
-        $jenisProduk = JenisProduk::findOrFail($id);
-
         $request->validate([
-            'nama' => 'required|string|max:255|unique:jenis_produk,nama,' . $id,
-            'keterangan' => 'nullable|string',
+            'nama' => 'required|string|max:100|unique:jenis_produk,nama,' . $id,
+            'keterangan' => 'nullable|string|max:500',
         ], [
-            'nama.required' => 'Nama jenis produk wajib diisi',
-            'nama.unique' => 'Nama jenis produk sudah ada',
+            'nama.required' => 'Nama wajib diisi.',
+            'nama.unique' => 'Nama sudah ada.',
         ]);
 
-        $jenisProduk->update([
-            'nama' => $request->nama,
-            'keterangan' => $request->keterangan,
-        ]);
-
-        return redirect()->route('data-utama.jenis-produk.index')
-            ->with('success', 'Jenis produk berhasil diupdate');
+        $jenisProduk = JenisProduk::findOrFail($id);
+        $jenisProduk->update($request->only('nama', 'keterangan'));
+        return redirect()->route('data-utama.jenis-produk.index')->with('success', 'Data berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $jenisProduk = JenisProduk::findOrFail($id);
-        $jenisProduk->delete();
+        
+        $hasRelation = DB::table('detail_hasil_produksi')->where('jenis_produk_id', $id)->exists()
+                    || DB::table('detail_penjualan')->where('jenis_produk_id', $id)->exists()
+                    || DB::table('stok_produk_adjustment_logs')->where('jenis_produk_id', $id)->exists();
 
-        return redirect()->route('data-utama.jenis-produk.index')
-            ->with('success', 'Jenis produk berhasil dihapus');
+        if ($hasRelation) {
+            return back()->with('error', 'Gagal! Data masih digunakan di transaksi.');
+        }
+
+        $jenisProduk->delete();
+        return redirect()->route('data-utama.jenis-produk.index')->with('success', 'Data berhasil dihapus!');
     }
 }
