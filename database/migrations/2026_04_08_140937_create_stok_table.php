@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('stok', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jenis_plastik_id')->constrained('jenis_plastik')->cascadeOnDelete();
-            $table->double('total_berat')->default(0); // dalam Kg
+            $table->foreignId('jenis_plastik_id')->constrained('jenis_plastik')->onDelete('cascade');
+            $table->double('total_berat')->default(0);
             $table->timestamps();
         });
     }

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('jenis_plastik', function (Blueprint $table) {
             $table->id();
-            $table->string('nama'); // PET, HDPE, LDPE, Plastik Campur
+            $table->string('nama');
             $table->text('keterangan')->nullable();
             $table->timestamps();
         });

@@ -6,30 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('detail_hasil_produksi', function (Blueprint $table) {
-    $table->dropForeign(['jenis_produk_id']);
+            // Hapus foreign key lama
+            $table->dropForeign(['jenis_produk_id']);
 
-    $table->unsignedBigInteger('jenis_produk_id')->nullable(false)->change();
+            // Ubah menjadi required
+            $table->unsignedBigInteger('jenis_produk_id')->nullable(false)->change();
 
-    $table->foreign('jenis_produk_id')
-        ->references('id')
-        ->on('jenis_produk')
-        ->cascadeOnDelete();
-});
+            // Tambah foreign key baru dengan cascade delete
+            $table->foreign('jenis_produk_id')
+                ->references('id')
+                ->on('jenis_produk')
+                ->onDelete('cascade');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-       Schema::table('detail_hasil_produksi', function (Blueprint $table) {
-            //
+        Schema::table('detail_hasil_produksi', function (Blueprint $table) {
+            $table->dropForeign(['jenis_produk_id']);
+            
+            $table->unsignedBigInteger('jenis_produk_id')->nullable()->change();
+            
+            $table->foreign('jenis_produk_id')
+                ->references('id')
+                ->on('jenis_produk')
+                ->nullOnDelete();
         });
     }
 };

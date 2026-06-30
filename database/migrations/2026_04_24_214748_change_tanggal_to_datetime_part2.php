@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-       Schema::table('penjualan', function (Blueprint $table) {
+        Schema::table('penjualan', function (Blueprint $table) {
             $table->dateTime('tanggal')->change();
         });
 
@@ -20,12 +17,9 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-         Schema::table('penjualan', function (Blueprint $table) {
+        Schema::table('penjualan', function (Blueprint $table) {
             $table->date('tanggal')->change();
         });
 

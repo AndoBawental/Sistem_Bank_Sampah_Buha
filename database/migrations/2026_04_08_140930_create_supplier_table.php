@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('supplier', function (Blueprint $table) {
             $table->id();
-            $table->string('nama'); // Ingat: ID 1 nanti diset "Masyarakat Umum"
+            $table->string('nama');
             $table->string('alamat')->nullable();
             $table->string('telepon')->nullable();
             $table->timestamps();

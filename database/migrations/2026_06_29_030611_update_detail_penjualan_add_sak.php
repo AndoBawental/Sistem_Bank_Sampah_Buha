@@ -9,18 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('detail_penjualan', function (Blueprint $table) {
-            
-            // 1. Rename harga -> harga_per_kg (jika belum)
+            // Rename harga -> harga_per_kg (jika belum)
             if (Schema::hasColumn('detail_penjualan', 'harga') && !Schema::hasColumn('detail_penjualan', 'harga_per_kg')) {
                 $table->renameColumn('harga', 'harga_per_kg');
             }
 
-            // 2. Hapus qty
+            // Hapus qty
             if (Schema::hasColumn('detail_penjualan', 'qty')) {
                 $table->dropColumn('qty');
             }
 
-            // 3. Tambah kolom baru
+            // Tambah kolom baru
             if (!Schema::hasColumn('detail_penjualan', 'jumlah_sak')) {
                 $table->integer('jumlah_sak')->default(0)->after('jenis_produk_id');
             }
@@ -42,7 +41,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('detail_penjualan', function (Blueprint $table) {
-            // Hapus kolom baru
             $columns = ['jumlah_sak', 'berat_kirim_kg', 'potongan_persen', 'berat_potongan_kg', 'berat_nett_kg'];
             foreach ($columns as $col) {
                 if (Schema::hasColumn('detail_penjualan', $col)) {
@@ -50,12 +48,10 @@ return new class extends Migration
                 }
             }
 
-            // Kembalikan harga_per_kg -> harga
             if (Schema::hasColumn('detail_penjualan', 'harga_per_kg') && !Schema::hasColumn('detail_penjualan', 'harga')) {
                 $table->renameColumn('harga_per_kg', 'harga');
             }
 
-            // Kembalikan qty
             if (!Schema::hasColumn('detail_penjualan', 'qty')) {
                 $table->integer('qty')->default(0)->after('jenis_produk_id');
             }

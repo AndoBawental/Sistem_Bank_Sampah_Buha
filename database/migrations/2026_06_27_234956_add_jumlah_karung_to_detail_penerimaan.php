@@ -1,13 +1,12 @@
 <?php
-// database/migrations/xxxx_add_jumlah_karung_to_detail_penerimaan.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddJumlahKarungToDetailPenerimaan extends Migration
+return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::table('detail_penerimaan', function (Blueprint $table) {
             if (!Schema::hasColumn('detail_penerimaan', 'jumlah_karung')) {
@@ -16,10 +15,12 @@ class AddJumlahKarungToDetailPenerimaan extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('detail_penerimaan', function (Blueprint $table) {
-            $table->dropColumn('jumlah_karung');
+            if (Schema::hasColumn('detail_penerimaan', 'jumlah_karung')) {
+                $table->dropColumn('jumlah_karung');
+            }
         });
     }
-}
+};

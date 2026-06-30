@@ -1,5 +1,4 @@
 <?php
-// database/migrations/xxxx_create_detail_sak_produksi_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -7,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         // Update detail_hasil_produksi
         Schema::table('detail_hasil_produksi', function (Blueprint $table) {
@@ -17,7 +16,6 @@ return new class extends Migration
             if (!Schema::hasColumn('detail_hasil_produksi', 'total_berat_kg')) {
                 $table->decimal('total_berat_kg', 10, 2)->default(0)->after('jumlah_sak');
             }
-            // Hapus kolom jumlah lama jika ada
             if (Schema::hasColumn('detail_hasil_produksi', 'jumlah')) {
                 $table->dropColumn('jumlah');
             }
@@ -53,8 +51,17 @@ return new class extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('detail_sak_produksi');
+        
+        Schema::table('detail_hasil_produksi', function (Blueprint $table) {
+            $table->dropColumn(['jumlah_sak', 'total_berat_kg']);
+            $table->double('jumlah')->default(0);
+        });
+
+        Schema::table('produksi', function (Blueprint $table) {
+            $table->foreignId('jenis_produk_id')->nullable()->constrained('jenis_produk');
+        });
     }
 };
