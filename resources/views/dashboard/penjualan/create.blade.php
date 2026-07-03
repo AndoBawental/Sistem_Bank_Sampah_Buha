@@ -10,7 +10,9 @@
     .card-body { padding: 14px; }
     .section-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-label { font-size: 11px; font-weight: 600; color: #555; margin-bottom: 3px; }
+    .form-label.required::after { content: ' *'; color: #ef4444; }
     .form-control, .form-select { font-size: 12px; border-radius: 6px; padding: 7px 10px; border: 1.5px solid #e0e0e0; background: #fff; }
+    .form-control.is-invalid, .form-select.is-invalid { border-color: #ef4444 !important; background: #fff5f5; }
     @media (max-width: 575px) { .form-control, .form-select { font-size: 16px; padding: 10px; } }
     
     /* Pembeli Search */
@@ -50,6 +52,7 @@
     
     .produk-group { background: #fff; border: 2px solid #e8eaef; border-radius: 10px; padding: 12px; margin-bottom: 10px; position: relative; }
     .produk-group.duplicate { border-color: #f59e0b; background: #fffdf5; }
+    .produk-group.invalid { border-color: #ef4444 !important; background: #fff5f5; }
     .produk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
     .produk-title { font-weight: 700; font-size: 13px; color: #2e7d32; }
     
@@ -77,8 +80,12 @@
     .total-box .val { font-size: 16px; font-weight: 700; }
     .total-box .lbl { font-size: 10px; opacity: 0.8; text-transform: uppercase; }
     
-    .btn-submit { background: #2e7d32; color: #fff; font-weight: 700; border-radius: 50px; font-size: 13px; padding: 10px 20px; width: 100%; border: none; margin-top: 10px; cursor: pointer; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-submit { 
+        background: #2e7d32; color: #fff; font-weight: 700; border-radius: 50px; 
+        font-size: 13px; padding: 10px 20px; width: 100%; border: none; margin-top: 10px; cursor: pointer; 
+        transition: all 0.2s;
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; background: #9e9e9e; }
     .btn-submit:not(:disabled):hover { background: #1b5e20; }
     @media (max-width: 575px) { .btn-submit { font-size: 15px; padding: 12px; } }
     
@@ -89,6 +96,28 @@
     .nett-warning { color: #ef4444; font-size: 10px; display: none; margin-top: 2px; }
     .duplicate-warn { display: none; font-size: 9px; color: #f59e0b; margin-top: 2px; }
     .harga-input { font-weight: 600; }
+    .sak-error { border-color: #ef4444 !important; background: #fff5f5 !important; }
+    
+    .error-message {
+        color: #ef4444; font-size: 10px; display: none; align-items: center; gap: 3px; margin-top: 2px;
+    }
+    .error-message.show { display: flex; }
+    
+    .btn-status {
+        font-size: 10px; padding: 2px 8px; border-radius: 4px; 
+        display: inline-block; margin-left: 8px;
+    }
+    .btn-status.ready { background: #d1fae5; color: #065f46; }
+    .btn-status.not-ready { background: #fee2e2; color: #991b1b; }
+    
+    .validation-summary {
+        background: #fff5f5; border: 1px solid #fecaca; border-radius: 6px;
+        padding: 8px 12px; margin-top: 8px; font-size: 10px; color: #991b1b;
+        display: none;
+    }
+    .validation-summary.show { display: block; }
+    .validation-summary ul { margin: 0; padding-left: 16px; }
+    .validation-summary li { margin: 2px 0; }
 </style>
 @endpush
 
@@ -102,7 +131,7 @@
         </div>
     @endif
 
-    <form action="{{ route('penjualan.store') }}" method="POST" id="formPenjualan">
+    <form action="{{ route('penjualan.store') }}" method="POST" id="formPenjualan" onsubmit="return validateBeforeSubmit()">
         @csrf
         
         {{-- Info Dasar --}}
@@ -111,11 +140,12 @@
                 <div class="section-title"><i class="fas fa-info-circle text-success"></i>Informasi Penjualan</div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label">Tanggal <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        <label class="form-label required">Tanggal</label>
+                        <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required onchange="hitungTotal()">
+                        <div class="error-message" id="errorTanggal"><i class="fas fa-exclamation-circle"></i> Tanggal wajib diisi</div>
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Pembeli <span class="text-danger">*</span></label>
+                        <label class="form-label required">Pembeli</label>
                         <div class="pembeli-search-wrapper">
                             <input type="text" class="form-control pembeli-search-input" id="pembeliSearchInput"
                                    placeholder="Ketik nama pembeli..." autocomplete="off">
@@ -130,7 +160,7 @@
                             </span>
                         </div>
                         <input type="hidden" name="pembeli_id" id="pembeliIdHidden">
-                        <div class="error-message text-danger small mt-1" id="pembeliError" style="display:none;">
+                        <div class="error-message" id="errorPembeli">
                             <i class="fas fa-exclamation-circle"></i> Pembeli wajib dipilih
                         </div>
                     </div>
@@ -141,7 +171,17 @@
         {{-- Produk --}}
         <div class="card">
             <div class="card-body">
-                <div class="section-title"><i class="fas fa-boxes text-warning"></i>Produk Dijual</div>
+                <div class="section-title">
+                    <i class="fas fa-boxes text-warning"></i>Produk Dijual
+                    <span class="btn-status" id="btnStatus">Belum Siap</span>
+                </div>
+                
+                {{-- Validasi Summary --}}
+                <div class="validation-summary" id="validationSummary">
+                    <strong><i class="fas fa-exclamation-triangle me-1"></i>Data Belum Lengkap:</strong>
+                    <ul id="validationList"></ul>
+                </div>
+                
                 <div id="produkContainer"></div>
                 <button type="button" class="btn-add" onclick="tambahProduk()">
                     <i class="fas fa-plus-circle me-1"></i>Tambah Produk
@@ -158,7 +198,7 @@
 
         <div class="d-flex gap-2 mt-2">
             <a href="{{ route('penjualan.penjualan') }}" class="btn btn-outline-secondary rounded-pill flex-fill">Kembali</a>
-            <button type="button" class="btn-submit flex-fill" id="btnSimpan" disabled onclick="simpanTransaksi()">
+            <button type="button" class="btn-submit flex-fill" id="btnSimpan" disabled onclick="simpanTransaksi()" title="Lengkapi data terlebih dahulu">
                 <i class="fas fa-save me-1"></i>Simpan Transaksi
             </button>
         </div>
@@ -167,10 +207,12 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const jenisProdukList = @json($jenisProduk);
 const pembeliList = @json($pembeli);
 let produkIdx = 0;
+let isSubmitting = false;
 
 function formatNum(n) { return parseFloat(n).toFixed(2); }
 function formatRupiah(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -221,8 +263,9 @@ function selectPembeli(id, name) {
     $pembeliName.textContent = name;
     $pembeliBadge.classList.add('show');
     $pembeliDropdown.classList.remove('show');
-    $pembeliError.style.display = 'none';
+    $pembeliError.classList.remove('show');
     $pembeliInput.classList.remove('is-invalid');
+    hitungTotal();
 }
 
 function clearPembeli() {
@@ -232,6 +275,7 @@ function clearPembeli() {
     $pembeliBadge.classList.remove('show');
     $pembeliInput.focus();
     renderPembeliDropdown('');
+    hitungTotal();
 }
 
 $pembeliInput.addEventListener('input', function() {
@@ -243,6 +287,7 @@ $pembeliInput.addEventListener('input', function() {
             $pembeliHidden.value = '';
             this.dataset.pembeliId = '';
             $pembeliBadge.classList.remove('show');
+            hitungTotal();
         }
     }
     renderPembeliDropdown(val);
@@ -291,7 +336,7 @@ function updateActivePembeli(items) {
 
 $clearPembeli.addEventListener('click', clearPembeli);
 
-// ========== FORMAT HARGA (HANYA ANGKA) ==========
+// ========== FORMAT HARGA ==========
 function formatHarga(inp) {
     let val = inp.value.replace(/[^0-9]/g, '');
     inp.value = val ? val.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
@@ -324,14 +369,16 @@ function tambahProduk() {
         </div>
         <div class="row g-2 mb-3">
             <div class="col-12 col-md-6">
-                <label class="form-label">Jenis Produk <span class="text-danger">*</span></label>
+                <label class="form-label required">Jenis Produk</label>
                 <select name="items[${newIdx}][jenis_produk_id]" class="form-select produk-select" onchange="cekDuplikatProduk(${newIdx});updateInfo(${newIdx})" required>${opt}</select>
+                <div class="error-message" id="errorProduk${newIdx}"><i class="fas fa-exclamation-circle"></i> Produk wajib dipilih</div>
             </div>
             <div class="col-6 col-md-3">
-                <label class="form-label">Harga/Kg (Rp) <span class="text-danger">*</span></label>
+                <label class="form-label required">Harga/Kg (Rp)</label>
                 <input type="text" name="items[${newIdx}][harga_per_kg]" class="form-control harga-input" 
                        placeholder="0" inputmode="numeric" pattern="[0-9]*" 
                        oninput="formatHarga(this)" required>
+                <div class="error-message" id="errorHarga${newIdx}"><i class="fas fa-exclamation-circle"></i> Harga harus diisi</div>
             </div>
             <div class="col-6 col-md-3">
                 <label class="form-label">Stok Tersedia</label>
@@ -341,9 +388,10 @@ function tambahProduk() {
         <div class="duplicate-warn" id="dupWarn${newIdx}">⚠️ Produk ini sudah ada, sak akan digabung</div>
         
         <div style="margin-bottom:6px;">
-            <span class="step-label"><span class="step-badge">2</span> Input Berat Kirim per Sak <span class="text-danger">*</span></span>
+            <span class="step-label"><span class="step-badge">2</span> Input Berat Kirim per Sak</span>
         </div>
         <div class="sak-list" id="sakList${newIdx}"></div>
+        <div class="error-message" id="errorSak${newIdx}"><i class="fas fa-exclamation-circle"></i> Minimal 1 sak dengan berat harus diisi</div>
         <button type="button" class="btn-add btn-add-sm" onclick="tambahSak(${newIdx})">
             <i class="fas fa-plus me-1"></i>Tambah Sak
         </button>
@@ -353,11 +401,12 @@ function tambahProduk() {
         <div class="stok-warning" id="stokWarning${newIdx}"></div>
         
         <div style="margin:12px 0 6px;">
-            <span class="step-label"><span class="step-badge">3</span> Input Berat Nett <span class="text-danger">*</span></span>
+            <span class="step-label"><span class="step-badge">3</span> Input Berat Nett</span>
         </div>
         <div class="row g-2">
             <div class="col-8 col-md-6">
                 <input type="number" step="0.01" name="items[${newIdx}][berat_nett_kg]" class="form-control nett-input" placeholder="Berat Nett (Kg)" oninput="cekBatasanNett(this);hitungTotal();" required>
+                <div class="error-message" id="errorNett${newIdx}"><i class="fas fa-exclamation-circle"></i> Berat Nett harus diisi</div>
             </div>
         </div>
         <div style="font-size:10px;color:#888;margin-top:2px;">
@@ -419,10 +468,23 @@ function cekDuplikatProduk(pIdx) {
         if (existingSakList && currentSakList) {
             currentSakList.querySelectorAll('.sak-row').forEach(row => existingSakList.appendChild(row));
         }
+        // Update nett & harga
+        const existingNett = existingGroup.querySelector('.nett-input');
+        const currentNett = currentGroup.querySelector('.nett-input');
+        if (existingNett && currentNett) {
+            existingNett.value = parseFloat(currentNett.value) || parseFloat(existingNett.value) || 0;
+        }
+        const existingHarga = existingGroup.querySelector('.harga-input');
+        const currentHarga = currentGroup.querySelector('.harga-input');
+        if (existingHarga && currentHarga) {
+            existingHarga.value = formatRupiah(parseRupiah(currentHarga.value) || parseRupiah(existingHarga.value) || 0);
+        }
+        
         currentGroup.style.opacity = '0'; currentGroup.style.transform = 'scale(0.95)'; currentGroup.style.transition = 'all 0.2s';
         setTimeout(() => { currentGroup.remove(); renumberProduk(); hitungTotal(); }, 200);
         existingGroup.style.borderColor = '#f59e0b';
-        setTimeout(() => { existingGroup.style.borderColor = '#e8eaef'; }, 2000);
+        existingGroup.classList.add('duplicate');
+        setTimeout(() => { existingGroup.style.borderColor = '#e8eaef'; existingGroup.classList.remove('duplicate'); }, 2000);
         Swal.fire({ icon: 'info', title: 'Produk Digabung!', text: 'Produk yang sama otomatis digabungkan.', timer: 2500, showConfirmButton: false, toast: true, position: 'top-end' });
     }
     hitungTotal();
@@ -445,6 +507,9 @@ function renumberProduk() {
         const stokDisplay = g.querySelector('[id^="stokDisplay"]'); if (stokDisplay) stokDisplay.id = 'stokDisplay' + i;
         const sakList = g.querySelector('[id^="sakList"]'); if (sakList) sakList.id = 'sakList' + i;
         const dupWarn = g.querySelector('[id^="dupWarn"]'); if (dupWarn) dupWarn.id = 'dupWarn' + i;
+        ['errorProduk', 'errorHarga', 'errorSak', 'errorNett'].forEach(base => {
+            const el = g.querySelector(`[id^="${base}"]`); if (el) el.id = base + i;
+        });
         g.querySelectorAll('.btn-add-sm').forEach(btn => { if (btn.textContent.includes('Sak')) btn.setAttribute('onclick', `tambahSak(${i})`); });
         ['kirimSummary', 'stokWarning', 'maxNett', 'nettWarning'].forEach(base => { const el = g.querySelector(`[id^="${base}"]`); if (el) el.id = base + i; });
         const nettInput = g.querySelector('.nett-input');
@@ -467,6 +532,10 @@ function tambahSak(pIdx) {
         <button type="button" class="btn-remove" onclick="this.closest('.sak-row').remove();hitungTotal();">&times;</button>
     </div>`;
     list.insertAdjacentHTML('beforeend', html);
+    
+    const newInput = list.querySelector('.sak-row:last-child input');
+    if (newInput) setTimeout(() => newInput.focus(), 50);
+    
     hitungTotal();
 }
 
@@ -506,67 +575,235 @@ function cekBatasanNett(inp) {
     hitungTotal();
 }
 
+// ========== HITUNG TOTAL DENGAN VALIDASI LENGKAP ==========
 function hitungTotal() {
     let totalSak = 0, totalKirim = 0, totalNett = 0, totalHarga = 0, isValid = true;
-    document.querySelectorAll('.produk-group').forEach((g) => {
+    const errors = [];
+    
+    const produkGroups = document.querySelectorAll('.produk-group');
+    
+    // ✅ Validasi Tanggal
+    const tanggalInput = document.getElementById('tanggal');
+    const tanggalValid = tanggalInput && tanggalInput.value !== '';
+    if (!tanggalValid) {
+        isValid = false;
+        errors.push('Tanggal harus diisi');
+        document.getElementById('errorTanggal')?.classList.add('show');
+        tanggalInput?.classList.add('is-invalid');
+    } else {
+        document.getElementById('errorTanggal')?.classList.remove('show');
+        tanggalInput?.classList.remove('is-invalid');
+    }
+    
+    // ✅ Validasi Pembeli
+    const pembeliValid = $pembeliHidden.value !== '';
+    if (!pembeliValid) {
+        isValid = false;
+        errors.push('Pembeli harus dipilih');
+        $pembeliError?.classList.add('show');
+        $pembeliInput?.classList.add('is-invalid');
+    } else {
+        $pembeliError?.classList.remove('show');
+        $pembeliInput?.classList.remove('is-invalid');
+    }
+    
+    // ✅ Validasi Produk
+    if (produkGroups.length === 0) {
+        isValid = false;
+        errors.push('Minimal 1 produk harus ditambahkan');
+    }
+    
+    produkGroups.forEach((g) => {
         const idx = parseInt(g.id.replace('produk', ''));
         if (isNaN(idx)) return;
+        
         const sel = g.querySelector('.produk-select');
         const opt = sel?.selectedOptions[0];
         const stok = parseFloat(opt?.dataset?.stok) || 0;
+        
         let gSak = 0, gKirim = 0;
-        g.querySelectorAll('.sak-row input').forEach(el => { const v = parseFloat(el.value) || 0; if (v > 0) { gKirim += v; gSak++; } });
+        let hasEmptySak = false;
+        g.querySelectorAll('.sak-row input').forEach(el => { 
+            const v = parseFloat(el.value) || 0; 
+            if (v > 0) { gKirim += v; gSak++; } 
+            else { hasEmptySak = true; }
+        });
+        
         const harga = parseRupiah(g.querySelector('.harga-input')?.value || '0');
         const beratNett = parseFloat(g.querySelector('.nett-input')?.value) || 0;
         const beratPotongan = Math.max(0, gKirim - beratNett);
         const potonganPersen = gKirim > 0 ? (beratPotongan / gKirim * 100) : 0;
         const subtotal = beratNett * harga;
         totalSak += gSak; totalKirim += gKirim; totalNett += beratNett; totalHarga += subtotal;
-        if (gSak === 0 || harga <= 0 || beratNett <= 0) isValid = false;
-        if (!sel?.value) isValid = false;
-        const stokValid = !(gKirim > stok && stok > 0 && sel?.value);
-        if (!stokValid) isValid = false;
-        g.querySelectorAll('.sak-row input').forEach(el => el.classList.toggle('sak-error', !stokValid && gKirim > 0));
+        
+        // Validasi per produk
+        const produkValid = sel?.value !== '';
+        const sakValid = gSak > 0 && !hasEmptySak;
+        const hargaValid = harga > 0;
+        const nettValid = beratNett > 0;
+        const stokValid = !(gKirim > stok && stok > 0 && produkValid);
+        
+        // Update error messages
+        document.getElementById('errorProduk' + idx)?.classList.toggle('show', !produkValid);
+        document.getElementById('errorHarga' + idx)?.classList.toggle('show', !hargaValid);
+        document.getElementById('errorSak' + idx)?.classList.toggle('show', !sakValid);
+        document.getElementById('errorNett' + idx)?.classList.toggle('show', !nettValid);
+        
+        // Update border grup
+        if (!produkValid || !sakValid || !hargaValid || !nettValid || !stokValid) {
+            g.classList.add('invalid');
+            if (!produkValid) errors.push(`Produk #${idx + 1}: Jenis produk harus dipilih`);
+            if (!hargaValid) errors.push(`Produk #${idx + 1}: Harga harus diisi`);
+            if (!sakValid) errors.push(`Produk #${idx + 1}: Minimal 1 sak dengan berat harus diisi`);
+            if (!nettValid) errors.push(`Produk #${idx + 1}: Berat Nett harus diisi`);
+            if (!stokValid) errors.push(`Produk #${idx + 1}: Berat kirim melebihi stok`);
+        } else {
+            g.classList.remove('invalid');
+        }
+        
+        sel?.classList.toggle('is-invalid', !produkValid);
+        g.querySelector('.harga-input')?.classList.toggle('is-invalid', !hargaValid);
+        g.querySelector('.nett-input')?.classList.toggle('is-invalid', !nettValid);
+        g.querySelectorAll('.sak-row input').forEach(el => el.classList.toggle('sak-error', hasEmptySak || !stokValid));
+        
+        if (!stokValid || !produkValid || !sakValid || !hargaValid || !nettValid) isValid = false;
+        
+        // Update UI
         const kirimSummary = document.getElementById('kirimSummary' + idx);
-        if (kirimSummary) { kirimSummary.innerHTML = `Total Berat Kirim: <strong>${formatNum(gKirim)} Kg</strong> dari <strong>${gSak} Sak</strong>`; if (!stokValid) kirimSummary.innerHTML += ` <span style="color:#ef4444;">(Max: ${formatNum(stok)} Kg)</span>`; }
-        const stokWarn = document.getElementById('stokWarning' + idx); if (stokWarn) { stokWarn.style.display = !stokValid ? 'block' : 'none'; if (!stokValid) stokWarn.innerHTML = `⚠️ Total (${formatNum(gKirim)} Kg) melebihi Stok (${formatNum(stok)} Kg)!`; }
-        const nettWarn = document.getElementById('nettWarning' + idx); if (nettWarn) nettWarn.style.display = beratNett > gKirim && gKirim > 0 ? 'block' : 'none';
-        const updates = { maxNett: formatNum(gKirim) + ' Kg', calcSak: gSak + ' Sak', calcKirim: formatNum(gKirim) + ' Kg', calcNett: formatNum(beratNett) + ' Kg', calcHarga: 'Rp ' + formatRupiah(harga), calcSubtotal: 'Rp ' + formatRupiah(subtotal), calcPotonganKg: formatNum(beratPotongan) + ' Kg', calcPotonganPersen: formatNum(potonganPersen) + '%' };
+        if (kirimSummary) { 
+            kirimSummary.innerHTML = `Total Berat Kirim: <strong>${formatNum(gKirim)} Kg</strong> dari <strong>${gSak} Sak</strong>`; 
+            if (!stokValid) kirimSummary.innerHTML += ` <span style="color:#ef4444;">(Max: ${formatNum(stok)} Kg)</span>`; 
+        }
+        
+        const stokWarn = document.getElementById('stokWarning' + idx); 
+        if (stokWarn) { stokWarn.style.display = !stokValid ? 'block' : 'none'; if (!stokValid) stokWarn.innerHTML = `⚠️ Total (${formatNum(gKirim)} Kg) melebihi Stok (${formatNum(stok)} Kg)!`; }
+        
+        const nettWarn = document.getElementById('nettWarning' + idx); 
+        if (nettWarn) nettWarn.style.display = beratNett > gKirim && gKirim > 0 ? 'block' : 'none';
+        
+        const updates = { 
+            maxNett: formatNum(gKirim) + ' Kg', calcSak: gSak + ' Sak', calcKirim: formatNum(gKirim) + ' Kg', 
+            calcNett: formatNum(beratNett) + ' Kg', calcHarga: 'Rp ' + formatRupiah(harga), 
+            calcSubtotal: 'Rp ' + formatRupiah(subtotal), calcPotonganKg: formatNum(beratPotongan) + ' Kg', 
+            calcPotonganPersen: formatNum(potonganPersen) + '%' 
+        };
         Object.entries(updates).forEach(([id, val]) => { const el = document.getElementById(id + idx); if (el) el.textContent = val; });
         const rp = document.getElementById('rowPotongan' + idx), rpp = document.getElementById('rowPotonganPersen' + idx);
         if (rp) rp.style.display = beratPotongan > 0.001 ? '' : 'none';
         if (rpp) rpp.style.display = beratPotongan > 0.001 ? '' : 'none';
     });
+    
+    // Update grand total
     document.getElementById('totalSak').textContent = totalSak;
     document.getElementById('totalKirim').textContent = formatNum(totalKirim) + ' Kg';
     document.getElementById('totalNett').textContent = formatNum(totalNett) + ' Kg';
     document.getElementById('totalHarga').textContent = 'Rp ' + formatRupiah(totalHarga);
-    document.getElementById('btnSimpan').disabled = !isValid || totalSak === 0 || !$pembeliHidden.value;
+    
+    // ✅ Validasi final
+    const hasProducts = produkGroups.length > 0;
+    const hasSak = totalSak > 0;
+    const allValid = isValid && hasProducts && hasSak && tanggalValid && pembeliValid;
+    
+    // ✅ Update validation summary
+    const validationSummary = document.getElementById('validationSummary');
+    const validationList = document.getElementById('validationList');
+    if (validationSummary && validationList) {
+        if (errors.length > 0) {
+            validationSummary.classList.add('show');
+            validationList.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+        } else {
+            validationSummary.classList.remove('show');
+        }
+    }
+    
+    // Update status badge
+    const btnStatus = document.getElementById('btnStatus');
+    if (btnStatus) {
+        if (allValid) {
+            btnStatus.textContent = '✅ Siap Simpan';
+            btnStatus.className = 'btn-status ready';
+        } else {
+            btnStatus.textContent = '⏳ ' + errors.length + ' Masalah';
+            btnStatus.className = 'btn-status not-ready';
+        }
+    }
+    
+    // Update button
+    const btnSimpan = document.getElementById('btnSimpan');
+    btnSimpan.disabled = !allValid;
+    
+    if (!allValid) {
+        btnSimpan.title = '❌ ' + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : '');
+    } else {
+        btnSimpan.title = '✅ Klik untuk menyimpan transaksi';
+    }
+    
+    return { allValid, errors };
 }
 
 function updateGrandTotalVisibility() {
-    document.getElementById('grandTotalBox').style.display = document.querySelectorAll('.produk-group').length > 0 ? '' : 'none';
+    const box = document.getElementById('grandTotalBox');
+    if (box) box.style.display = document.querySelectorAll('.produk-group').length > 0 ? '' : 'none';
+}
+
+// ========== VALIDASI SEBELUM SUBMIT ==========
+function validateBeforeSubmit() {
+    if (isSubmitting) return false;
+    const { allValid, errors } = hitungTotal();
+    if (!allValid) {
+        Swal.fire({
+            icon: 'warning', title: 'Form Belum Lengkap!',
+            html: `<div style="text-align:left;font-size:12px;"><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`,
+            confirmButtonColor: '#2e7d32', confirmButtonText: 'OK'
+        });
+        return false;
+    }
+    return true;
 }
 
 // ========== SIMPAN ==========
 function simpanTransaksi() {
-    if (document.getElementById('btnSimpan').disabled) return;
+    const { allValid, errors } = hitungTotal();
+    
+    if (!allValid) {
+        Swal.fire({
+            icon: 'warning', title: 'Form Belum Lengkap!',
+            html: `<div style="text-align:left;font-size:12px;"><p>Mohon lengkapi data berikut:</p><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`,
+            confirmButtonColor: '#2e7d32', confirmButtonText: 'OK'
+        });
+        const firstError = document.querySelector('.is-invalid, .sak-error, .invalid');
+        if (firstError) { firstError.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => firstError.focus(), 300); }
+        return;
+    }
+    
     const tanggal = document.getElementById('tanggal').value;
     const pembeli = $pembeliHidden.value;
     const totalSak = parseInt(document.getElementById('totalSak').textContent) || 0;
     const totalHarga = document.getElementById('totalHarga').textContent;
+    const totalKirim = document.getElementById('totalKirim').textContent;
+    const totalNett = document.getElementById('totalNett').textContent;
+    const pembeliNama = $pembeliInput.value;
     
     if (!tanggal) return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Tanggal harus diisi!' });
-    if (!pembeli) { $pembeliError.style.display = 'flex'; $pembeliInput.classList.add('is-invalid'); return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Pembeli harus dipilih!' }); }
+    if (!pembeli) { $pembeliError.classList.add('show'); $pembeliInput.classList.add('is-invalid'); $pembeliInput.focus(); return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Pembeli harus dipilih!' }); }
     if (totalSak <= 0) return Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Minimal 1 sak harus diisi!' });
     
     Swal.fire({
         title: 'Konfirmasi Simpan',
-        html: `<div style="text-align:left;font-size:12px;"><p><strong>Pembeli:</strong> ${$pembeliInput.value}</p><p><strong>Total Sak:</strong> ${totalSak}</p><p><strong>Total Harga:</strong> ${totalHarga}</p></div>`,
+        html: `
+            <div style="text-align:left;font-size:12px;">
+                <p><strong>Pembeli:</strong> ${pembeliNama}</p>
+                <p><strong>Total Sak:</strong> ${totalSak}</p>
+                <p><strong>Total Kirim:</strong> ${totalKirim}</p>
+                <p><strong>Total Nett:</strong> ${totalNett}</p>
+                <p><strong>Total Harga:</strong> ${totalHarga}</p>
+            </div>`,
         icon: 'question', showCancelButton: true, confirmButtonColor: '#2e7d32', cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Simpan', cancelButtonText: 'Batal'
+        confirmButtonText: '<i class="fas fa-save me-1"></i>Simpan', cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
+            isSubmitting = true;
+            
             document.querySelectorAll('.harga-input').forEach(inp => {
                 const hidden = document.createElement('input');
                 hidden.type = 'hidden'; hidden.name = inp.getAttribute('name'); hidden.value = parseRupiah(inp.value);
@@ -575,13 +812,14 @@ function simpanTransaksi() {
             document.querySelectorAll('.produk-group').forEach((g, pIdx) => {
                 g.querySelectorAll('.sak-row input').forEach((inp, sIdx) => { inp.name = `items[${pIdx}][sak][${sIdx}][berat_kg]`; });
             });
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            Swal.fire({ title: 'Menyimpan...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             document.getElementById('formPenjualan').submit();
         }
     });
 }
 
-// ========== EVENT LISTENERS HARGA ==========
+// ========== EVENT LISTENERS ==========
 document.addEventListener('DOMContentLoaded', function() {
     const produkContainer = document.getElementById('produkContainer');
     produkContainer.addEventListener('input', function(e) {
@@ -609,6 +847,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== INIT ==========
 tambahProduk();
+setTimeout(() => { hitungTotal(); updateGrandTotalVisibility(); }, 100);
+window.addEventListener('load', function() { setTimeout(() => hitungTotal(), 200); });
 
 @if(session('success'))
     Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000, timerProgressBar: true, confirmButtonColor: '#2e7d32' });

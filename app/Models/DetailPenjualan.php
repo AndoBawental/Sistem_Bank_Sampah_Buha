@@ -22,7 +22,8 @@ class DetailPenjualan extends Model
         'berat_potongan_kg',
         'berat_nett_kg',
         'harga_per_kg',
-        'subtotal'
+        'subtotal',
+        'detail_sak', // Tambahkan ini
     ];
 
     protected $casts = [
@@ -32,7 +33,8 @@ class DetailPenjualan extends Model
         'berat_potongan_kg' => 'float',
         'berat_nett_kg' => 'float',
         'harga_per_kg' => 'float',
-        'subtotal' => 'float'
+        'subtotal' => 'float',
+        'detail_sak' => 'array', // Auto decode JSON
     ];
 
     public function penjualan(): BelongsTo
