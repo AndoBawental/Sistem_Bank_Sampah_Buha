@@ -6,122 +6,52 @@
 
 @push('styles')
 <style>
-    :root {
-        --primary: #2e7d32;
-        --primary-dark: #1b5e20;
-        --danger: #ef4444;
-        --success: #10b981;
-        --radius: 12px;
-        --radius-sm: 8px;
-    }
+    :root { --primary: #2e7d32; --primary-dark: #1b5e20; --danger: #ef4444; --success: #10b981; --radius: 12px; --radius-sm: 8px; }
 
-    .card {
-        border: none;
-        border-radius: var(--radius);
-        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-        margin-bottom: 1rem;
-    }
-    .card-header {
-        background: #fff;
-        border-bottom: 1px solid #f0f0f0;
-        padding: 0.8rem 1rem;
-    }
+    .card { border: none; border-radius: var(--radius); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 1rem; }
+    .card-header { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 0.8rem 1rem; }
     .card-body { padding: 1rem; }
-    @media (min-width: 768px) { .card-body { padding: 1.25rem; } }
 
     .form-control, .form-select {
-        border-radius: var(--radius-sm);
-        border: 1.5px solid #e0e0e0;
-        font-size: 0.82rem;
-        padding: 9px 12px;
-        min-height: 40px;
-        transition: all 0.2s;
-        background: #fafbfc;
+        border-radius: var(--radius-sm); border: 1.5px solid #e0e0e0; font-size: 0.82rem;
+        padding: 9px 12px; min-height: 40px; transition: all 0.2s; background: #fafbfc; width: 100%;
     }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(46,125,50,0.08);
-        background: #fff;
-    }
-    .form-label {
-        font-weight: 600;
-        font-size: 0.72rem;
-        color: #555;
-        margin-bottom: 4px;
-    }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.08); background: #fff; }
+    .form-label { font-weight: 600; font-size: 0.72rem; color: #555; margin-bottom: 4px; }
 
-    .alert-box {
-        border-radius: var(--radius-sm);
-        padding: 10px 14px;
-        font-size: 0.75rem;
-        margin-bottom: 14px;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    .alert-info { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+    .alert-box { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 0.75rem; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; }
     .alert-warning { background: #fff8e1; border: 1px solid #ffecb3; color: #795548; }
-    .alert-error { background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
 
-    .stok-info {
-        background: #fafbfc;
-        border-radius: var(--radius);
-        padding: 12px 14px;
-        margin-bottom: 14px;
-        border: 1px solid #f0f0f0;
-    }
-    .stok-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 0;
-    }
-    .stok-row + .stok-row { border-top: 1px solid #f0f0f0; }
+    .stok-info { background: #fafbfc; border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; border: 1px solid #f0f0f0; }
+    .stok-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+    .stok-row+.stok-row { border-top: 1px solid #f0f0f0; }
     .stok-label { font-size: 0.72rem; color: #888; display: flex; align-items: center; gap: 6px; }
-    .stok-value { font-weight: 700; font-size: 0.78rem; color: #333; font-variant-numeric: tabular-nums; }
+    .stok-value { font-weight: 700; font-size: 0.78rem; color: #333; }
 
-    .item-row {
-        background: #fff;
-        border: 1.5px solid #e8e8e8;
-        border-radius: var(--radius-sm);
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        transition: all 0.2s;
-        position: relative;
-    }
-    .item-row:hover { border-color: #c8e6c9; }
-    .item-row.duplicate { border-color: #f59e0b; background: #fffdf5; }
-    .duplicate-warn {
-        display: none;
-        font-size: 0.6rem;
-        color: #f59e0b;
-        margin-top: 2px;
-    }
-    .item-row.duplicate .duplicate-warn { display: block; }
-    
-    .btn-remove-item {
-        width: 28px; height: 28px; border-radius: 50%;
-        border: 1px solid #ffcdd2; background: #fff; color: var(--danger);
-        cursor: pointer; font-size: 0.7rem; display: flex;
-        align-items: center; justify-content: center; transition: all 0.15s;
-    }
-    .btn-remove-item:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+    /* Group Jenis Plastik */
+    .jenis-group { background: #fff; border: 2px solid #e8eaef; border-radius: 10px; padding: 12px; margin-bottom: 10px; position: relative; }
+    .jenis-group.duplicate { border-color: #f59e0b; background: #fffdf5; }
+    .jenis-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
+    .jenis-group-title { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+    .jenis-group-stats { font-size: 0.7rem; color: #777; }
 
-    .btn-add {
-        border: 2px dashed #c8e6c9; color: var(--primary); background: #f8fdf9;
-        width: 100%; padding: 10px; border-radius: var(--radius-sm);
-        font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-add:hover { background: #e8f5e9; border-color: var(--primary); }
+    /* Karung/Sak Row */
+    .karung-row { display: flex; gap: 6px; align-items: end; margin-bottom: 4px; }
+    .karung-nomor { min-width: 28px; font-size: 11px; font-weight: 700; color: #666; text-align: center; align-self: center; }
 
-    .total-box {
-        background: linear-gradient(135deg, #1b5e20, #2e7d32);
-        border-radius: var(--radius); padding: 12px 16px; color: #fff; margin-top: 12px;
-    }
+    .btn-add { border: 2px dashed #c8e6c9; color: var(--primary); background: #f8fdf9; width: 100%; padding: 10px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; min-height: 44px; }
+    .btn-add:hover { background: #e8f5e9; }
+    .btn-add-sm { border: 1.5px dashed #c8e6c9; font-size: 10px; padding: 4px 8px; width: auto; min-height: auto; }
+    .btn-remove { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+    .btn-remove:hover { color: #dc2626; transform: scale(1.2); }
+    .btn-remove-group { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ffcdd2; background: #fff; color: #ef4444; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+    .btn-remove-group:hover { background: #ef4444; color: #fff; }
+
+    .total-box { background: linear-gradient(135deg,#1b5e20,#2e7d32); border-radius: var(--radius); padding: 12px 16px; color: #fff; margin-top: 12px; }
     .total-row { display: flex; justify-content: space-around; text-align: center; }
     .total-item { flex: 1; }
     .total-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; margin-bottom: 4px; }
-    .total-value { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .total-value { font-size: 1.1rem; font-weight: 700; }
 
     .progress-wrap { margin: 10px 0 4px; }
     .progress-bar-bg { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; }
@@ -130,35 +60,22 @@
     .progress-fill.danger { background: var(--danger); }
     .progress-text { display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.62rem; color: #999; }
 
-    .btn-submit {
-        background: var(--primary); color: #fff; font-weight: 700;
-        border-radius: 50px; font-size: 0.82rem; padding: 11px 24px;
-        width: 100%; border: none; transition: all 0.2s; margin-top: 12px;
-    }
+    .btn-submit { background: var(--primary); color: #fff; font-weight: 700; border-radius: 50px; font-size: 0.82rem; padding: 11px 24px; width: 100%; border: none; transition: all 0.2s; margin-top: 12px; min-height: 44px; }
     .btn-submit:hover { background: var(--primary-dark); }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Summary merge */
-    .merge-summary {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: var(--radius-sm);
-        padding: 8px 12px;
-        margin-top: 8px;
-        font-size: 0.68rem;
-        display: none;
-    }
-    .merge-summary.show { display: block; }
-    .merge-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 2px 0;
-    }
+    .duplicate-warn { display: none; font-size: 9px; color: #f59e0b; margin-top: 2px; }
+    .stok-warning { color: #ef4444; font-size: 10px; display: none; margin-top: 2px; }
 
+    @media (min-width: 768px) { .card-body { padding: 1.25rem; } .container-fluid { max-width: 800px; } }
     @media (max-width: 575px) {
         .form-control, .form-select { min-height: 44px; font-size: 0.85rem; }
-        .btn-add { min-height: 44px; }
         .btn-submit { min-height: 48px; font-size: 0.88rem; }
+        .stok-info { padding: 10px; }
+        .stok-label { font-size: 0.65rem; }
+        .stok-value { font-size: 0.7rem; }
+        .jenis-group { padding: 8px 10px; }
+        .karung-nomor { min-width: 22px; font-size: 10px; }
     }
 </style>
 @endpush
@@ -168,124 +85,47 @@
     <div class="row justify-content-center">
         <div class="col-lg-7">
 
-            {{-- Info Stok --}}
-           <div class="stok-info">
-    <div class="stok-row">
-        <span class="stok-label"><i class="fas fa-boxes text-warning"></i>Stok Kotor Tersedia (Real-time)</span>
-        <span class="stok-value" style="font-size:1.1rem;color:#f59e0b;">
-            {{ number_format($totalBeratKotor, 2, ',', '.') }} Kg
-        </span>
-    </div>
-    <div class="stok-row">
-        <span class="stok-label"><i class="fas fa-calculator text-info"></i>Estimasi Bersih (~85%)</span>
-        <span class="stok-value">{{ number_format($estimasiBersih, 2, ',', '.') }} Kg</span>
-    </div>
-    <div class="stok-row">
-        <span class="stok-label"><i class="fas fa-check-circle text-success"></i>Stok Bersih Saat Ini</span>
-        <span class="stok-value" style="color:#10b981;">{{ number_format($totalBeratBersih, 2, ',', '.') }} Kg</span>
-    </div>
-    <div class="stok-row" style="background:#fff8e1;margin:-8px -12px;padding:8px 12px;border-radius:0 0 8px 8px;">
-        <span class="stok-label"><i class="fas fa-info-circle text-warning"></i><strong>Rumus:</strong></span>
-        <span class="stok-value" style="font-size:0.65rem;color:#795548;">
-            Total Penerimaan Belum - Total Hasil Sortir = Stok Kotor Sisa
-        </span>
-    </div>
-</div>
+            <div class="stok-info">
+                <div class="stok-row"><span class="stok-label"><i class="fas fa-boxes text-warning"></i>Stok Kotor Tersedia</span><span class="stok-value" style="font-size:1.1rem;color:#f59e0b;">{{ number_format($totalBeratKotor,2,',','.') }} Kg</span></div>
+                <div class="stok-row"><span class="stok-label"><i class="fas fa-calculator text-info"></i>Estimasi Bersih (~85%)</span><span class="stok-value">{{ number_format($estimasiBersih,2,',','.') }} Kg</span></div>
+                <div class="stok-row"><span class="stok-label"><i class="fas fa-check-circle text-success"></i>Stok Bersih Saat Ini</span><span class="stok-value" style="color:#10b981;">{{ number_format($totalBeratBersih,2,',','.') }} Kg</span></div>
+            </div>
 
-            {{-- Form --}}
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0" style="font-size:0.88rem;">
-                        <i class="fas fa-filter text-success me-1"></i>Input Hasil Sortir
-                    </h6>
-                    <a href="{{ route('gudang.sortir.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-                        <i class="fas fa-arrow-left me-1"></i>Kembali
-                    </a>
+                    <h6 class="fw-bold mb-0" style="font-size:0.88rem;"><i class="fas fa-filter text-success me-1"></i>Input Hasil Sortir</h6>
+                    <a href="{{ route('gudang.sortir.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="fas fa-arrow-left me-1"></i>Kembali</a>
                 </div>
                 <div class="card-body">
                     <div class="alert-box alert-warning">
                         <i class="fas fa-info-circle mt-0.5"></i>
-                        <span><strong>Sortir Bertahap:</strong> Input berat bersih per jenis plastik. Jika jenis sama, berat akan <strong>dijumlahkan otomatis</strong>.</span>
+                        <span>Input berat per karung/sak. <strong>Jenis plastik sama otomatis digabung.</strong></span>
                     </div>
 
                     <form action="{{ route('gudang.sortir.store') }}" method="POST" id="formSortir">
                         @csrf
+                        <div id="jenisContainer"></div>
                         
-                        <div id="itemsContainer">
-                            <div class="item-row">
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-12 col-md-5 mb-2 mb-md-0">
-                                        <label class="form-label">Jenis Plastik <span class="text-danger">*</span></label>
-                                        <select name="hasil[0][jenis_plastik_id]" class="form-select jenis-select" required>
-                                            <option value="">Pilih jenis plastik...</option>
-                                            @foreach($jenisPlastik as $jp)
-                                                <option value="{{ $jp->id }}">{{ $jp->nama }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="duplicate-warn">⚠️ Jenis ini sudah ada, berat akan digabung</div>
-                                    </div>
-                                    <div class="col-8 col-md-5">
-                                        <label class="form-label">Berat Bersih (Kg) <span class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" min="0.01" 
-                                               name="hasil[0][berat_bersih]" 
-                                               class="form-control berat-input" 
-                                               placeholder="0.00" required>
-                                    </div>
-                                    <div class="col-4 col-md-2 text-end">
-                                        <button type="button" class="btn-remove-item" title="Hapus" style="display:none;">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn-add mt-2" id="addItemBtn">
+                        <button type="button" class="btn-add mt-2" onclick="tambahJenis()">
                             <i class="fas fa-plus-circle me-1"></i>Tambah Jenis Plastik
                         </button>
 
-                        {{-- Ringkasan Gabungan --}}
-                        <div class="merge-summary" id="mergeSummary">
-                            <strong><i class="fas fa-layer-group me-1"></i>Ringkasan (setelah digabung):</strong>
-                            <div id="mergeContent"></div>
+                        <div class="progress-wrap mt-3">
+                            <div class="progress-bar-bg"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+                            <div class="progress-text"><span>Terpakai: <strong id="beratTerpakai">0,00</strong> Kg</span><span>Sisa: <strong id="sisaStok">{{ number_format($totalBeratKotor,2,',','.') }}</strong> Kg</span></div>
                         </div>
 
-                        {{-- Progress --}}
-                        <div class="progress-wrap">
-                            <div class="progress-bar-bg">
-                                <div class="progress-fill" id="progressBar" style="width:0%"></div>
-                            </div>
-                            <div class="progress-text">
-                                <span>Terpakai: <strong id="beratTerpakai">0,00</strong> Kg</span>
-                                <span>Sisa: <strong id="sisaStok">{{ number_format($totalBeratKotor, 2, ',', '.') }}</strong> Kg</span>
-                            </div>
-                        </div>
-
-                        {{-- Total --}}
                         <div class="total-box">
                             <div class="total-row">
-                                <div class="total-item">
-                                    <div class="total-label">Total Bersih</div>
-                                    <div class="total-value" id="totalBersih">0,00 Kg</div>
-                                </div>
-                                <div class="total-item">
-                                    <div class="total-label">Jenis Plastik</div>
-                                    <div class="total-value" id="totalJenis">0</div>
-                                </div>
+                                <div class="total-item"><div class="total-label">Total Bersih</div><div class="total-value" id="totalBersih">0,00 Kg</div></div>
+                                <div class="total-item"><div class="total-label">Karung/Sak</div><div class="total-value" id="totalKarung">0</div></div>
+                                <div class="total-item"><div class="total-label">Jenis Plastik</div><div class="total-value" id="totalJenis">0</div></div>
                             </div>
                         </div>
 
-                        {{-- Catatan --}}
-                        <div class="mt-3">
-                            <label class="form-label">Catatan <small class="text-muted">(Opsional)</small></label>
-                            <input type="text" name="catatan" class="form-control" 
-                                   value="{{ old('catatan') }}" 
-                                   placeholder="Contoh: Sortir tahap 1..." maxlength="255">
-                        </div>
+                        <div class="mt-3"><label class="form-label">Catatan <small class="text-muted">(Opsional)</small></label><input type="text" name="catatan" class="form-control" value="{{ old('catatan') }}" placeholder="Contoh: Sortir tahap 1..." maxlength="255"></div>
 
-                        <button type="submit" class="btn-submit" id="btnSubmit" disabled>
-                            <i class="fas fa-check-circle me-2"></i>Simpan Hasil Sortir
-                        </button>
+                        <button type="submit" class="btn-submit" id="btnSubmit" disabled><i class="fas fa-check-circle me-2"></i>Simpan Hasil Sortir</button>
                     </form>
                 </div>
             </div>
@@ -295,324 +135,268 @@
 @endsection
 
 @push('scripts')
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const MAX = {{ $totalBeratKotor }};
-    const jenisPlastikOptions = @json($jenisPlastik);
-    let itemIdx = 1;
-    const container = document.getElementById('itemsContainer');
-    const progressBar = document.getElementById('progressBar');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const mergeSummary = document.getElementById('mergeSummary');
-    const mergeContent = document.getElementById('mergeContent');
+const MAX = {{ $totalBeratKotor }};
+const jenisPlastikOpt = @json($jenisPlastik);
+let jenisIdx = 0;
 
-    function formatNum(n) { return n.toFixed(2).replace('.', ','); }
+function fm(n) { return n.toFixed(2).replace('.', ','); }
 
-    // Dapatkan data merged (jenis sama dijumlahkan)
-    function getMergedData() {
-        const merged = {};
-        let total = 0;
-        
-        document.querySelectorAll('.item-row').forEach(row => {
-            const jenisSelect = row.querySelector('.jenis-select');
-            const beratInput = row.querySelector('.berat-input');
-            
-            if (!jenisSelect || !jenisSelect.value) return;
-            
-            const jenisId = jenisSelect.value;
-            const jenisNama = jenisSelect.options[jenisSelect.selectedIndex].text;
-            const berat = parseFloat(beratInput?.value) || 0;
-            
-            if (berat <= 0) return;
-            
-            if (!merged[jenisId]) {
-                merged[jenisId] = { nama: jenisNama, berat: 0 };
-            }
-            merged[jenisId].berat += berat;
-            total += berat;
-        });
-        
-        return { items: merged, total: total };
-    }
-
-    function hitungTotal() {
-        const { items, total } = getMergedData();
-        const jenisCount = Object.keys(items).length;
-        
-        document.getElementById('totalBersih').textContent = formatNum(total) + ' Kg';
-        document.getElementById('totalJenis').textContent = jenisCount;
-        document.getElementById('beratTerpakai').textContent = formatNum(total);
-        document.getElementById('sisaStok').textContent = formatNum(Math.max(0, MAX - total));
-        
-        const pct = Math.min((total / MAX) * 100, 100);
-        progressBar.style.width = pct + '%';
-        progressBar.className = 'progress-fill';
-        if (pct > 95) progressBar.classList.add('danger');
-        else if (pct > 80) progressBar.classList.add('warning');
-        
-        btnSubmit.disabled = (total <= 0 || total > MAX);
-        
-        // Tampilkan ringkasan gabungan
-        if (jenisCount > 0 && Object.keys(items).length < document.querySelectorAll('.item-row').length) {
-            mergeSummary.classList.add('show');
-            let html = '';
-            Object.entries(items).forEach(([id, data]) => {
-                html += `<div class="merge-item"><span>${data.nama}</span><strong>${formatNum(data.berat)} Kg</strong></div>`;
-            });
-            mergeContent.innerHTML = html;
-        } else {
-            mergeSummary.classList.remove('show');
-        }
-        
-        // Tandai duplikat
-        const selectedJenis = {};
-        document.querySelectorAll('.item-row').forEach(row => {
-            const jenisSelect = row.querySelector('.jenis-select');
-            const jenisId = jenisSelect?.value;
-            
-            row.classList.remove('duplicate');
-            if (jenisId) {
-                if (selectedJenis[jenisId]) {
-                    row.classList.add('duplicate');
-                }
-                selectedJenis[jenisId] = true;
-            }
-        });
-        
-        return total;
-    }
-
-    // Tambah item
-    document.getElementById('addItemBtn').addEventListener('click', function() {
-        const total = hitungTotal();
-        if (total >= MAX) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Stok Habis',
-                text: 'Stok kotor sudah habis! Tidak bisa menambah jenis lagi.',
-                confirmButtonColor: '#2e7d32'
-            });
+// ========== TAMBAH JENIS PLASTIK ==========
+function tambahJenis(selectedId = '') {
+    if (selectedId) {
+        // Cek apakah jenis sudah ada
+        const existing = document.querySelector(`.jenis-group[data-jenis="${selectedId}"]`);
+        if (existing) {
+            // Tambah 1 karung ke jenis yang sudah ada
+            tambahKarung(existing.querySelector('.karung-list'));
+            existing.style.borderColor = '#f59e0b';
+            setTimeout(() => existing.style.borderColor = '#e8eaef', 2000);
+            Swal.fire({ icon: 'info', title: 'Digabung!', text: 'Karung ditambahkan ke jenis yang sudah ada.', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
+            hitungTotal();
             return;
         }
-        
-        const html = `
-            <div class="item-row" style="animation: fadeIn 0.3s ease;">
-                <div class="row g-2 align-items-end">
-                    <div class="col-12 col-md-5 mb-2 mb-md-0">
-                        <label class="form-label">Jenis Plastik <span class="text-danger">*</span></label>
-                        <select name="hasil[${itemIdx}][jenis_plastik_id]" class="form-select jenis-select" required>
-                            <option value="">Pilih jenis plastik...</option>
-                            @foreach($jenisPlastik as $jp)
-                                <option value="{{ $jp->id }}">{{ $jp->nama }}</option>
-                            @endforeach
-                        </select>
-                        <div class="duplicate-warn">⚠️ Jenis ini sudah ada, berat akan digabung</div>
-                    </div>
-                    <div class="col-8 col-md-5">
-                        <label class="form-label">Berat Bersih (Kg) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" min="0.01" 
-                               name="hasil[${itemIdx}][berat_bersih]" 
-                               class="form-control berat-input" 
-                               placeholder="0.00" required>
-                    </div>
-                    <div class="col-4 col-md-2 text-end">
-                        <button type="button" class="btn-remove-item" title="Hapus">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', html);
-        itemIdx++;
-        attachEvents();
-        
-        const newRow = container.lastElementChild;
-        setTimeout(() => newRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-    });
-
-    // Hapus item
-    function attachEvents() {
-        document.querySelectorAll('.btn-remove-item').forEach(btn => {
-            btn.onclick = function() {
-                const rows = document.querySelectorAll('.item-row');
-                if (rows.length <= 1) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tidak Bisa',
-                        text: 'Minimal 1 jenis plastik!',
-                        confirmButtonColor: '#2e7d32'
-                    });
-                    return;
-                }
-                const row = this.closest('.item-row');
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(20px)';
-                row.style.transition = 'all 0.2s';
-                setTimeout(() => { row.remove(); hitungTotal(); }, 200);
-            };
-        });
-        
-        // Tampilkan/sembunyikan tombol hapus
-        document.querySelectorAll('.item-row').forEach((row, i) => {
-            const btn = row.querySelector('.btn-remove-item');
-            if (btn) btn.style.display = document.querySelectorAll('.item-row').length > 1 ? '' : 'none';
-        });
-        
-        // Event untuk select & input
-        document.querySelectorAll('.jenis-select').forEach(sel => {
-            sel.addEventListener('change', hitungTotal);
-        });
-        document.querySelectorAll('.berat-input').forEach(inp => {
-            inp.addEventListener('input', function() {
-                let val = parseFloat(this.value) || 0;
-                let totalLain = 0;
-                document.querySelectorAll('.berat-input').forEach(el => {
-                    if (el !== this) totalLain += parseFloat(el.value) || 0;
-                });
-                
-                const maxIni = MAX - totalLain;
-                if (val > maxIni) {
-                    this.value = maxIni.toFixed(2);
-                    // Toast
-                    const toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-size:0.75rem;z-index:9999;';
-                    toast.textContent = '⚠️ Disesuaikan ke batas maksimal';
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 2000);
-                }
-                if (val < 0) this.value = 0;
-                
-                hitungTotal();
-            });
-        });
     }
-
-    // Submit form dengan SweetAlert
-    document.getElementById('formSortir').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const { items, total } = getMergedData();
-        const jenisCount = Object.keys(items).length;
-        
-        if (total <= 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Total berat tidak boleh 0!',
-                confirmButtonColor: '#2e7d32'
-            });
-            return;
-        }
-        if (total > MAX) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Total melebihi stok kotor tersedia!',
-                confirmButtonColor: '#2e7d32'
-            });
-            return;
-        }
-        
-        // Buat ringkasan untuk konfirmasi
-        let ringkasanHTML = '<div style="text-align:left;font-size:13px;">';
-        ringkasanHTML += '<p class="mb-2"><strong>Ringkasan Sortir:</strong></p>';
-        ringkasanHTML += '<table style="width:100%;margin-bottom:8px;">';
-        Object.entries(items).forEach(([id, data]) => {
-            ringkasanHTML += `<tr><td>• ${data.nama}</td><td class="text-end"><strong>${formatNum(data.berat)} Kg</strong></td></tr>`;
-        });
-        ringkasanHTML += '</table>';
-        ringkasanHTML += `<p class="mb-0"><strong>Total: ${formatNum(total)} Kg</strong> | Jenis: ${jenisCount}</p>`;
-        ringkasanHTML += '</div>';
-        
-        Swal.fire({
-            title: 'Konfirmasi Simpan',
-            html: ringkasanHTML,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#2e7d32',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-save me-1"></i> Simpan',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Menyimpan...',
-                    text: 'Mohon tunggu',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
-                
-                // Sebelum submit, gabungkan item dengan jenis sama
-                gabungkanItemSebelumSubmit(items);
-                
-                // Submit form
-                e.target.submit();
-            }
-        });
-    });
-
-    // Gabungkan item dengan jenis sama sebelum submit
-    function gabungkanItemSebelumSubmit(mergedItems) {
-        // Hapus semua item row, ganti dengan hidden input merged
-        document.querySelectorAll('.item-row').forEach(row => row.remove());
-        
-        let idx = 0;
-        Object.entries(mergedItems).forEach(([jenisId, data]) => {
-            if (data.berat <= 0) return;
-            
-            const form = document.getElementById('formSortir');
-            
-            const inputJenis = document.createElement('input');
-            inputJenis.type = 'hidden';
-            inputJenis.name = `hasil[${idx}][jenis_plastik_id]`;
-            inputJenis.value = jenisId;
-            form.appendChild(inputJenis);
-            
-            const inputBerat = document.createElement('input');
-            inputBerat.type = 'hidden';
-            inputBerat.name = `hasil[${idx}][berat_bersih]`;
-            inputBerat.value = data.berat;
-            form.appendChild(inputBerat);
-            
-            idx++;
-        });
-    }
-
-    // ========== NOTIFIKASI SESSION ==========
-    @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            confirmButtonColor: '#2e7d32'
-        });
-    @endif
-
-    @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: '{{ session('error') }}',
-            timer: 4000,
-            timerProgressBar: true,
-            confirmButtonColor: '#ef4444'
-        });
-    @endif
-
-    // Init
-    attachEvents();
-    hitungTotal();
     
-    // Animasi
-    const style = document.createElement('style');
-    style.textContent = '@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }';
-    document.head.appendChild(style);
+    jenisIdx++;
+    const opt = '<option value="">-- Pilih Jenis --</option>' + jenisPlastikOpt.map(j => `<option value="${j.id}" ${j.id==selectedId?'selected':''}>${j.nama}</option>`).join('');
+    
+    const html = `
+    <div class="jenis-group" data-jenis="${selectedId || ''}" id="jenis${jenisIdx}">
+        <button type="button" class="btn-remove-group" onclick="hapusJenis(this)" title="Hapus"><i class="fas fa-times"></i></button>
+        <div class="jenis-group-header">
+            <span class="jenis-group-title"><i class="fas fa-recycle me-1"></i>Jenis Plastik</span>
+            <span class="jenis-group-stats"><span class="stat-karung">0 karung</span> | <span class="stat-berat">0 kg</span></span>
+        </div>
+        <div class="row g-2 mb-2">
+            <div class="col-12">
+                <label class="form-label">Pilih Jenis Plastik <span class="text-danger">*</span></label>
+                <select class="form-select jenis-select" onchange="onJenisChange(this)" required>${opt}</select>
+                <div class="duplicate-warn">⚠️ Jenis ini sudah ada, karung akan digabung</div>
+            </div>
+        </div>
+        <label class="form-label">Input Berat per Karung/Sak <span class="text-danger">*</span></label>
+        <div class="karung-list"></div>
+        <div class="stok-warning">⚠️ Total melebihi stok kotor!</div>
+        <button type="button" class="btn-add btn-add-sm mt-1" onclick="tambahKarung(this.previousElementSibling.previousElementSibling)"><i class="fas fa-plus me-1"></i>Tambah Karung</button>
+    </div>`;
+    
+    document.getElementById('jenisContainer').insertAdjacentHTML('beforeend', html);
+    
+    // Tambah 1 karung default
+    const group = document.getElementById('jenis' + jenisIdx);
+    tambahKarung(group.querySelector('.karung-list'));
+    updateVisibility();
+}
+
+// ========== TAMBAH KARUNG ==========
+function tambahKarung(karungList) {
+    const count = karungList.querySelectorAll('.karung-row').length + 1;
+    const html = `
+    <div class="karung-row">
+        <span class="karung-nomor">#${count}</span>
+        <input type="number" step="0.01" min="0.01" class="form-control form-control-sm" placeholder="Berat (Kg)" oninput="hitungTotal()" required style="flex:1;font-size:11px;">
+        <button type="button" class="btn-remove" onclick="this.closest('.karung-row').remove();hitungTotal();">&times;</button>
+    </div>`;
+    karungList.insertAdjacentHTML('beforeend', html);
+    const newInput = karungList.querySelector('.karung-row:last-child input');
+    if (newInput) setTimeout(() => newInput.focus(), 50);
+    hitungTotal();
+}
+
+// ========== HAPUS JENIS ==========
+function hapusJenis(btn) {
+    const groups = document.querySelectorAll('.jenis-group');
+    if (groups.length <= 1) return Swal.fire({ icon: 'warning', title: 'Minimal 1 jenis!', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
+    const group = btn.closest('.jenis-group');
+    group.style.opacity = '0'; group.style.transition = 'all 0.2s';
+    setTimeout(() => { group.remove(); hitungTotal(); updateVisibility(); }, 200);
+}
+
+// ========== ON JENIS CHANGE (CEK DUPLIKAT) ==========
+function onJenisChange(select) {
+    const currentGroup = select.closest('.jenis-group');
+    const selectedId = select.value;
+    
+    if (!selectedId) { hitungTotal(); return; }
+    
+    // Cari grup lain dengan jenis yang sama
+    let existingGroup = null;
+    document.querySelectorAll('.jenis-group').forEach(g => {
+        if (g === currentGroup) return;
+        const otherSelect = g.querySelector('.jenis-select');
+        if (otherSelect && otherSelect.value === selectedId) existingGroup = g;
+    });
+    
+    if (existingGroup) {
+        // Pindahkan semua karung ke grup yang sudah ada
+        const targetList = existingGroup.querySelector('.karung-list');
+        const currentList = currentGroup.querySelector('.karung-list');
+        currentList.querySelectorAll('.karung-row').forEach(row => targetList.appendChild(row));
+        
+        // Update data-jenis
+        existingGroup.setAttribute('data-jenis', selectedId);
+        
+        // Hapus grup saat ini
+        currentGroup.style.opacity = '0'; currentGroup.style.transition = 'all 0.2s';
+        setTimeout(() => { currentGroup.remove(); hitungTotal(); }, 200);
+        
+        // Highlight grup target
+        existingGroup.style.borderColor = '#f59e0b';
+        setTimeout(() => existingGroup.style.borderColor = '#e8eaef', 2000);
+        
+        Swal.fire({ icon: 'info', title: 'Digabung!', text: 'Jenis sama otomatis digabung.', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
+    } else {
+        currentGroup.setAttribute('data-jenis', selectedId);
+    }
+    hitungTotal();
+}
+
+// ========== HITUNG TOTAL ==========
+function hitungTotal() {
+    let totalBerat = 0, totalKarung = 0;
+    const jenisSet = new Set();
+    let isValid = true;
+    
+    document.querySelectorAll('.jenis-group').forEach(group => {
+        const select = group.querySelector('.jenis-select');
+        const jenisId = select?.value;
+        let gBerat = 0, gKarung = 0;
+        
+        group.querySelectorAll('.karung-row input').forEach(inp => {
+            const v = parseFloat(inp.value) || 0;
+            if (v > 0) { gBerat += v; gKarung++; }
+        });
+        
+        totalBerat += gBerat;
+        totalKarung += gKarung;
+        
+        if (jenisId) jenisSet.add(jenisId);
+        if (gKarung === 0 || !jenisId) isValid = false;
+        
+        // Update stat per grup
+        const statKarung = group.querySelector('.stat-karung');
+        const statBerat = group.querySelector('.stat-berat');
+        if (statKarung) statKarung.textContent = `${gKarung} karung`;
+        if (statBerat) statBerat.textContent = `${fm(gBerat)} kg`;
+        
+        // Update data-jenis
+        if (jenisId) group.setAttribute('data-jenis', jenisId);
+        
+        // Warning stok
+        const stokWarn = group.querySelector('.stok-warning');
+        if (stokWarn) stokWarn.style.display = totalBerat > MAX ? 'block' : 'none';
+    });
+    
+    // Cek duplikat
+    const seenJenis = {};
+    document.querySelectorAll('.jenis-group').forEach(group => {
+        const select = group.querySelector('.jenis-select');
+        const jenisId = select?.value;
+        const dupWarn = group.querySelector('.duplicate-warn');
+        if (jenisId && seenJenis[jenisId]) {
+            group.classList.add('duplicate');
+            if (dupWarn) dupWarn.style.display = 'block';
+        } else {
+            group.classList.remove('duplicate');
+            if (dupWarn) dupWarn.style.display = 'none';
+        }
+        if (jenisId) seenJenis[jenisId] = true;
+    });
+    
+    // Update grand total
+    document.getElementById('totalBersih').textContent = fm(totalBerat) + ' Kg';
+    document.getElementById('totalKarung').textContent = totalKarung;
+    document.getElementById('totalJenis').textContent = jenisSet.size;
+    document.getElementById('beratTerpakai').textContent = fm(totalBerat);
+    document.getElementById('sisaStok').textContent = fm(Math.max(0, MAX - totalBerat));
+    
+    // Progress bar
+    const pct = Math.min((totalBerat / MAX) * 100, 100);
+    const progressBar = document.getElementById('progressBar');
+    progressBar.style.width = pct + '%';
+    progressBar.className = 'progress-fill';
+    if (pct > 95) progressBar.classList.add('danger');
+    else if (pct > 80) progressBar.classList.add('warning');
+    
+    // Button submit
+    document.getElementById('btnSubmit').disabled = (totalBerat <= 0 || totalBerat > MAX || !isValid);
+}
+
+function updateVisibility() {
+    const groups = document.querySelectorAll('.jenis-group');
+    groups.forEach((g, i) => {
+        const btnRemove = g.querySelector('.btn-remove-group');
+        if (btnRemove) btnRemove.style.display = groups.length > 1 ? '' : 'none';
+    });
+}
+
+// ========== SUBMIT ==========
+document.getElementById('formSortir').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Kumpulkan data per jenis (merge karung dengan jenis sama)
+    const merged = {};
+    let total = 0;
+    
+    document.querySelectorAll('.jenis-group').forEach(group => {
+        const select = group.querySelector('.jenis-select');
+        const jenisId = select?.value;
+        if (!jenisId) return;
+        
+        if (!merged[jenisId]) {
+            merged[jenisId] = { id: jenisId, nama: select.options[select.selectedIndex].text, berat: 0 };
+        }
+        
+        group.querySelectorAll('.karung-row input').forEach(inp => {
+            const v = parseFloat(inp.value) || 0;
+            if (v > 0) { merged[jenisId].berat += v; total += v; }
+        });
+    });
+    
+    if (total <= 0) return Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Total berat tidak boleh 0!' });
+    if (total > MAX) return Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Total melebihi stok!' });
+    
+    const items = Object.values(merged);
+    
+    // Konfirmasi
+    let html = '<div style="text-align:left;font-size:13px;"><p class="mb-2"><strong>Ringkasan Sortir:</strong></p><table style="width:100%;">';
+    items.forEach(d => html += `<tr><td>• ${d.nama}</td><td class="text-end"><strong>${fm(d.berat)} Kg</strong></td></tr>`);
+    html += `</table><p class="mb-0 mt-2"><strong>Total: ${fm(total)} Kg</strong> | Jenis: ${items.length}</p></div>`;
+    
+    Swal.fire({
+        title: 'Konfirmasi Simpan', html, icon: 'question',
+        showCancelButton: true, confirmButtonColor: '#2e7d32', cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Simpan', cancelButtonText: 'Batal', reverseButtons: true
+    }).then(r => {
+        if (r.isConfirmed) {
+            // Hapus semua input lama
+            document.querySelectorAll('.jenis-group').forEach(g => g.remove());
+            document.querySelectorAll('input[name^="hasil["]').forEach(el => el.remove());
+            
+            // Buat hidden input merged
+            const form = document.getElementById('formSortir');
+            items.forEach((d, idx) => {
+                ['jenis_plastik_id', 'berat_bersih'].forEach(field => {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = `hasil[${idx}][${field}]`;
+                    inp.value = field === 'jenis_plastik_id' ? d.id : d.berat;
+                    form.appendChild(inp);
+                });
+            });
+            
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            e.target.submit();
+        }
+    });
 });
+
+// ========== INIT ==========
+tambahJenis();
+
+@if(session('success')) Swal.fire({ icon:'success', title:'Berhasil!', text:'{{session('success')}}', timer:3000, confirmButtonColor:'#2e7d32' }); @endif
+@if(session('error')) Swal.fire({ icon:'error', title:'Gagal!', text:'{{session('error')}}', timer:4000, confirmButtonColor:'#ef4444' }); @endif
 </script>
 @endpush
