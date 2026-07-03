@@ -40,6 +40,7 @@
         padding: 0.5rem 0.75rem;
         transition: all 0.2s;
         background: #fafbfc;
+        width: 100%;
     }
     
     .form-control:focus, .form-select:focus {
@@ -94,7 +95,7 @@
     .option-card {
         flex: 1;
         cursor: pointer;
-        padding: 0.75rem;
+        padding: 0.6rem 0.5rem;
         border-radius: 10px;
         border: 2px solid #e0e3e8;
         text-align: center;
@@ -102,10 +103,11 @@
         background: #fafbfc;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
         justify-content: center;
-        min-height: 48px;
+        min-height: 44px;
         user-select: none;
+        font-size: 0.8rem;
     }
     
     .option-card:hover { border-color: #a5d6a7; background: #f8fdf9; }
@@ -117,7 +119,7 @@
     }
     
     .option-card input { display: none; }
-    .option-card .icon { font-size: 1.1rem; color: #999; }
+    .option-card .icon { font-size: 1rem; color: #999; }
     .option-card.active .icon { color: var(--primary); }
 
     /* Supplier Search */
@@ -126,7 +128,6 @@
     .supplier-search-input {
         cursor: pointer;
         padding-right: 2rem !important;
-        background-image: none !important;
     }
     
     .supplier-search-icon {
@@ -137,7 +138,6 @@
         color: #999;
         pointer-events: none;
         font-size: 0.7rem;
-        transition: transform 0.2s;
     }
 
     .supplier-dropdown {
@@ -160,7 +160,7 @@
     .supplier-dropdown.show { display: block; }
 
     .supplier-dropdown-item {
-        padding: 8px 14px;
+        padding: 10px 14px;
         cursor: pointer;
         font-size: 0.8rem;
         transition: background 0.1s;
@@ -180,12 +180,6 @@
         color: #999;
         font-style: italic;
         cursor: default;
-    }
-
-    .supplier-dropdown-item.no-result:hover {
-        background: transparent;
-        color: #999;
-        font-weight: normal;
     }
 
     .supplier-selected-badge {
@@ -217,7 +211,6 @@
         color: #e53935;
     }
 
-    /* Karung */
     .karung-group-belum {
         background: #fff;
         border: 1.5px solid #e8eaef;
@@ -236,13 +229,15 @@
         font-weight: 600;
         font-size: 0.8rem;
         color: #555;
+        flex-wrap: wrap;
+        gap: 0.3rem;
     }
 
     .plastik-group {
         background: #fff;
         border: 1.5px solid #e8eaef;
         border-radius: 12px;
-        padding: 1rem;
+        padding: 0.75rem;
         margin-bottom: 0.75rem;
         position: relative;
     }
@@ -251,25 +246,26 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
         border-bottom: 1px solid #f0f0f0;
+        flex-wrap: wrap;
+        gap: 0.3rem;
     }
     
     .plastik-group-title {
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--primary);
     }
     
     .plastik-group-stats {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #777;
         text-align: right;
-        flex: 1;
-        margin-right: 2.5rem;
     }
 
+    /* Harga per Kg - Full width responsive */
     .harga-per-kg-wrapper {
         background: #f8f9fa;
         border-radius: 8px;
@@ -280,14 +276,26 @@
     
     .harga-per-kg-wrapper .form-label { color: var(--primary); }
     
-    .harga-per-kg-wrapper .input-group {
+    .harga-input-group {
         display: flex;
-        align-items: center;
+        flex-direction: column;
         gap: 0.5rem;
-        flex-wrap: wrap;
     }
     
-    .harga-per-kg-wrapper .form-control { max-width: 200px; }
+    .harga-input-group .form-control {
+        width: 100%;
+        max-width: 100%;
+        font-size: 0.9rem;
+        padding: 0.6rem 0.75rem;
+    }
+    
+    .harga-input-hint {
+        font-size: 0.65rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
 
     .karung-list-container {
         background: #fafbfc;
@@ -305,16 +313,21 @@
         background: #fff;
         border-radius: 8px;
         border: 1px solid #e8eaef;
+        flex-wrap: wrap;
     }
     
-    .karung-row .berat-input { flex: 1; min-width: 100px; }
+    .karung-row .berat-input-wrap { 
+        flex: 1; 
+        min-width: 120px; 
+    }
     
     .karung-row .karung-total {
-        min-width: 90px;
+        min-width: 80px;
         text-align: right;
         font-size: 0.78rem;
         font-weight: 600;
         color: var(--primary);
+        white-space: nowrap;
     }
 
     .input-hint {
@@ -346,8 +359,6 @@
         border-color: #c8e6c9;
         color: #2e7d32;
     }
-    
-    .harga-keterangan.donasi i { color: #2e7d32; }
 
     .btn {
         font-weight: 600;
@@ -355,7 +366,7 @@
         padding: 0.5rem 1rem;
         border-radius: 8px;
         transition: all 0.15s;
-        min-height: 40px;
+        min-height: 44px;
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
@@ -372,9 +383,8 @@
         color: var(--primary);
         background: transparent;
     }
-    .btn-outline-primary:hover { background: #f5f5f5; }
     
-    .btn-sm { font-size: 0.7rem; padding: 0.35rem 0.75rem; min-height: 32px; }
+    .btn-sm { font-size: 0.7rem; padding: 0.35rem 0.75rem; min-height: 36px; }
     
     .btn-add {
         width: 100%;
@@ -382,7 +392,7 @@
         color: var(--primary);
         background: #f8fdf9;
         font-size: 0.78rem;
-        padding: 0.75rem;
+        padding: 0.6rem;
         border-radius: 8px;
     }
     .btn-add:hover { background: var(--primary-light); }
@@ -460,8 +470,8 @@
     
     .btn-remove-group {
         position: absolute;
-        top: 0.75rem;
-        right: 0.75rem;
+        top: 0.5rem;
+        right: 0.5rem;
         z-index: 10;
     }
     
@@ -472,19 +482,71 @@
         transform: scale(1.1);
     }
 
+    /* ========== RESPONSIVE ========== */
     @media (max-width: 576px) {
-        .container-fluid { padding: 0.5rem; }
+        .container-fluid { padding: 0.4rem; }
         .card-body { padding: 0.75rem; }
-        .option-card { padding: 0.6rem; font-size: 0.75rem; }
-        .grand-total { flex-direction: column; gap: 0.25rem; }
-        .karung-row { flex-wrap: wrap; }
-        .harga-per-kg-wrapper .form-control { max-width: 100%; }
-        .plastik-group-stats { margin-right: 2rem; font-size: 0.65rem; }
-        .harga-per-kg-wrapper .input-group { flex-direction: column; align-items: flex-start; }
+        .card-header { padding: 0.75rem; }
+        
+        .option-card { 
+            padding: 0.5rem 0.4rem; 
+            font-size: 0.7rem; 
+            min-height: 40px;
+            gap: 0.3rem;
+        }
+        .option-card .icon { font-size: 0.9rem; }
+        
+        .grand-total { 
+            flex-direction: row; 
+            gap: 0.3rem; 
+            padding: 0.6rem; 
+        }
+        .grand-total .value { font-size: 0.9rem; }
+        .grand-total .item { font-size: 0.6rem; }
+        
+        .karung-row { 
+            flex-wrap: wrap; 
+            gap: 0.3rem;
+            padding: 0.4rem;
+        }
+        .karung-row .berat-input-wrap { min-width: 100px; }
+        .karung-row .karung-total { min-width: 60px; font-size: 0.7rem; }
+        
+        .plastik-group { padding: 0.6rem; }
+        .plastik-group-stats { 
+            font-size: 0.6rem; 
+            width: 100%; 
+            text-align: left;
+            margin-top: 0.3rem;
+        }
+        
+        .btn { min-height: 40px; font-size: 0.75rem; }
+        .btn-sm { min-height: 32px; }
+        
+        .section-title { font-size: 0.7rem; }
+        
+        .harga-input-group .form-control {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.6rem;
+        }
     }
-    
+
     @media (min-width: 768px) {
         .container-fluid { max-width: 720px; margin: 0 auto; }
+        
+        .harga-input-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+        .harga-input-group .form-control {
+            max-width: 220px;
+        }
+        .harga-input-hint { flex-shrink: 0; }
+    }
+    
+    @media (min-width: 1024px) {
+        .container-fluid { max-width: 800px; }
     }
 </style>
 @endpush
@@ -583,13 +645,12 @@
                         </div>
                     </div>
                     
+                    {{-- Harga per Kg - RESPONSIVE --}}
                     <div class="harga-per-kg-wrapper mb-3" id="hargaPerKgBelumWrapper" style="display: none;">
-                        <div class="input-group">
-                            <div>
-                                <label class="form-label required">Harga per Kg (Rp)</label>
-                                <input type="text" class="form-control" id="hargaPerKgBelum" placeholder="Masukkan harga per Kg">
-                            </div>
-                            <span style="font-size:0.75rem;color:#666;">
+                        <label class="form-label required">Harga per Kg (Rp)</label>
+                        <div class="harga-input-group">
+                            <input type="text" class="form-control" id="hargaPerKgBelum" placeholder="Masukkan harga per Kg">
+                            <span class="harga-input-hint">
                                 <i class="fas fa-info-circle"></i> Harga berlaku untuk semua karung
                             </span>
                         </div>
@@ -673,7 +734,6 @@
                 <div class="mt-3">
                     <label class="form-label">Keterangan</label>
                     <textarea name="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan (opsional)...">{{ old('keterangan') }}</textarea>
-                    <div class="input-hint"><i class="fas fa-info-circle"></i> Tambahkan catatan jika diperlukan</div>
                 </div>
                 
                 {{-- Buttons --}}
@@ -688,6 +748,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const jenisPlastikOptions = @json($jenisPlastik);
@@ -697,7 +758,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let karungCounter = 0;
     let karungBelumCounter = 0;
     
-    // DOM Elements
     const $belumSection = document.getElementById('belumSortirSection');
     const $sudahSection = document.getElementById('sudahSortirSection');
     const $plastikGroups = document.getElementById('plastikGroups');
@@ -741,13 +801,12 @@ document.addEventListener('DOMContentLoaded', () => {
             : supplierList;
         
         if (filtered.length === 0) {
-            $supplierDropdown.innerHTML = '<div class="supplier-dropdown-item no-result"><i class="fas fa-search me-1"></i> Tidak ditemukan</div>';
+            $supplierDropdown.innerHTML = '<div class="supplier-dropdown-item no-result">Tidak ditemukan</div>';
         } else {
             $supplierDropdown.innerHTML = filtered.map((s, i) => 
                 `<div class="supplier-dropdown-item" data-id="${s.id}" data-name="${escapeHtml(s.nama)}" data-index="${i}">${highlightMatch(s.nama, keyword)}</div>`
             ).join('');
         }
-        
         activeSupplierIndex = -1;
         $supplierDropdown.classList.add('show');
     }
@@ -761,8 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function highlightMatch(text, keyword) {
         if (!keyword) return escapeHtml(text);
         const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(${escaped})`, 'gi');
-        return escapeHtml(text).replace(regex, '<strong style="color:#2e7d32;">$1</strong>');
+        return escapeHtml(text).replace(new RegExp(`(${escaped})`, 'gi'), '<strong style="color:#2e7d32;">$1</strong>');
     }
     
     function selectSupplier(id, name) {
@@ -788,7 +846,6 @@ document.addEventListener('DOMContentLoaded', () => {
     $supplierInput.addEventListener('input', function() {
         const val = this.value.trim();
         const currentId = this.dataset.supplierId;
-        
         if (currentId) {
             const selectedName = supplierList.find(s => s.id == currentId)?.nama;
             if (val !== selectedName) {
@@ -813,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     $supplierDropdown.addEventListener('mousedown', function(e) {
-        e.preventDefault(); // Mencegah blur input
+        e.preventDefault();
         const item = e.target.closest('.supplier-dropdown-item');
         if (!item || item.classList.contains('no-result')) return;
         selectSupplier(item.dataset.id, item.dataset.name);
@@ -821,28 +878,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     $supplierInput.addEventListener('keydown', function(e) {
         const items = $supplierDropdown.querySelectorAll('.supplier-dropdown-item:not(.no-result)');
-        
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            if (items.length > 0) {
-                activeSupplierIndex = Math.min(activeSupplierIndex + 1, items.length - 1);
-                updateActiveItem(items);
-            }
+            if (items.length > 0) { activeSupplierIndex = Math.min(activeSupplierIndex + 1, items.length - 1); updateActiveItem(items); }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            if (items.length > 0) {
-                activeSupplierIndex = Math.max(activeSupplierIndex - 1, 0);
-                updateActiveItem(items);
-            }
+            if (items.length > 0) { activeSupplierIndex = Math.max(activeSupplierIndex - 1, 0); updateActiveItem(items); }
         } else if (e.key === 'Enter') {
             e.preventDefault();
             if (activeSupplierIndex >= 0 && items[activeSupplierIndex]) {
-                const item = items[activeSupplierIndex];
-                selectSupplier(item.dataset.id, item.dataset.name);
+                selectSupplier(items[activeSupplierIndex].dataset.id, items[activeSupplierIndex].dataset.name);
             }
         } else if (e.key === 'Escape') {
-            $supplierDropdown.classList.remove('show');
-            activeSupplierIndex = -1;
+            $supplierDropdown.classList.remove('show'); activeSupplierIndex = -1;
         }
     });
     
@@ -855,7 +903,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     $clearSupplier.addEventListener('click', clearSupplier);
     
-    // Set old value
     if ($supplierHidden.value) {
         const oldSupplier = supplierList.find(s => s.id == $supplierHidden.value);
         if (oldSupplier) selectSupplier(oldSupplier.id, oldSupplier.nama);
@@ -885,112 +932,80 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function validateForm() {
         clearErrors();
-        let isValid = true;
-        let firstError = null;
+        let isValid = true, firstError = null;
         
         const tanggalInput = document.querySelector('input[name="tanggal"]');
         if (!tanggalInput.value) {
             showError(tanggalInput, 'Tanggal wajib diisi');
-            isValid = false;
-            if (!firstError) firstError = tanggalInput;
+            isValid = false; if (!firstError) firstError = tanggalInput;
         }
         
         if (!$supplierHidden.value) {
             $supplierError.style.display = 'flex';
             $supplierInput.classList.add('is-invalid');
-            isValid = false;
-            if (!firstError) firstError = $supplierInput;
+            isValid = false; if (!firstError) firstError = $supplierInput;
         }
         
         if (!isSudah()) {
             let totalBerat = 0;
-            let hasEmpty = false;
-            
             if (isBeli()) {
                 const hargaPerKg = parseRupiah($hargaPerKgBelum.value || '0');
                 if (!hargaPerKg || hargaPerKg <= 0) {
                     $errorHargaBelum.style.display = 'flex';
                     $hargaPerKgBelum.classList.add('is-invalid');
-                    isValid = false;
-                    if (!firstError) firstError = $hargaPerKgBelum;
+                    isValid = false; if (!firstError) firstError = $hargaPerKgBelum;
                 }
             }
-            
             $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
                 const beratInput = row.querySelector('.berat-input-belum');
                 const berat = parseFloat(beratInput?.value) || 0;
-                if (berat > 0) {
-                    totalBerat += berat;
-                } else if (!beratInput.value || berat <= 0) {
-                    hasEmpty = true;
+                if (berat > 0) totalBerat += berat;
+                else if (!beratInput.value || berat <= 0) {
                     showError(beratInput, 'Berat karung harus diisi (min 0.01 Kg)');
-                    isValid = false;
-                    if (!firstError) firstError = beratInput;
+                    isValid = false; if (!firstError) firstError = beratInput;
                 }
             });
-            
-            if (totalBerat <= 0 && !hasEmpty) {
-                $errorBelumSortir.style.display = 'flex';
-                isValid = false;
-            }
+            if (totalBerat <= 0) { $errorBelumSortir.style.display = 'flex'; isValid = false; }
         } else {
             let totalBeratSortir = 0;
-            let hasEmpty = false;
-            
             document.querySelectorAll('.plastik-group').forEach(group => {
                 const jenisSelect = group.querySelector('.jenis-select');
                 let groupHasBerat = false;
-                
                 if (!jenisSelect.value) {
                     showError(jenisSelect, 'Jenis plastik wajib dipilih');
-                    isValid = false;
-                    if (!firstError) firstError = jenisSelect;
+                    isValid = false; if (!firstError) firstError = jenisSelect;
                 }
-                
                 if (isBeli() && jenisSelect.value) {
                     const hargaInput = group.querySelector('.harga-per-kg-input');
                     const harga = parseRupiah(hargaInput?.value || '0');
                     if (!harga || harga <= 0) {
                         showError(hargaInput, 'Harga per Kg harus diisi (min 1)');
-                        isValid = false;
-                        if (!firstError) firstError = hargaInput;
+                        isValid = false; if (!firstError) firstError = hargaInput;
                     }
                 }
-                
                 group.querySelectorAll('.berat-input').forEach(el => {
                     const berat = parseFloat(el.value) || 0;
-                    if (berat > 0) {
-                        totalBeratSortir += berat;
-                        groupHasBerat = true;
-                    } else if (el.value === '' || berat <= 0) {
-                        hasEmpty = true;
+                    if (berat > 0) { totalBeratSortir += berat; groupHasBerat = true; }
+                    else if (el.value === '' || berat <= 0) {
                         showError(el, 'Berat karung harus diisi (min 0.01 Kg)');
-                        isValid = false;
-                        if (!firstError) firstError = el;
+                        isValid = false; if (!firstError) firstError = el;
                     }
                 });
-                
-                if (jenisSelect.value && !groupHasBerat && !hasEmpty) {
+                if (jenisSelect.value && !groupHasBerat) {
                     const firstBeratInput = group.querySelector('.berat-input');
                     if (firstBeratInput) {
                         showError(firstBeratInput, 'Minimal 1 karung harus diisi');
-                        isValid = false;
-                        if (!firstError) firstError = firstBeratInput;
+                        isValid = false; if (!firstError) firstError = firstBeratInput;
                     }
                 }
             });
-            
-            if (totalBeratSortir <= 0 && !hasEmpty) {
-                $errorSudahSortir.style.display = 'flex';
-                isValid = false;
-            }
+            if (totalBeratSortir <= 0) { $errorSudahSortir.style.display = 'flex'; isValid = false; }
         }
         
         if (firstError) {
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => firstError.focus(), 300);
         }
-        
         return isValid;
     }
     
@@ -1004,7 +1019,6 @@ document.addEventListener('DOMContentLoaded', () => {
             target.classList.contains('jenis-select') ||
             target.name === 'tanggal' ||
             target.id === 'supplierSearchInput') {
-            
             target.classList.remove('is-invalid');
             const parent = target.closest('.mb-2, .col-sm-6, .col-12, .karung-row, .harga-per-kg-wrapper');
             const errorEl = parent?.querySelector('.error-message') || target.parentElement?.querySelector('.error-message');
@@ -1022,17 +1036,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = document.createElement('div');
         row.className = 'karung-row';
         row.innerHTML = `
-            <div style="flex:1;">
+            <div class="berat-input-wrap">
                 <label class="form-label required" style="font-size:0.7rem;">Berat Karung (Kg)</label>
                 <input type="number" step="0.01" min="0.01" class="form-control berat-input-belum" placeholder="Berat karung" required>
                 <div class="error-message"><i class="fas fa-exclamation-circle"></i> Berat wajib diisi</div>
             </div>
-            <div class="karung-total">
-                <span class="subtotal-karung"></span>
-            </div>
-            <button type="button" class="btn-remove-karung" title="Hapus karung">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="karung-total"><span class="subtotal-karung"></span></div>
+            <button type="button" class="btn-remove-karung" title="Hapus karung"><i class="fas fa-times"></i></button>
         `;
         $karungListBelum.appendChild(row);
         
@@ -1042,9 +1052,7 @@ document.addEventListener('DOMContentLoaded', () => {
         row.querySelector('.btn-remove-karung').addEventListener('click', () => {
             const rows = $karungListBelum.querySelectorAll('.karung-row');
             if (rows.length > 1) {
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-20px)';
-                row.style.transition = 'all 0.2s';
+                row.style.opacity = '0'; row.style.transform = 'translateX(-20px)'; row.style.transition = 'all 0.2s';
                 setTimeout(() => { row.remove(); updateGrandTotal(); }, 200);
             }
         });
@@ -1058,24 +1066,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
             const berat = parseFloat(row.querySelector('.berat-input-belum').value) || 0;
+            const subtotalEl = row.querySelector('.subtotal-karung');
             if (berat > 0) {
-                totalBerat += berat;
-                totalKarung++;
-                const subtotalEl = row.querySelector('.subtotal-karung');
-                if (subtotalEl) {
-                    subtotalEl.textContent = isBeli() ? `Rp ${formatRupiah(berat * hargaPerKg)}` : '';
-                }
+                totalBerat += berat; totalKarung++;
+                if (subtotalEl) subtotalEl.textContent = isBeli() ? `Rp ${formatRupiah(berat * hargaPerKg)}` : '';
             } else {
-                const subtotalEl = row.querySelector('.subtotal-karung');
                 if (subtotalEl) subtotalEl.textContent = isBeli() ? 'Rp 0' : '';
             }
         });
         
-        const totalHarga = totalBerat * hargaPerKg;
         document.querySelector('.stat-karung-belum').textContent = `${totalKarung} karung`;
         document.querySelector('.stat-berat-belum').textContent = `${totalBerat.toFixed(2)} kg`;
         
-        return { totalBerat, totalKarung, totalHarga };
+        return { totalBerat, totalKarung, totalHarga: totalBerat * hargaPerKg };
     }
     
     // ========== SUDAH SORTIR ==========
@@ -1117,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             $hargaKeterangan.className = 'harga-keterangan donasi';
             $hargaKeterangan.style.display = isSudah() ? '' : 'none';
-            $hargaKeteranganText.textContent = 'Untuk donasi, harga tidak diperlukan. Cukup masukkan berat sampah.';
+            $hargaKeteranganText.textContent = 'Untuk donasi, harga tidak diperlukan.';
             $hargaKeteranganBelum.className = 'harga-keterangan donasi';
             $hargaKeteranganBelum.style.display = !isSudah() ? '' : 'none';
         }
@@ -1131,9 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (hargaInput) hargaInput.value = '';
                 }
             }
-            group.querySelectorAll('.subtotal-karung').forEach(el => {
-                el.textContent = isBeli() ? 'Rp 0' : '';
-            });
+            group.querySelectorAll('.subtotal-karung').forEach(el => el.textContent = isBeli() ? 'Rp 0' : '');
         });
         
         updateGrandTotal();
@@ -1142,12 +1143,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function createJenisSelect(selectedId = '') {
         let html = '<select class="form-select jenis-select" style="font-size:0.8rem;" required>';
         html += '<option value="">-- Pilih Jenis Plastik --</option>';
-        jenisPlastikOptions.forEach(jp => {
-            html += `<option value="${jp.id}" ${jp.id == selectedId ? 'selected' : ''}>${jp.nama}</option>`;
-        });
+        jenisPlastikOptions.forEach(jp => html += `<option value="${jp.id}" ${jp.id == selectedId ? 'selected' : ''}>${jp.nama}</option>`);
         html += '</select>';
         html += '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Jenis plastik wajib dipilih</div>';
-        html += '<div class="input-hint"><i class="fas fa-info-circle"></i> Pilih jenis plastik untuk kelompok karung ini</div>';
         return html;
     }
     
@@ -1178,22 +1176,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (karungList && targetKarungList) {
                 karungList.querySelectorAll('.karung-row').forEach(row => targetKarungList.appendChild(row));
             }
-            currentGroup.style.opacity = '0';
-            currentGroup.style.transform = 'scale(0.95)';
-            currentGroup.style.transition = 'all 0.2s';
+            currentGroup.style.opacity = '0'; currentGroup.style.transform = 'scale(0.95)'; currentGroup.style.transition = 'all 0.2s';
             setTimeout(() => { currentGroup.remove(); updateAll(); }, 200);
             duplicateGroup.style.borderColor = '#f59e0b';
             setTimeout(() => { duplicateGroup.style.borderColor = '#e8eaef'; }, 2000);
             
-            Swal.fire({
-                icon: 'info',
-                title: 'Jenis Plastik Digabung!',
-                text: 'Jenis plastik yang sama otomatis digabungkan.',
-                timer: 2500,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
-            });
+            Swal.fire({ icon: 'info', title: 'Jenis Plastik Digabung!', text: 'Jenis plastik yang sama otomatis digabungkan.', timer: 2500, showConfirmButton: false, toast: true, position: 'top-end' });
         }
     }
     
@@ -1204,17 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 existingGroup.style.borderColor = '#f59e0b';
                 setTimeout(() => { existingGroup.style.borderColor = '#e8eaef'; }, 2000);
                 tambahKarungSortir(existingGroup.querySelector('.karung-list'));
-                existingGroup.querySelector('.karung-list').lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Jenis Sudah Ada!',
-                    text: 'Karung baru ditambahkan ke jenis plastik yang sudah ada.',
-                    timer: 2500,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
+                Swal.fire({ icon: 'info', title: 'Jenis Sudah Ada!', text: 'Karung baru ditambahkan.', timer: 2500, showConfirmButton: false, toast: true, position: 'top-end' });
                 return;
             }
         }
@@ -1223,9 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.className = 'plastik-group';
         div.innerHTML = `
-            <button type="button" class="btn-remove-group" title="Hapus jenis plastik ini">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            <button type="button" class="btn-remove-group" title="Hapus jenis plastik ini"><i class="fas fa-trash-alt"></i></button>
             <div class="plastik-group-header">
                 <span class="plastik-group-title">Jenis Plastik</span>
                 <span class="plastik-group-stats">
@@ -1237,17 +1213,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mb-2">${createJenisSelect(selectedId)}</div>
             <div class="harga-per-kg-wrapper" style="display:${isBeli()?'':'none'};">
                 <label class="form-label required">Harga per Kg (Rp)</label>
-                <div class="input-group">
-                    <input type="text" class="form-control harga-per-kg-input" placeholder="Masukkan harga per Kg" style="max-width:200px;">
-                    <span style="font-size:0.75rem;color:#666;"><i class="fas fa-info-circle"></i> Berlaku untuk semua karung jenis ini</span>
+                <div class="harga-input-group">
+                    <input type="text" class="form-control harga-per-kg-input" placeholder="Masukkan harga per Kg">
+                    <span class="harga-input-hint"><i class="fas fa-info-circle"></i> Berlaku untuk semua karung jenis ini</span>
                 </div>
                 <div class="error-message"><i class="fas fa-exclamation-circle"></i> Harga per Kg harus diisi</div>
             </div>
             <div class="karung-list-container">
                 <div class="karung-list"></div>
-                <button type="button" class="btn btn-add btn-add-karung btn-sm mt-1">
-                    <i class="fas fa-plus"></i> Tambah Karung
-                </button>
+                <button type="button" class="btn btn-add btn-add-karung btn-sm mt-1"><i class="fas fa-plus"></i> Tambah Karung</button>
             </div>
         `;
         $plastikGroups.appendChild(div);
@@ -1256,39 +1230,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         div.querySelector('.btn-remove-group').addEventListener('click', () => {
             if ($plastikGroups.children.length > 1) {
-                div.style.opacity = '0'; 
-                div.style.transform = 'scale(0.95)'; 
-                div.style.transition = 'all 0.2s';
+                div.style.opacity = '0'; div.style.transform = 'scale(0.95)'; div.style.transition = 'all 0.2s';
                 setTimeout(() => { div.remove(); updateAll(); }, 200);
             } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak Bisa',
-                    text: 'Minimal 1 jenis plastik!',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
+                Swal.fire({ icon: 'warning', title: 'Tidak Bisa', text: 'Minimal 1 jenis plastik!', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
             }
         });
         
-        div.querySelector('.btn-add-karung').addEventListener('click', () => {
-            tambahKarungSortir(div.querySelector('.karung-list'));
-        });
-        
-        div.querySelector('.jenis-select').addEventListener('change', function() {
-            cekDuplikatJenis(this);
-            updateAll();
-        });
+        div.querySelector('.btn-add-karung').addEventListener('click', () => tambahKarungSortir(div.querySelector('.karung-list')));
+        div.querySelector('.jenis-select').addEventListener('change', function() { cekDuplikatJenis(this); updateAll(); });
         
         const hargaInput = div.querySelector('.harga-per-kg-input');
         if (hargaInput) {
             hargaInput.addEventListener('input', function() {
-                if (isBeli()) {
-                    const raw = this.value.replace(/[^0-9]/g, '');
-                    this.value = raw ? formatRupiah(raw) : '';
-                }
+                if (isBeli()) { const raw = this.value.replace(/[^0-9]/g, ''); this.value = raw ? formatRupiah(raw) : ''; }
                 updateAll();
             });
         }
@@ -1299,85 +1254,53 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = document.createElement('div');
         row.className = 'karung-row';
         row.innerHTML = `
-            <div style="flex:1;">
+            <div class="berat-input-wrap">
                 <label class="form-label required" style="font-size:0.7rem;">Berat (Kg)</label>
                 <input type="number" step="0.01" min="0.01" class="form-control berat-input" placeholder="Berat karung" required>
                 <div class="error-message"><i class="fas fa-exclamation-circle"></i> Berat wajib diisi</div>
             </div>
-            <div class="karung-total">
-                <span class="subtotal-karung"></span>
-            </div>
-            <button type="button" class="btn-remove-karung" title="Hapus karung">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="karung-total"><span class="subtotal-karung"></span></div>
+            <button type="button" class="btn-remove-karung" title="Hapus karung"><i class="fas fa-times"></i></button>
         `;
         karungList.appendChild(row);
         
         row.querySelector('.berat-input').addEventListener('input', updateAll);
-        
         row.querySelector('.btn-remove-karung').addEventListener('click', () => {
             const group = row.closest('.plastik-group');
             const rows = group.querySelectorAll('.karung-row');
             if (rows.length > 1) {
-                row.style.opacity = '0'; 
-                row.style.transform = 'translateX(-20px)'; 
-                row.style.transition = 'all 0.2s';
+                row.style.opacity = '0'; row.style.transform = 'translateX(-20px)'; row.style.transition = 'all 0.2s';
                 setTimeout(() => { row.remove(); updateAll(); }, 200);
             }
         });
-        
         updateAll();
     }
     
     function getMergedData() {
         if (!isSudah()) return null;
-        
-        const merged = {};
-        let totalKarung = 0;
-        
+        const merged = {}; let totalKarung = 0;
         document.querySelectorAll('.plastik-group').forEach(group => {
             const jenisSelect = group.querySelector('.jenis-select');
             if (!jenisSelect || !jenisSelect.value) return;
-            
             const jenisId = jenisSelect.value;
             const jenisNama = jenisSelect.options[jenisSelect.selectedIndex].text;
             const hargaPerKg = parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0');
-            
-            if (!merged[jenisId]) {
-                merged[jenisId] = { jenis_plastik_id: jenisId, jenis_nama: jenisNama, berat: 0, harga_per_kg: hargaPerKg, karung: 0 };
-            }
-            
+            if (!merged[jenisId]) merged[jenisId] = { jenis_plastik_id: jenisId, jenis_nama: jenisNama, berat: 0, harga_per_kg: hargaPerKg, karung: 0 };
             group.querySelectorAll('.karung-row').forEach(row => {
                 const berat = parseFloat(row.querySelector('.berat-input').value) || 0;
-                if (berat > 0) {
-                    merged[jenisId].berat += berat;
-                    merged[jenisId].karung++;
-                    totalKarung++;
-                    
-                    const subtotalEl = row.querySelector('.subtotal-karung');
-                    if (subtotalEl) {
-                        subtotalEl.textContent = isBeli() ? `Rp ${formatRupiah(berat * hargaPerKg)}` : '';
-                    }
-                } else {
-                    const subtotalEl = row.querySelector('.subtotal-karung');
-                    if (subtotalEl) subtotalEl.textContent = isBeli() ? 'Rp 0' : '';
-                }
+                const subtotalEl = row.querySelector('.subtotal-karung');
+                if (berat > 0) { merged[jenisId].berat += berat; merged[jenisId].karung++; totalKarung++; if (subtotalEl) subtotalEl.textContent = isBeli() ? `Rp ${formatRupiah(berat * hargaPerKg)}` : ''; }
+                else { if (subtotalEl) subtotalEl.textContent = isBeli() ? 'Rp 0' : ''; }
             });
         });
-        
         const items = Object.values(merged);
-        const totalBerat = items.reduce((s, i) => s + i.berat, 0);
-        const totalHarga = items.reduce((s, i) => s + (i.berat * i.harga_per_kg), 0);
-        
-        return { totalBerat, totalHarga, totalKarung, items };
+        return { totalBerat: items.reduce((s, i) => s + i.berat, 0), totalHarga: items.reduce((s, i) => s + (i.berat * i.harga_per_kg), 0), totalKarung, items };
     }
     
     function updateAll() {
         if (!isSudah()) return;
-        
         const data = getMergedData();
         if (!data) return;
-        
         document.getElementById('grandBerat').textContent = data.totalBerat.toFixed(2);
         document.getElementById('grandHarga').textContent = formatRupiah(data.totalHarga);
         document.getElementById('grandKarung').textContent = data.totalKarung;
@@ -1385,41 +1308,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.plastik-group').forEach(group => {
             let gBerat = 0, gKarung = 0;
             const hargaPerKg = parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0');
-            
-            group.querySelectorAll('.karung-row').forEach(row => {
-                const b = parseFloat(row.querySelector('.berat-input').value) || 0;
-                if (b > 0) { gBerat += b; gKarung++; }
-            });
-            
+            group.querySelectorAll('.karung-row').forEach(row => { const b = parseFloat(row.querySelector('.berat-input').value) || 0; if (b > 0) { gBerat += b; gKarung++; } });
             group.querySelector('.stat-karung').textContent = `${gKarung} karung`;
             group.querySelector('.stat-berat').textContent = `${gBerat.toFixed(2)} kg`;
-            const hargaEl = group.querySelector('.stat-harga');
-            const hargaVal = group.querySelector('.stat-harga-val');
-            if (hargaEl && hargaVal) {
-                hargaEl.style.display = isBeli() ? '' : 'none';
-                hargaVal.textContent = formatRupiah(gBerat * hargaPerKg);
-            }
+            const hargaEl = group.querySelector('.stat-harga'), hargaVal = group.querySelector('.stat-harga-val');
+            if (hargaEl && hargaVal) { hargaEl.style.display = isBeli() ? '' : 'none'; hargaVal.textContent = formatRupiah(gBerat * hargaPerKg); }
         });
         
         if (data.items.length > 0) {
             $summarySection.style.display = '';
-            let html = '';
-            data.items.forEach(item => {
-                const subtotal = item.berat * item.harga_per_kg;
-                html += `
-                    <div class="summary-item">
-                        <div><strong>${item.jenis_nama}</strong> <small class="text-muted">(${item.karung} karung)</small></div>
-                        <div class="text-end">
-                            <div>${item.berat.toFixed(2)} kg</div>
-                            ${isBeli() ? `<small>Rp ${formatRupiah(subtotal)}</small>` : ''}
-                        </div>
-                    </div>`;
-            });
-            $summaryContent.innerHTML = html;
+            $summaryContent.innerHTML = data.items.map(item => `
+                <div class="summary-item">
+                    <div><strong>${item.jenis_nama}</strong> <small class="text-muted">(${item.karung} karung)</small></div>
+                    <div class="text-end"><div>${item.berat.toFixed(2)} kg</div>${isBeli() ? `<small>Rp ${formatRupiah(item.berat * item.harga_per_kg)}</small>` : ''}</div>
+                </div>`).join('');
             $summaryGrandTotal.innerHTML = `${data.totalKarung} Karung | ${data.totalBerat.toFixed(2)} Kg${isBeli() ? ' | Rp ' + formatRupiah(data.totalHarga) : ''}`;
-        } else {
-            $summarySection.style.display = 'none';
-        }
+        } else { $summarySection.style.display = 'none'; }
     }
     
     function updateGrandTotal() {
@@ -1430,110 +1334,66 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grandKarung').textContent = stats.totalKarung;
             $grandHargaWrap.style.display = isBeli() ? '' : 'none';
             $hargaPerKgBelumWrapper.style.display = isBeli() ? '' : 'none';
+        } else { $hargaPerKgBelumWrapper.style.display = 'none'; updateAll(); }
+    }
+    
+    function prepareFormData() {
+        document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
+        let itemIdx = 0; const form = document.getElementById('formPenerimaan');
+        
+        if (!isSudah()) {
+            const hargaPerKg = isBeli() ? parseRupiah($hargaPerKgBelum.value || '0') : 0;
+            $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
+                const berat = parseFloat(row.querySelector('.berat-input-belum')?.value) || 0;
+                if (berat <= 0) return;
+                addHiddenInput(form, itemIdx++, 'berat', berat);
+                addHiddenInput(form, itemIdx - 1, 'jenis_plastik_id', '');
+                addHiddenInput(form, itemIdx - 1, 'harga_per_kg', hargaPerKg);
+            });
         } else {
-            $hargaPerKgBelumWrapper.style.display = 'none';
-            updateAll();
+            document.querySelectorAll('.plastik-group').forEach(group => {
+                const jenisId = group.querySelector('.jenis-select')?.value || '';
+                const hargaPerKg = isBeli() ? parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0') : 0;
+                if (!jenisId) return;
+                group.querySelectorAll('.karung-row').forEach(row => {
+                    const berat = parseFloat(row.querySelector('.berat-input')?.value) || 0;
+                    if (berat <= 0) return;
+                    addHiddenInput(form, itemIdx, 'berat', berat);
+                    addHiddenInput(form, itemIdx, 'jenis_plastik_id', jenisId);
+                    addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
+                    itemIdx++;
+                });
+            });
         }
     }
-    
-   function prepareFormData() {
-    document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
-    
-    let itemIdx = 0;
-    const form = document.getElementById('formPenerimaan');
-    
-    if (!isSudah()) {
-        // BELUM SORTIR: Setiap karung jadi 1 item
-        const hargaPerKg = isBeli() ? parseRupiah($hargaPerKgBelum.value || '0') : 0;
-        
-        $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
-            const beratInput = row.querySelector('.berat-input-belum');
-            if (!beratInput) return;
-            const berat = parseFloat(beratInput.value) || 0;
-            if (berat <= 0) return;
-            
-            addHiddenInput(form, itemIdx, 'berat', berat);
-            addHiddenInput(form, itemIdx, 'jenis_plastik_id', '');
-            addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
-            itemIdx++;
-        });
-    } else {
-        // SUDAH SORTIR: Setiap karung tetap 1 item (akan di-merge di controller)
-        document.querySelectorAll('.plastik-group').forEach(group => {
-            const jenisId = group.querySelector('.jenis-select')?.value || '';
-            const hargaPerKg = isBeli() ? parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0') : 0;
-            if (!jenisId) return;
-            
-            group.querySelectorAll('.karung-row').forEach(row => {
-                const berat = parseFloat(row.querySelector('.berat-input')?.value) || 0;
-                if (berat <= 0) return;
-                
-                addHiddenInput(form, itemIdx, 'berat', berat);
-                addHiddenInput(form, itemIdx, 'jenis_plastik_id', jenisId);
-                addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
-                itemIdx++;
-            });
-        });
-    }
-}
     
     function addHiddenInput(form, idx, field, value) {
         const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = `items[${idx}][${field}]`;
-        input.value = value;
+        input.type = 'hidden'; input.name = `items[${idx}][${field}]`; input.value = value;
         form.appendChild(input);
     }
     
-    // ========== EVENT LISTENERS ==========
-    $optBelum.addEventListener('click', () => {
-        $optBelum.classList.add('active'); $optSudah.classList.remove('active');
-        document.querySelector('input[value="Belum"]').checked = true;
-        toggleSortir();
-    });
-    
-    $optSudah.addEventListener('click', () => {
-        $optBelum.classList.remove('active'); $optSudah.classList.add('active');
-        document.querySelector('input[value="Sudah"]').checked = true;
-        toggleSortir();
-    });
-    
-    $optBeli.addEventListener('click', () => {
-        $optBeli.classList.add('active'); $optDonasi.classList.remove('active');
-        document.querySelector('input[value="Beli"]').checked = true;
-        toggleTipe();
-    });
-    
-    $optDonasi.addEventListener('click', () => {
-        $optBeli.classList.remove('active'); $optDonasi.classList.add('active');
-        document.querySelector('input[value="Donasi"]').checked = true;
-        toggleTipe();
-    });
+    // ========== EVENTS ==========
+    $optBelum.addEventListener('click', () => { $optBelum.classList.add('active'); $optSudah.classList.remove('active'); document.querySelector('input[value="Belum"]').checked = true; toggleSortir(); });
+    $optSudah.addEventListener('click', () => { $optBelum.classList.remove('active'); $optSudah.classList.add('active'); document.querySelector('input[value="Sudah"]').checked = true; toggleSortir(); });
+    $optBeli.addEventListener('click', () => { $optBeli.classList.add('active'); $optDonasi.classList.remove('active'); document.querySelector('input[value="Beli"]').checked = true; toggleTipe(); });
+    $optDonasi.addEventListener('click', () => { $optBeli.classList.remove('active'); $optDonasi.classList.add('active'); document.querySelector('input[value="Donasi"]').checked = true; toggleTipe(); });
     
     $hargaPerKgBelum.addEventListener('input', function() {
-        if (isBeli()) {
-            const raw = this.value.replace(/[^0-9]/g, '');
-            this.value = raw ? formatRupiah(raw) : '';
-        }
+        if (isBeli()) { const raw = this.value.replace(/[^0-9]/g, ''); this.value = raw ? formatRupiah(raw) : ''; }
         updateGrandTotal();
     });
     
     $btnTambahJenis.addEventListener('click', () => tambahJenisPlastik());
     $btnTambahKarungBelum.addEventListener('click', () => tambahKarungBelum());
     
-    // ========== FORM SUBMIT ==========
+    // ========== SUBMIT ==========
     document.getElementById('formPenerimaan').addEventListener('submit', function(e) {
         e.preventDefault();
         prepareFormData();
         
         if (!validateForm()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Form Belum Lengkap',
-                text: 'Mohon lengkapi semua field yang wajib diisi.',
-                confirmButtonColor: '#2e7d32',
-                confirmButtonText: 'OK'
-            });
+            Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Mohon lengkapi semua field yang wajib diisi.', confirmButtonColor: '#2e7d32', confirmButtonText: 'OK' });
             return;
         }
         
@@ -1541,37 +1401,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalKarungFinal = document.getElementById('grandKarung').textContent;
         const totalHargaFinal = isBeli() ? document.getElementById('grandHarga').textContent : '0';
         
-        let confirmText = `
-            <div style="font-size:13px; text-align:left;">
-                <p><strong>Ringkasan Penerimaan:</strong></p>
+        Swal.fire({
+            title: 'Konfirmasi Simpan',
+            html: `<div style="font-size:13px;text-align:left;">
+                <p><strong>Ringkasan:</strong></p>
                 <table style="width:100%;">
                     <tr><td>Total Berat</td><td>: <strong>${totalBeratFinal} Kg</strong></td></tr>
                     <tr><td>Total Karung</td><td>: <strong>${totalKarungFinal} karung</strong></td></tr>
                     ${isBeli() ? `<tr><td>Total Bayar</td><td>: <strong>Rp ${totalHargaFinal}</strong></td></tr>` : ''}
-                    <tr><td>Kondisi</td><td>: <strong>${isSudah() ? 'Sudah Bersih' : 'Belum Sortir'}</strong></td></tr>
-                    <tr><td>Tipe</td><td>: <strong>${isBeli() ? 'Pembelian' : 'Donasi'}</strong></td></tr>
-                </table>
-            </div>
-        `;
-        
-        Swal.fire({
-            title: 'Konfirmasi Simpan',
-            html: confirmText,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#2e7d32',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-save"></i> Simpan',
-            cancelButtonText: '<i class="fas fa-times"></i> Batal',
-            reverseButtons: true
+                </table></div>`,
+            icon: 'question', showCancelButton: true, confirmButtonColor: '#2e7d32', cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-save"></i> Simpan', cancelButtonText: 'Batal', reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Menyimpan...',
-                    text: 'Mohon tunggu',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
+                Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 e.target.submit();
             }
         });
@@ -1580,10 +1423,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== INIT ==========
     toggleSortir();
     toggleTipe();
-    
-    if ($karungListBelum.children.length === 0) {
-        tambahKarungBelum();
-    }
+    if ($karungListBelum.children.length === 0) tambahKarungBelum();
 });
 </script>
 @endpush
