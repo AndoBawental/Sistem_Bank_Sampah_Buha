@@ -217,6 +217,30 @@
         color: #e53935;
     }
 
+    /* Alert Warning untuk Sudah Sortir */
+    .alert-warning-edit {
+        background: #fff3cd;
+        border: 1.5px solid #ffc107;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.78rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-warning-edit i {
+        color: #f59e0b;
+        font-size: 1rem;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    
+    .alert-warning-edit strong {
+        color: #92400e;
+    }
+
     .karung-group-belum {
         background: #fff;
         border: 1.5px solid #e8eaef;
@@ -483,6 +507,17 @@
             <form action="{{ route('gudang.penerimaan.update', $penerimaan->id) }}" method="POST" id="formEdit" novalidate>
                 @csrf
                 @method('PUT')
+                
+                {{-- PERINGATAN UNTUK DATA SUDAH SORTIR --}}
+                @if($penerimaan->status_sortir == 'Sudah')
+                <div class="alert-warning-edit">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Perhatian!</strong> Data penerimaan ini sudah <strong>Sudah Bersih</strong> dan stok sudah bertambah.<br>
+                        <small>Mengubah data akan menyesuaikan stok secara otomatis (rollback stok lama & tambah stok baru).</small>
+                    </div>
+                </div>
+                @endif
                 
                 <div class="section-title">Informasi Dasar</div>
                 <div class="row g-2 mb-2">
@@ -981,73 +1016,126 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // ========== LOAD EXISTING DATA ==========
-    function loadExistingData() {
+ // ========== LOAD EXISTING DATA ==========
+function loadExistingData() {
+    // Gunakan detail_karung (JSON) jika ada, fallback ke detailPenerimaan
+    let karungData = [];
+    
+    if (penerimaan.detail_karung) {
+        // Data dari JSON (format baru)
+        try {
+            karungData = typeof penerimaan.detail_karung === 'string' 
+                ? JSON.parse(penerimaan.detail_karung) 
+                : penerimaan.detail_karung;
+        } catch(e) {
+            karungData = [];
+        }
+    }
+    
+    if (karungData.length === 0 && existingData.length > 0) {
+        // Fallback: konversi dari detail_penerimaan (data lama)
         if (penerimaan.status_sortir === 'Belum') {
-            const totalBerat = existingData.reduce((s, d) => s + parseFloat(d.berat_datang_kg), 0);
-            const totalKarung = existingData.reduce((s, d) => s + (parseInt(d.jumlah_karung) || 1), 0);
-            
-            $karungListBelum.innerHTML = '';
-            karungBelumCounter = 0;
+            const totalKarung = existingData[0]?.jumlah_karung || existingData.length;
+            const totalBerat = existingData[0]?.berat_datang_kg || penerimaan.total_berat_kotor_kg;
+            const beratPerKarung = totalBerat / totalKarung;
+            const harga = existingData[0]?.harga_per_kg || 0;
             
             for (let i = 0; i < totalKarung; i++) {
-                tambahKarungBelum(false);
+                karungData.push({
+                    berat: beratPerKarung,
+                    jenis_plastik_id: null,
+                    harga_per_kg: harga,
+                    subtotal: beratPerKarung * harga
+                });
             }
-            
-            const beratPerKarung = totalBerat / totalKarung;
-            const rows = $karungListBelum.querySelectorAll('.karung-row');
-            rows.forEach((row, i) => {
-                const beratInput = row.querySelector('.berat-input-belum');
-                if (beratInput) beratInput.value = (totalKarung === 1 ? totalBerat : beratPerKarung).toFixed(2);
-            });
         } else {
-            $plastikGroups.innerHTML = '';
-            plastikGroupCounter = 0;
-            karungCounter = 0;
-            
-            const grouped = {};
             existingData.forEach(d => {
-                const jenisId = d.jenis_plastik_id;
-                if (!grouped[jenisId]) {
-                    grouped[jenisId] = {
-                        jenis_plastik_id: jenisId,
-                        berat: 0,
-                        harga: parseFloat(d.harga_per_kg) || 0,
-                        karung: parseInt(d.jumlah_karung) || 1
-                    };
-                }
-                grouped[jenisId].berat += parseFloat(d.berat_datang_kg);
-                grouped[jenisId].karung += parseInt(d.jumlah_karung) || 1;
-            });
-            
-            Object.values(grouped).forEach(g => {
-                tambahJenisPlastik(g.jenis_plastik_id);
-                const group = $plastikGroups.lastElementChild;
-                if (group) {
-                    const beratPerKarung = g.berat / g.karung;
-                    const karungList = group.querySelector('.karung-list');
-                    karungList.innerHTML = '';
-                    
-                    for (let i = 0; i < g.karung; i++) {
-                        tambahKarungSortir(karungList);
-                    }
-                    
-                    const rows = karungList.querySelectorAll('.karung-row');
-                    rows.forEach((row, i) => {
-                        const beratInput = row.querySelector('.berat-input');
-                        if (beratInput) beratInput.value = (g.karung === 1 ? g.berat : beratPerKarung).toFixed(2);
+                const karung = parseInt(d.jumlah_karung) || 1;
+                const beratPerKarung = parseFloat(d.berat_datang_kg) / karung;
+                for (let i = 0; i < karung; i++) {
+                    karungData.push({
+                        berat: beratPerKarung,
+                        jenis_plastik_id: d.jenis_plastik_id,
+                        harga_per_kg: parseFloat(d.harga_per_kg) || 0,
+                        subtotal: beratPerKarung * (parseFloat(d.harga_per_kg) || 0)
                     });
-                    
-                    if (g.harga > 0) {
-                        const hargaInput = group.querySelector('.harga-per-kg-input');
-                        if (hargaInput) hargaInput.value = formatRupiah(g.harga);
-                    }
                 }
             });
         }
-        
-        updateGrandTotal();
     }
+    
+    // Render data
+    if (penerimaan.status_sortir === 'Belum') {
+        $karungListBelum.innerHTML = '';
+        karungBelumCounter = 0;
+        
+        karungData.forEach(k => {
+            tambahKarungBelum(false);
+            const rows = $karungListBelum.querySelectorAll('.karung-row');
+            const lastRow = rows[rows.length - 1];
+            const beratInput = lastRow.querySelector('.berat-input-belum');
+            if (beratInput) {
+                beratInput.value = parseFloat(k.berat).toFixed(2);
+            }
+        });
+        
+        if ($karungListBelum.children.length === 0) {
+            tambahKarungBelum();
+        }
+        
+    } else {
+        $plastikGroups.innerHTML = '';
+        plastikGroupCounter = 0;
+        karungCounter = 0;
+        
+        // Kelompokkan per jenis_plastik_id
+        const grouped = {};
+        karungData.forEach(k => {
+            const jenisId = k.jenis_plastik_id;
+            if (!grouped[jenisId]) {
+                grouped[jenisId] = {
+                    jenis_plastik_id: jenisId,
+                    harga: parseFloat(k.harga_per_kg) || 0,
+                    karungList: []
+                };
+            }
+            grouped[jenisId].karungList.push(parseFloat(k.berat));
+            if (parseFloat(k.harga_per_kg) > 0) {
+                grouped[jenisId].harga = parseFloat(k.harga_per_kg);
+            }
+        });
+        
+        Object.values(grouped).forEach(g => {
+            tambahJenisPlastik(g.jenis_plastik_id);
+            const group = $plastikGroups.lastElementChild;
+            if (group) {
+                const karungList = group.querySelector('.karung-list');
+                karungList.innerHTML = '';
+                
+                g.karungList.forEach(berat => {
+                    tambahKarungSortir(karungList);
+                    const rows = karungList.querySelectorAll('.karung-row');
+                    const lastRow = rows[rows.length - 1];
+                    const beratInput = lastRow.querySelector('.berat-input');
+                    if (beratInput) {
+                        beratInput.value = berat.toFixed(2);
+                    }
+                });
+                
+                if (g.harga > 0) {
+                    const hargaInput = group.querySelector('.harga-per-kg-input');
+                    if (hargaInput) hargaInput.value = formatRupiah(g.harga);
+                }
+            }
+        });
+        
+        if ($plastikGroups.children.length === 0) {
+            tambahJenisPlastik();
+        }
+    }
+    
+    updateGrandTotal();
+}
     
     // ========== BELUM SORTIR ==========
     function tambahKarungBelum(doUpdate = true) {
@@ -1532,6 +1620,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalBeratFinal = document.getElementById('grandBerat').textContent;
         const totalKarungFinal = document.getElementById('grandKarung').textContent;
         const totalHargaFinal = isBeli() ? document.getElementById('grandHarga').textContent : '0';
+        const statusSekarang = isSudah() ? 'Sudah Bersih' : 'Belum Sortir';
+        const statusSebelumnya = penerimaan.status_sortir === 'Sudah' ? 'Sudah Bersih' : 'Belum Sortir';
+        const statusBerubah = statusSekarang !== statusSebelumnya;
         
         let confirmText = `
             <div style="font-size:13px; text-align:left;">
@@ -1540,9 +1631,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr><td>Total Berat</td><td>: <strong>${totalBeratFinal} Kg</strong></td></tr>
                     <tr><td>Total Karung</td><td>: <strong>${totalKarungFinal} karung</strong></td></tr>
                     ${isBeli() ? `<tr><td>Total Bayar</td><td>: <strong>Rp ${totalHargaFinal}</strong></td></tr>` : ''}
-                    <tr><td>Kondisi</td><td>: <strong>${isSudah() ? 'Sudah Bersih' : 'Belum Sortir'}</strong></td></tr>
+                    <tr><td>Kondisi</td><td>: <strong>${statusSekarang}</strong>${statusBerubah ? ` <small style="color:#f59e0b;">(berubah dari ${statusSebelumnya})</small>` : ''}</td></tr>
                     <tr><td>Tipe</td><td>: <strong>${isBeli() ? 'Pembelian' : 'Donasi'}</strong></td></tr>
                 </table>
+                ${statusBerubah || penerimaan.status_sortir === 'Sudah' ? `
+                <div style="margin-top:8px;padding:8px;background:#fff3cd;border-radius:6px;font-size:11px;color:#92400e;">
+                    <i class="fas fa-exclamation-triangle me-1"></i> 
+                    <strong>Stok akan disesuaikan secara otomatis!</strong>
+                </div>` : ''}
             </div>
         `;
         

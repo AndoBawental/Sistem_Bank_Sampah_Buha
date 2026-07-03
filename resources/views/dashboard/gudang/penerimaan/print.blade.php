@@ -61,9 +61,56 @@
         .footer p { margin: 0.3mm 0; }
         .footer .signature { margin-top: 3mm; }
         
-        .badge {
-            font-size: 6px;
+        .ringkasan-box {
+            background: #f9fafb;
+            border: 1px dotted #999;
+            border-radius: 3px;
+            padding: 2mm;
+            margin: 1mm 0;
+            font-size: 6.5px;
+        }
+        .ringkasan-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3mm 0;
+        }
+        .ringkasan-total {
             font-weight: bold;
+            border-top: 1px dotted #999;
+            margin-top: 1mm;
+            padding-top: 1mm;
+        }
+
+        /* Style untuk jenis plastik di struk */
+        .jenis-group {
+            margin-bottom: 2mm;
+            padding-bottom: 1mm;
+            border-bottom: 1px dotted #ccc;
+        }
+        .jenis-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .jenis-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 7.5px;
+            margin-bottom: 0.5mm;
+        }
+        .jenis-info {
+            font-size: 6.5px;
+            color: #555;
+            margin-bottom: 0.3mm;
+        }
+        .jenis-rincian {
+            font-size: 6px;
+            color: #666;
+            background: #f5f5f5;
+            padding: 1mm 1.5mm;
+            border-radius: 2px;
+            line-height: 1.4;
+            word-break: break-all;
         }
         
         .no-print { display: block; }
@@ -114,65 +161,202 @@
         <tr><td>Tipe</td><td>: [ {{ $penerimaan->tipe == 'Beli' ? 'BELI' : 'DONASI' }} ]</td></tr>
         <tr><td>Status</td><td>: [ {{ $penerimaan->status_sortir == 'Sudah' ? 'BERSIH' : 'KOTOR' }} ]</td></tr>
         @if($penerimaan->keterangan)
-        <tr><td>Ket</td><td>: {{ $penerimaan->keterangan }}</td></tr>
+        <tr><td>Ket</td><td>: {{ Str::limit($penerimaan->keterangan, 40) }}</td></tr>
         @endif
     </table>
     
     <div class="divider"></div>
     
     {{-- Items --}}
-    @php $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: 1; @endphp
+    @php 
+        $karungData = $penerimaan->detail_karung ?? [];
+        if (is_string($karungData)) {
+            $karungData = json_decode($karungData, true) ?? [];
+        }
+        
+        $totalKarung = count($karungData);
+        if ($totalKarung == 0) {
+            $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: $penerimaan->detailPenerimaan->count();
+        }
+    @endphp
     
     @if($penerimaan->status_sortir == 'Belum')
-    <table class="items">
-        <thead>
-            <tr>
-                <th>Deskripsi</th>
-                <th class="text-center">Kg</th>
-                <th class="text-right">Berat</th>
-                @if($penerimaan->tipe == 'Beli')<th class="text-right">Subtotal</th>@endif
-            </tr>
-        </thead>
-        <tbody>
-            @for($i = 1; $i <= $totalKarung; $i++)
-            <tr>
-                <td>Karung #{{ $i }}</td>
-                <td class="text-center">1</td>
-                <td class="text-right">{{ $i == 1 ? number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') : '-' }}</td>
-                @if($penerimaan->tipe == 'Beli')
-                <td class="text-right">{{ $i == 1 ? number_format($penerimaan->total_bayar, 0, ',', '.') : '-' }}</td>
-                @endif
-            </tr>
-            @endfor
-        </tbody>
-    </table>
+        {{-- BELUM SORTIR --}}
+        @if(count($karungData) > 0)
+            @if($totalKarung <= 5)
+                {{-- Sedikit karung: tampilkan semua --}}
+                <table class="items">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:8%;">No</th>
+                            <th style="width:28%;">Deskripsi</th>
+                            <th class="text-right" style="width:22%;">Berat</th>
+                            @if($penerimaan->tipe == 'Beli')
+                            <th class="text-right" style="width:20%;">@Harga</th>
+                            <th class="text-right" style="width:22%;">Subtotal</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($karungData as $i => $k)
+                        <tr>
+                            <td class="text-center">{{ $i + 1 }}</td>
+                            <td>Karung #{{ $i + 1 }}</td>
+                            <td class="text-right">{{ number_format($k['berat'], 2, ',', '.') }} Kg</td>
+                            @if($penerimaan->tipe == 'Beli')
+                            <td class="text-right">{{ ($k['harga_per_kg'] ?? 0) > 0 ? number_format($k['harga_per_kg'], 0, ',', '.') : '-' }}</td>
+                            <td class="text-right">{{ ($k['subtotal'] ?? 0) > 0 ? number_format($k['subtotal'], 0, ',', '.') : '-' }}</td>
+                            @endif
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                
+                {{-- Rincian berat untuk Belum Sortir --}}
+                <div class="jenis-rincian" style="margin-top:1mm;">
+                    Rincian: {{ implode(', ', array_map(function($k) { return number_format($k['berat'], 2, ',', '.'); }, $karungData)) }} Kg
+                </div>
+            @else
+                {{-- Banyak karung: ringkasan --}}
+                @php
+                    $grouped = [];
+                    foreach ($karungData as $k) {
+                        $beratKey = number_format($k['berat'], 2, '.', '');
+                        if (!isset($grouped[$beratKey])) {
+                            $grouped[$beratKey] = ['berat' => $k['berat'], 'jumlah' => 0];
+                        }
+                        $grouped[$beratKey]['jumlah']++;
+                    }
+                    krsort($grouped);
+                @endphp
+                
+                <p class="text-center" style="font-size:7px;margin:1mm 0;">
+                    <strong>RINCIAN KARUNG ({{ $totalKarung }} Karung)</strong>
+                </p>
+                
+                <div class="ringkasan-box">
+                    @php $no = 1; @endphp
+                    @foreach($grouped as $beratStr => $group)
+                    <div class="ringkasan-row">
+                        <span>{{ $no }}. {{ $group['jumlah'] }}x @ {{ number_format($group['berat'], 2, ',', '.') }} Kg</span>
+                        <span class="fw-bold">{{ number_format($group['berat'] * $group['jumlah'], 2, ',', '.') }} Kg</span>
+                    </div>
+                    @php $no++; @endphp
+                    @endforeach
+                </div>
+                
+                {{-- Rincian semua berat --}}
+                <div class="jenis-rincian" style="margin-top:1mm;">
+                    Rincian: {{ implode(', ', array_map(function($k) { return number_format($k['berat'], 2, ',', '.'); }, $karungData)) }} Kg
+                </div>
+            @endif
+        @else
+            {{-- Fallback data lama --}}
+            <table class="items">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:8%;">No</th>
+                        <th style="width:28%;">Deskripsi</th>
+                        <th class="text-right" style="width:22%;">Berat</th>
+                        @if($penerimaan->tipe == 'Beli')
+                        <th class="text-right" style="width:20%;">@Harga</th>
+                        <th class="text-right" style="width:22%;">Subtotal</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @for($i = 1; $i <= $totalKarung; $i++)
+                    <tr>
+                        <td class="text-center">{{ $i }}</td>
+                        <td>Karung #{{ $i }}</td>
+                        <td class="text-right">{{ $i == 1 ? number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') : '-' }} Kg</td>
+                        @if($penerimaan->tipe == 'Beli')
+                        <td class="text-right">{{ $i == 1 && $penerimaan->detailPenerimaan->first()->harga_per_kg > 0 ? number_format($penerimaan->detailPenerimaan->first()->harga_per_kg, 0, ',', '.') : '-' }}</td>
+                        <td class="text-right">{{ $i == 1 ? number_format($penerimaan->total_bayar, 0, ',', '.') : '-' }}</td>
+                        @endif
+                    </tr>
+                    @endfor
+                </tbody>
+            </table>
+        @endif
     @else
-    <table class="items">
-        <thead>
-            <tr>
-                <th>Jenis</th>
-                <th class="text-center">Kg</th>
-                <th class="text-right">Berat</th>
+        {{-- SUDAH SORTIR: Tampilkan per jenis dengan rincian --}}
+        <p class="text-center" style="font-size:7px;margin:1mm 0;">
+            <strong>DETAIL PENERIMAAN</strong>
+        </p>
+        
+        @if(count($karungData) > 0)
+            @php
+                $grouped = [];
+                foreach ($karungData as $k) {
+                    $jenisId = $k['jenis_plastik_id'];
+                    if (!isset($grouped[$jenisId])) {
+                        $jenisNama = \App\Models\JenisPlastik::find($jenisId)->nama ?? 'Unknown';
+                        $grouped[$jenisId] = [
+                            'nama' => $jenisNama,
+                            'karung' => 0,
+                            'berat' => 0,
+                            'harga' => $k['harga_per_kg'] ?? 0,
+                            'subtotal' => 0,
+                            'rincian' => []
+                        ];
+                    }
+                    $grouped[$jenisId]['karung']++;
+                    $grouped[$jenisId]['berat'] += $k['berat'];
+                    $grouped[$jenisId]['subtotal'] += $k['subtotal'] ?? 0;
+                    $grouped[$jenisId]['rincian'][] = $k['berat'];
+                }
+            @endphp
+            
+            @foreach($grouped as $g)
+            <div class="jenis-group">
+                <div class="jenis-header">
+                    <span>{{ $g['nama'] }}</span>
+                    <span>{{ $g['karung'] }} Karung | {{ number_format($g['berat'], 2, ',', '.') }} Kg</span>
+                </div>
                 @if($penerimaan->tipe == 'Beli')
-                <th class="text-right">@Harga</th>
-                <th class="text-right">Subtotal</th>
+                <div class="jenis-info">
+                    Harga: Rp {{ number_format($g['harga'], 0, ',', '.') }}/Kg | Subtotal: Rp {{ number_format($g['subtotal'], 0, ',', '.') }}
+                </div>
                 @endif
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($penerimaan->detailPenerimaan as $d)
-            <tr>
-                <td>{{ Str::limit($d->jenisPlastik->nama ?? '-', 12) }}</td>
-                <td class="text-center">{{ $d->jumlah_karung ?: 1 }}</td>
-                <td class="text-right">{{ number_format($d->berat_datang_kg, 2, ',', '.') }}</td>
-                @if($penerimaan->tipe == 'Beli')
-                <td class="text-right">{{ $d->harga_per_kg > 0 ? number_format($d->harga_per_kg, 0, ',', '.') : '-' }}</td>
-                <td class="text-right">{{ $d->subtotal > 0 ? number_format($d->subtotal, 0, ',', '.') : '-' }}</td>
-                @endif
-            </tr>
+                <div class="jenis-rincian">
+                    Rincian: {{ implode(', ', array_map(function($b) { return number_format($b, 2, ',', '.'); }, $g['rincian'])) }} Kg
+                </div>
+            </div>
             @endforeach
-        </tbody>
-    </table>
+        @else
+            {{-- Fallback data lama --}}
+            @php
+                $grouped = [];
+                foreach ($penerimaan->detailPenerimaan as $d) {
+                    $grouped[$d->jenis_plastik_id] = [
+                        'nama' => $d->jenisPlastik->nama ?? '-',
+                        'karung' => $d->jumlah_karung ?: 1,
+                        'berat' => $d->berat_datang_kg,
+                        'harga' => $d->harga_per_kg,
+                        'subtotal' => $d->subtotal,
+                        'rincian' => array_fill(0, $d->jumlah_karung ?: 1, round($d->berat_datang_kg / ($d->jumlah_karung ?: 1), 2))
+                    ];
+                }
+            @endphp
+            
+            @foreach($grouped as $g)
+            <div class="jenis-group">
+                <div class="jenis-header">
+                    <span>{{ $g['nama'] }}</span>
+                    <span>{{ $g['karung'] }} Karung | {{ number_format($g['berat'], 2, ',', '.') }} Kg</span>
+                </div>
+                @if($penerimaan->tipe == 'Beli')
+                <div class="jenis-info">
+                    Harga: Rp {{ number_format($g['harga'], 0, ',', '.') }}/Kg | Subtotal: Rp {{ number_format($g['subtotal'], 0, ',', '.') }}
+                </div>
+                @endif
+                <div class="jenis-rincian">
+                    Rincian: {{ implode(', ', array_map(function($b) { return number_format($b, 2, ',', '.'); }, $g['rincian'])) }} Kg
+                </div>
+            </div>
+            @endforeach
+        @endif
     @endif
     
     <div class="divider-solid"></div>
@@ -181,7 +365,7 @@
     <table class="total-table">
         <tr>
             <td>Total Karung</td>
-            <td class="text-right">{{ $totalKarung }}</td>
+            <td class="text-right">{{ $totalKarung }} Karung</td>
         </tr>
         <tr>
             <td>Total Berat</td>
@@ -207,13 +391,13 @@
         </div>
     </div>
     
-    {{-- Tombol (hanya tampil di layar) --}}
+    {{-- Tombol --}}
     <div class="no-print" style="text-align:center;margin-top:5mm;">
-        <button onclick="window.print()" style="padding:3mm 6mm;font-size:10px;background:#fff;color:#000;border:1px solid #000;border-radius:4px;cursor:pointer;">
-            🖨️ Print Nota
+        <button onclick="window.print()" style="padding:3mm 6mm;font-size:10px;background:#2e7d32;color:#fff;border:none;border-radius:4px;cursor:pointer;">
+            🖨️ Cetak Nota
         </button>
         <button onclick="window.close()" style="padding:3mm 6mm;font-size:10px;background:#fff;color:#000;border:1px solid #000;border-radius:4px;cursor:pointer;margin-left:2mm;">
-            Tutup
+            ✕ Tutup
         </button>
     </div>
 </body>

@@ -118,6 +118,28 @@
         margin-bottom: 12px;
     }
 
+    /* Ringkasan grup */
+    .karung-summary {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border: 1px solid #e5e7eb;
+    }
+    .karung-summary .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+    .karung-summary .summary-detail {
+        font-size: 11px;
+        color: #6b7280;
+    }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 767px) {
         .card-body { padding: 12px; }
@@ -157,11 +179,9 @@
             <i class="fas fa-arrow-left me-1"></i>Kembali
         </a>
         <div class="d-flex gap-2">
-            @if($penerimaan->status_sortir != 'Sudah')
             <a href="{{ route('gudang.penerimaan.edit', $penerimaan->id) }}" class="btn btn-outline-primary btn-sm rounded-pill">
                 <i class="fas fa-edit me-1"></i>Edit
             </a>
-            @endif
             <a href="{{ route('gudang.penerimaan.print', $penerimaan->id) }}" target="_blank" class="btn btn-success btn-sm rounded-pill">
                 <i class="fas fa-print me-1"></i>Cetak Nota
             </a>
@@ -246,6 +266,20 @@
                         Ringkasan
                     </div>
                     
+                    @php
+                        // Hitung total karung dari detail_karung (JSON) atau detail_penerimaan
+                        $karungData = $penerimaan->detail_karung ?? [];
+                        if (is_string($karungData)) {
+                            $karungData = json_decode($karungData, true) ?? [];
+                        }
+                        
+                        $totalKarung = count($karungData);
+                        // Fallback ke detail_penerimaan jika JSON kosong
+                        if ($totalKarung == 0) {
+                            $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: $penerimaan->detailPenerimaan->count();
+                        }
+                    @endphp
+                    
                     <div class="total-box">
                         <div class="row g-2">
                             <div class="col-4">
@@ -261,9 +295,6 @@
                                 <div class="total-item">
                                     <div class="total-label">Karung</div>
                                     <div class="total-value">
-                                        @php
-                                            $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: $penerimaan->detailPenerimaan->count();
-                                        @endphp
                                         {{ $totalKarung }}
                                         <span class="total-unit">Karung</span>
                                     </div>
@@ -271,10 +302,14 @@
                             </div>
                             <div class="col-4">
                                 <div class="total-item">
-                                    <div class="total-label">Jenis</div>
-                                    <div class="total-value">
-                                        {{ $penerimaan->detailPenerimaan->count() }}
-                                        <span class="total-unit">Item</span>
+                                    <div class="total-label">Harga/Kg</div>
+                                    <div class="total-value" style="font-size:14px;">
+                                        @if($penerimaan->tipe == 'Beli' && $totalKarung > 0)
+                                            Rp {{ number_format($penerimaan->total_bayar / $penerimaan->total_berat_kotor_kg, 0, ',', '.') }}
+                                        @else
+                                            -
+                                        @endif
+                                        <span class="total-unit">/Kg</span>
                                     </div>
                                 </div>
                             </div>
@@ -307,100 +342,187 @@
                         @if($penerimaan->status_sortir == 'Belum')
                             Detail Karung (Belum Dipilah)
                         @else
-                            Detail Jenis Plastik
+                            Detail Per Jenis Plastik
                         @endif
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-detail mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="width:5%;">No</th>
-                                    <th style="min-width:120px;">
-                                        @if($penerimaan->status_sortir == 'Belum')
-                                            Status
-                                        @else
-                                            Jenis Plastik
-                                        @endif
-                                    </th>
-                                    <th class="text-center" style="width:15%;">Karung</th>
-                                    <th class="text-end" style="width:20%;">Berat (Kg)</th>
+                    
+                    @if($penerimaan->status_sortir == 'Belum')
+                        {{-- BELUM SORTIR: Tampilkan dari detail_karung atau detail_penerimaan --}}
+                        @if(count($karungData) > 0)
+                            {{-- Data dari JSON --}}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-detail mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width:5%;">No</th>
+                                            <th style="width:20%;">Deskripsi</th>
+                                            <th class="text-end" style="width:20%;">Berat (Kg)</th>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <th class="text-end hide-mobile" style="width:20%;">Harga/Kg</th>
+                                            <th class="text-end" style="width:20%;">Subtotal</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($karungData as $i => $k)
+                                        <tr>
+                                            <td class="text-center text-muted">{{ $i + 1 }}</td>
+                                            <td>
+                                                <span class="badge-status badge-belum">Belum Dipilah</span>
+                                            </td>
+                                            <td class="text-end">{{ number_format($k['berat'], 2, ',', '.') }}</td>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <td class="text-end hide-mobile">
+                                                {{ ($k['harga_per_kg'] ?? 0) > 0 ? 'Rp '.number_format($k['harga_per_kg'], 0, ',', '.') : '-' }}
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                {{ ($k['subtotal'] ?? 0) > 0 ? 'Rp '.number_format($k['subtotal'], 0, ',', '.') : '-' }}
+                                            </td>
+                                            @endif
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="2" class="text-end"><strong>Total ({{ $totalKarung }} Karung)</strong></td>
+                                            <td class="text-end"><strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></td>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <td class="hide-mobile"></td>
+                                            <td class="text-end"><strong>Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</strong></td>
+                                            @endif
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        @else
+                            {{-- Fallback: data lama dari detail_penerimaan --}}
+                            @php
+                                $totalKarungLama = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: $penerimaan->detailPenerimaan->count();
+                                $totalBerat = $penerimaan->total_berat_kotor_kg;
+                                $beratPerKarung = $totalBerat / max($totalKarungLama, 1);
+                            @endphp
+                            <div class="table-responsive">
+                                <table class="table table-sm table-detail mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width:5%;">No</th>
+                                            <th style="width:20%;">Deskripsi</th>
+                                            <th class="text-end" style="width:20%;">Berat (Kg)</th>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <th class="text-end hide-mobile" style="width:20%;">Harga/Kg</th>
+                                            <th class="text-end" style="width:20%;">Subtotal</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for($i = 1; $i <= $totalKarungLama; $i++)
+                                        <tr>
+                                            <td class="text-center text-muted">{{ $i }}</td>
+                                            <td>
+                                                <span class="badge-status badge-belum">Belum Dipilah</span>
+                                            </td>
+                                            <td class="text-end">{{ number_format($beratPerKarung, 2, ',', '.') }}</td>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <td class="text-end hide-mobile">
+                                                {{ $penerimaan->detailPenerimaan->first()->harga_per_kg > 0 ? 'Rp '.number_format($penerimaan->detailPenerimaan->first()->harga_per_kg, 0, ',', '.') : '-' }}
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                {{ $penerimaan->total_bayar > 0 ? 'Rp '.number_format($penerimaan->total_bayar, 0, ',', '.') : '-' }}
+                                            </td>
+                                            @endif
+                                        </tr>
+                                        @endfor
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="2" class="text-end"><strong>Total ({{ $totalKarungLama }} Karung)</strong></td>
+                                            <td class="text-end"><strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></td>
+                                            @if($penerimaan->tipe == 'Beli')
+                                            <td class="hide-mobile"></td>
+                                            <td class="text-end"><strong>Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</strong></td>
+                                            @endif
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        @endif
+                    @else
+                        {{-- SUDAH SORTIR: Tampilkan ringkasan per jenis --}}
+                        @php
+                            // Kelompokkan dari detail_karung (JSON)
+                            $grouped = [];
+                            if (count($karungData) > 0) {
+                                foreach ($karungData as $k) {
+                                    $jenisId = $k['jenis_plastik_id'];
+                                    if (!isset($grouped[$jenisId])) {
+                                        $jenisNama = \App\Models\JenisPlastik::find($jenisId)->nama ?? 'Unknown';
+                                        $grouped[$jenisId] = [
+                                            'nama' => $jenisNama,
+                                            'karung' => 0,
+                                            'berat' => 0,
+                                            'harga_per_kg' => $k['harga_per_kg'] ?? 0,
+                                            'subtotal' => 0,
+                                            'karung_list' => []
+                                        ];
+                                    }
+                                    $grouped[$jenisId]['karung']++;
+                                    $grouped[$jenisId]['berat'] += $k['berat'];
+                                    $grouped[$jenisId]['subtotal'] += $k['subtotal'] ?? 0;
+                                    $grouped[$jenisId]['karung_list'][] = $k['berat'];
+                                }
+                            } else {
+                                // Fallback: dari detail_penerimaan
+                                foreach ($penerimaan->detailPenerimaan as $d) {
+                                    $jenisId = $d->jenis_plastik_id;
+                                    $grouped[$jenisId] = [
+                                        'nama' => $d->jenisPlastik->nama ?? '-',
+                                        'karung' => $d->jumlah_karung ?: 1,
+                                        'berat' => $d->berat_datang_kg,
+                                        'harga_per_kg' => $d->harga_per_kg,
+                                        'subtotal' => $d->subtotal,
+                                        'karung_list' => array_fill(0, $d->jumlah_karung ?: 1, $d->berat_datang_kg / ($d->jumlah_karung ?: 1))
+                                    ];
+                                }
+                            }
+                        @endphp
+                        
+                        @foreach($grouped as $jenisId => $g)
+                        <div class="karung-summary">
+                            <div class="summary-header">
+                                <span>
+                                    <i class="fas fa-recycle me-1"></i>
+                                    {{ $g['nama'] }}
+                                </span>
+                                <span class="badge-karung">
+                                    {{ $g['karung'] }} Karung | {{ number_format($g['berat'], 2, ',', '.') }} Kg
                                     @if($penerimaan->tipe == 'Beli')
-                                    <th class="text-end hide-mobile" style="width:20%;">Harga/Kg</th>
-                                    <th class="text-end" style="width:20%;">Subtotal</th>
+                                        | Rp {{ number_format($g['subtotal'], 0, ',', '.') }}
                                     @endif
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if($penerimaan->status_sortir == 'Belum')
-                                    @php
-                                        $totalKarung = $penerimaan->detailPenerimaan->sum('jumlah_karung') ?: 1;
-                                        $totalBerat = $penerimaan->total_berat_kotor_kg;
-                                    @endphp
-                                    @for($i = 1; $i <= $totalKarung; $i++)
-                                    <tr>
-                                        <td class="text-center text-muted">{{ $i }}</td>
-                                        <td>
-                                            <span class="badge-status badge-belum">Belum Dipilah</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge-karung">1</span>
-                                        </td>
-                                        <td class="text-end">
-                                            @if($i == 1)
-                                                {{ number_format($totalBerat, 2, ',', '.') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        @if($penerimaan->tipe == 'Beli')
-                                        <td class="text-end hide-mobile">
-                                            {{ $penerimaan->detailPenerimaan->first()->harga_per_kg > 0 ? 'Rp '.number_format($penerimaan->detailPenerimaan->first()->harga_per_kg, 0, ',', '.') : '-' }}
-                                        </td>
-                                        <td class="text-end fw-semibold">
-                                            @if($i == 1)
-                                                Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        @endif
-                                    </tr>
-                                    @endfor
-                                @else
-                                    @foreach($penerimaan->detailPenerimaan as $i => $d)
-                                    <tr>
-                                        <td class="text-center text-muted">{{ $i + 1 }}</td>
-                                        <td class="fw-semibold">{{ $d->jenisPlastik->nama ?? '-' }}</td>
-                                        <td class="text-center">
-                                            <span class="badge-karung">
-                                                <i class="fas fa-box me-1"></i>{{ $d->jumlah_karung ?: 1 }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">{{ number_format($d->berat_datang_kg, 2, ',', '.') }}</td>
-                                        @if($penerimaan->tipe == 'Beli')
-                                        <td class="text-end hide-mobile">
-                                            {{ $d->harga_per_kg > 0 ? 'Rp '.number_format($d->harga_per_kg, 0, ',', '.') : '-' }}
-                                        </td>
-                                        <td class="text-end fw-semibold">
-                                            {{ $d->subtotal > 0 ? 'Rp '.number_format($d->subtotal, 0, ',', '.') : '-' }}
-                                        </td>
-                                        @endif
-                                    </tr>
-                                    @endforeach
+                                </span>
+                            </div>
+                            <div class="summary-detail">
+                                @if($penerimaan->tipe == 'Beli')
+                                    Harga: Rp {{ number_format($g['harga_per_kg'], 0, ',', '.') }}/Kg
                                 @endif
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" class="text-end"><strong>Total</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg</strong></td>
-                                    @if($penerimaan->tipe == 'Beli')
-                                    <td class="hide-mobile"></td>
-                                    <td class="text-end"><strong>Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}</strong></td>
-                                    @endif
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                                @if(count($g['karung_list']) <= 8)
+                                    <br>Rincian: {{ implode(', ', array_map(function($b) { return number_format($b, 2, ',', '.'); }, $g['karung_list'])) }} Kg
+                                @else
+                                    <br>Rincian: {{ count($g['karung_list']) }} karung 
+                                    ({{ number_format(min($g['karung_list']), 2, ',', '.') }} - {{ number_format(max($g['karung_list']), 2, ',', '.') }} Kg)
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                        
+                        {{-- Total --}}
+                        <div class="text-end mt-2 fw-bold" style="font-size:13px; color:var(--primary);">
+                            Total: {{ $totalKarung }} Karung | 
+                            {{ number_format($penerimaan->total_berat_kotor_kg, 2, ',', '.') }} Kg
+                            @if($penerimaan->tipe == 'Beli')
+                                | Rp {{ number_format($penerimaan->total_bayar, 0, ',', '.') }}
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

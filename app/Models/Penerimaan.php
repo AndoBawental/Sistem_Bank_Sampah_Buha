@@ -22,12 +22,14 @@ class Penerimaan extends Model
         'status_sortir',
         'total_berat_kotor_kg',
         'total_bayar',
+         'detail_karung',
         'keterangan'
     ];
 
     protected $casts = [
         'tanggal' => 'datetime',
         'total_berat_kotor_kg' => 'float',
+         'detail_karung' => 'array', // Auto decode JSON
         'total_bayar' => 'decimal:2'
     ];
 

@@ -343,13 +343,17 @@
                             <td>
                                 <div class="plastik-tags">
                                     @if($item->status_sortir == 'Belum')
+                                        @php 
+                                            // Hitung total karung dari jumlah detail
+                                            $totalKarungBelum = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count();
+                                        @endphp
                                         <span class="plastik-tag belum-sortir" title="Belum disortir">
                                             <i class="fas fa-triangle-exclamation me-1"></i>Belum Dipilah
                                             <span class="berat">({{ number_format($item->total_berat_kotor_kg, 1, ',', '.') }}kg)</span>
                                         </span>
                                     @else
                                         @foreach($item->detailPenerimaan->take(3) as $detail)
-                                            <span class="plastik-tag" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg">
+                                            <span class="plastik-tag" title="{{ $detail->jenisPlastik->nama ?? '-' }}: {{ number_format($detail->berat_datang_kg, 2, ',', '.') }} Kg, {{ $detail->jumlah_karung ?: 1 }} karung">
                                                 {{ \Illuminate\Support\Str::limit($detail->jenisPlastik->nama ?? '-', 8) }}
                                                 <span class="berat">{{ number_format($detail->berat_datang_kg, 1, ',', '.') }}</span>
                                                 @if($detail->jumlah_karung > 0)
@@ -368,9 +372,16 @@
                             </td>
                             <td class="text-center">
                                 @if($item->status_sortir == 'Belum')
-                                    @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
-                                    <span class="badge-karung" title="{{ $totalKarung }} karung belum dipilah">
-                                        <i class="fas fa-box me-1"></i>{{ $totalKarung }}
+                                    {{-- PERBAIKAN: Hitung karung dari jumlah detail (setiap detail = 1 karung) --}}
+                                    @php 
+                                        $totalKarungBelum = $item->detailPenerimaan->sum('jumlah_karung');
+                                        // Fallback: jika jumlah_karung 0, gunakan count
+                                        if ($totalKarungBelum == 0) {
+                                            $totalKarungBelum = $item->detailPenerimaan->count();
+                                        }
+                                    @endphp
+                                    <span class="badge-karung" title="{{ $totalKarungBelum }} karung belum dipilah">
+                                        <i class="fas fa-box me-1"></i>{{ $totalKarungBelum }}
                                     </span>
                                 @else
                                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
@@ -400,16 +411,25 @@
                                 </span>
                             </td>
                             <td class="text-center" onclick="event.stopPropagation()">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="action-link text-info" title="Detail"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="action-link print-link" title="Cetak Nota" target="_blank"><i class="fas fa-print"></i></a>
-                                    @if($item->status_sortir != 'Sudah')
-                                    <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="action-link text-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    @endif
-                                    <a href="#" class="action-link text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus"><i class="fas fa-trash"></i></a>
-                                    <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
-                                </div>
-                            </td>
+    <div class="d-flex justify-content-center gap-1">
+        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="action-link text-info" title="Detail">
+            <i class="fas fa-eye"></i>
+        </a>
+        <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="action-link print-link" title="Cetak Nota" target="_blank">
+            <i class="fas fa-print"></i>
+        </a>
+        {{-- PERBAIKAN: Hapus kondisi if, tampilkan edit untuk semua --}}
+        <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="action-link text-warning" title="Edit">
+            <i class="fas fa-edit"></i>
+        </a>
+        <a href="#" class="action-link text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus">
+            <i class="fas fa-trash"></i>
+        </a>
+        <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">
+            @csrf @method('DELETE')
+        </form>
+    </div>
+</td>
                         </tr>
                         @empty
                         <tr><td colspan="9" class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data penerimaan</td></tr>
@@ -439,8 +459,14 @@
                             <span class="info-label">📦 Karung</span>
                             <span class="info-value" style="font-size:10px;">
                                 @if($item->status_sortir == 'Belum')
-                                    @php $totalKarung = $item->detailPenerimaan->sum('jumlah_karung') ?: $item->detailPenerimaan->count(); @endphp
-                                    <strong>{{ $totalKarung }} karung</strong> (belum dipilah)
+                                    {{-- PERBAIKAN: Hitung karung dari jumlah detail --}}
+                                    @php 
+                                        $totalKarungBelum = $item->detailPenerimaan->sum('jumlah_karung');
+                                        if ($totalKarungBelum == 0) {
+                                            $totalKarungBelum = $item->detailPenerimaan->count();
+                                        }
+                                    @endphp
+                                    <strong>{{ $totalKarungBelum }} karung</strong> (belum dipilah)
                                 @else
                                     @foreach($item->detailPenerimaan as $detail)
                                         <div style="white-space:nowrap;">
@@ -458,15 +484,24 @@
                         <div class="info-row"><span class="info-label">💰 Bayar</span><span class="info-value" style="color:#059669;">Rp {{ number_format($item->total_bayar, 0, ',', '.') }}</span></div>
                         @endif
                     </div>
-                    <div class="card-actions-mobile" onclick="event.stopPropagation()">
-                        <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn-action-mobile text-info"><i class="fas fa-eye"></i></a>
-                        <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="btn-action-mobile print-mobile" target="_blank"><i class="fas fa-print"></i></a>
-                        @if($item->status_sortir != 'Sudah')
-                        <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="btn-action-mobile text-warning"><i class="fas fa-edit"></i></a>
-                        @endif
-                        <a href="#" class="btn-action-mobile text-danger btn-delete" data-id="{{ $item->id }}"><i class="fas fa-trash"></i></a>
-                        <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
-                    </div>
+                   <div class="card-actions-mobile" onclick="event.stopPropagation()">
+    <a href="{{ route('gudang.penerimaan.show', $item->id) }}" class="btn-action-mobile text-info">
+        <i class="fas fa-eye"></i>
+    </a>
+    <a href="{{ route('gudang.penerimaan.print', $item->id) }}" class="btn-action-mobile print-mobile" target="_blank">
+        <i class="fas fa-print"></i>
+    </a>
+    {{-- PERBAIKAN: Hapus kondisi if, tampilkan edit untuk semua --}}
+    <a href="{{ route('gudang.penerimaan.edit', $item->id) }}" class="btn-action-mobile text-warning">
+        <i class="fas fa-edit"></i>
+    </a>
+    <a href="#" class="btn-action-mobile text-danger btn-delete" data-id="{{ $item->id }}">
+        <i class="fas fa-trash"></i>
+    </a>
+    <form id="deleteForm{{ $item->id }}" action="{{ route('gudang.penerimaan.destroy', $item->id) }}" method="POST" class="d-none">
+        @csrf @method('DELETE')
+    </form>
+</div>
                 </div>
                 @empty
                 <div class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity:0.3;"></i>Belum ada data</div>

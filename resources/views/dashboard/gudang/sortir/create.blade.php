@@ -169,20 +169,28 @@
         <div class="col-lg-7">
 
             {{-- Info Stok --}}
-            <div class="stok-info">
-                <div class="stok-row">
-                    <span class="stok-label"><i class="fas fa-boxes text-warning"></i>Stok Kotor Tersedia</span>
-                    <span class="stok-value">{{ number_format($totalBeratKotor, 2, ',', '.') }} Kg</span>
-                </div>
-                <div class="stok-row">
-                    <span class="stok-label"><i class="fas fa-calculator text-info"></i>Estimasi Bersih (~85%)</span>
-                    <span class="stok-value">{{ number_format($estimasiBersih, 2, ',', '.') }} Kg</span>
-                </div>
-                <div class="stok-row">
-                    <span class="stok-label"><i class="fas fa-check-circle text-success"></i>Stok Bersih Saat Ini</span>
-                    <span class="stok-value" style="color:#10b981;">{{ number_format($totalBeratBersih, 2, ',', '.') }} Kg</span>
-                </div>
-            </div>
+           <div class="stok-info">
+    <div class="stok-row">
+        <span class="stok-label"><i class="fas fa-boxes text-warning"></i>Stok Kotor Tersedia (Real-time)</span>
+        <span class="stok-value" style="font-size:1.1rem;color:#f59e0b;">
+            {{ number_format($totalBeratKotor, 2, ',', '.') }} Kg
+        </span>
+    </div>
+    <div class="stok-row">
+        <span class="stok-label"><i class="fas fa-calculator text-info"></i>Estimasi Bersih (~85%)</span>
+        <span class="stok-value">{{ number_format($estimasiBersih, 2, ',', '.') }} Kg</span>
+    </div>
+    <div class="stok-row">
+        <span class="stok-label"><i class="fas fa-check-circle text-success"></i>Stok Bersih Saat Ini</span>
+        <span class="stok-value" style="color:#10b981;">{{ number_format($totalBeratBersih, 2, ',', '.') }} Kg</span>
+    </div>
+    <div class="stok-row" style="background:#fff8e1;margin:-8px -12px;padding:8px 12px;border-radius:0 0 8px 8px;">
+        <span class="stok-label"><i class="fas fa-info-circle text-warning"></i><strong>Rumus:</strong></span>
+        <span class="stok-value" style="font-size:0.65rem;color:#795548;">
+            Total Penerimaan Belum - Total Hasil Sortir = Stok Kotor Sisa
+        </span>
+    </div>
+</div>
 
             {{-- Form --}}
             <div class="card">

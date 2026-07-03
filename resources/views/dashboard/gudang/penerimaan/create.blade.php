@@ -1436,44 +1436,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function prepareFormData() {
-        document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
+   function prepareFormData() {
+    document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
+    
+    let itemIdx = 0;
+    const form = document.getElementById('formPenerimaan');
+    
+    if (!isSudah()) {
+        // BELUM SORTIR: Setiap karung jadi 1 item
+        const hargaPerKg = isBeli() ? parseRupiah($hargaPerKgBelum.value || '0') : 0;
         
-        let itemIdx = 0;
-        const form = document.getElementById('formPenerimaan');
-        
-        if (!isSudah()) {
-            const hargaPerKg = isBeli() ? parseRupiah($hargaPerKgBelum.value || '0') : 0;
+        $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
+            const beratInput = row.querySelector('.berat-input-belum');
+            if (!beratInput) return;
+            const berat = parseFloat(beratInput.value) || 0;
+            if (berat <= 0) return;
             
-            $karungListBelum.querySelectorAll('.karung-row').forEach(row => {
-                const beratInput = row.querySelector('.berat-input-belum');
-                if (!beratInput) return;
-                const berat = parseFloat(beratInput.value) || 0;
+            addHiddenInput(form, itemIdx, 'berat', berat);
+            addHiddenInput(form, itemIdx, 'jenis_plastik_id', '');
+            addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
+            itemIdx++;
+        });
+    } else {
+        // SUDAH SORTIR: Setiap karung tetap 1 item (akan di-merge di controller)
+        document.querySelectorAll('.plastik-group').forEach(group => {
+            const jenisId = group.querySelector('.jenis-select')?.value || '';
+            const hargaPerKg = isBeli() ? parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0') : 0;
+            if (!jenisId) return;
+            
+            group.querySelectorAll('.karung-row').forEach(row => {
+                const berat = parseFloat(row.querySelector('.berat-input')?.value) || 0;
                 if (berat <= 0) return;
                 
                 addHiddenInput(form, itemIdx, 'berat', berat);
-                addHiddenInput(form, itemIdx, 'jenis_plastik_id', '');
+                addHiddenInput(form, itemIdx, 'jenis_plastik_id', jenisId);
                 addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
                 itemIdx++;
             });
-        } else {
-            document.querySelectorAll('.plastik-group').forEach(group => {
-                const jenisId = group.querySelector('.jenis-select')?.value || '';
-                const hargaPerKg = isBeli() ? parseRupiah(group.querySelector('.harga-per-kg-input')?.value || '0') : 0;
-                if (!jenisId) return;
-                
-                group.querySelectorAll('.karung-row').forEach(row => {
-                    const berat = parseFloat(row.querySelector('.berat-input')?.value) || 0;
-                    if (berat <= 0) return;
-                    
-                    addHiddenInput(form, itemIdx, 'berat', berat);
-                    addHiddenInput(form, itemIdx, 'jenis_plastik_id', jenisId);
-                    addHiddenInput(form, itemIdx, 'harga_per_kg', hargaPerKg);
-                    itemIdx++;
-                });
-            });
-        }
+        });
     }
+}
     
     function addHiddenInput(form, idx, field, value) {
         const input = document.createElement('input');

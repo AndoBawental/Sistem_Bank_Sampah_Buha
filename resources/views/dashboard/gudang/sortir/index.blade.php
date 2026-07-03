@@ -141,24 +141,33 @@
 @section('content')
 <div class="container-fluid px-2 px-md-3">
 
-    {{-- STATISTIK --}}
-    <div class="stat-row">
-        <div class="stat-box warning">
-            <div class="stat-label">⚖️ Stok Kotor</div>
-            <div class="stat-value">{{ number_format($totalBeratKotor, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">Menunggu sortir</div>
+{{-- STATISTIK --}}
+<div class="stat-row" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-box warning">
+        <div class="stat-label">⚖️ Stok Kotor (Sisa)</div>
+        <div class="stat-value">
+            {{ number_format($totalBeratKotor, 0, ',', '.') }} 
+            <small style="font-size:0.6rem;">Kg</small>
         </div>
-        <div class="stat-box success">
-            <div class="stat-label">✅ Estimasi Bersih</div>
-            <div class="stat-value">{{ number_format($estimasiBersih, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">~85% dari kotor</div>
-        </div>
-        <div class="stat-box primary">
-            <div class="stat-label">🏭 Stok Bersih</div>
-            <div class="stat-value">{{ number_format($totalBeratBersih, 0, ',', '.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">Siap produksi</div>
-        </div>
+        <div class="stat-sub">Real-time: Penerimaan - Sortir</div>
     </div>
+    <div class="stat-box success">
+        <div class="stat-label">✅ Sudah Sortir</div>
+        <div class="stat-value">
+            {{ number_format($totalSudahSortir, 0, ',', '.') }} 
+            <small style="font-size:0.6rem;">Kg</small>
+        </div>
+        <div class="stat-sub">{{ $totalKarungSortir }} kali sortir</div>
+    </div>
+    <div class="stat-box primary">
+        <div class="stat-label">🏭 Stok Bersih</div>
+        <div class="stat-value">
+            {{ number_format($totalBeratBersih, 0, ',', '.') }} 
+            <small style="font-size:0.6rem;">Kg</small>
+        </div>
+        <div class="stat-sub">Siap produksi</div>
+    </div>
+</div>
 
     {{-- FILTER --}}
     <div class="filter-bar">
