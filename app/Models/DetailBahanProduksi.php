@@ -15,6 +15,7 @@ class DetailBahanProduksi extends Model
     
     protected $fillable = [
         'produksi_id',
+         'detail_hasil_produksi_id',
         'stok_id',           
         'jenis_plastik_id',
         'berat_kg'           
@@ -27,6 +28,11 @@ class DetailBahanProduksi extends Model
     public function produksi(): BelongsTo
     {
         return $this->belongsTo(Produksi::class, 'produksi_id');
+    }
+
+     public function detailHasilProduksi(): BelongsTo // ✅ Tambah ini
+    {
+        return $this->belongsTo(DetailHasilProduksi::class, 'detail_hasil_produksi_id');
     }
 
     public function jenisPlastik(): BelongsTo

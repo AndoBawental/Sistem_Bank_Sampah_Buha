@@ -119,7 +119,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-6 col-md-3">
                     <label class="form-label">Jenis Produk</label>
-                    <select name="jenis_produk_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="jenis_produk_id" class="form-select form-select-sm filter-auto">
                         <option value="">Semua</option>
                         @foreach($jenisProduk ?? [] as $jp)
                             <option value="{{ $jp->id }}" {{ request('jenis_produk_id') == $jp->id ? 'selected' : '' }}>{{ $jp->nama }}</option>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label">Tampil</label>
-                    <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="per_page" class="form-select form-select-sm filter-auto">
                         <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
                         <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
@@ -164,12 +164,12 @@
                     <thead>
                         <tr>
                             <th class="text-center" style="width:4%;">#</th>
-                            <th>Tanggal</th>
-                            <th>Bahan</th>
-                            <th>Hasil</th>
+                            <th style="width:12%;">Tanggal</th>
+                            <th style="width:28%;">Produk & Bahan</th>
                             <th class="text-center" style="width:7%;">Sak</th>
-                            <th class="text-end" style="width:11%;">Berat</th>
-                            <th class="text-center" style="width:15%;">Aksi</th>
+                            <th class="text-end" style="width:11%;">Berat Hasil</th>
+                            <th class="text-end" style="width:10%;">Bahan</th>
+                            <th class="text-center" style="width:16%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -181,16 +181,20 @@
                                 <small class="text-muted" style="font-size:9px;">{{ \Carbon\Carbon::parse($item->tanggal)->format('H:i') }}</small>
                             </td>
                             <td>
-                                @foreach($item->detailBahanProduksi->take(2) as $bahan)
-                                    <span class="badge-bahan">{{ $bahan->jenisPlastik->nama ?? '-' }}: {{ number_format($bahan->berat_kg, 1, ',', '.') }} Kg</span>
-                                @endforeach
-                                @if($item->detailBahanProduksi->count() > 2)
-                                    <span class="badge-bahan">+{{ $item->detailBahanProduksi->count() - 2 }}</span>
-                                @endif
-                            </td>
-                            <td>
+                                {{-- ✅ Tampilkan per produk dengan bahan masing-masing --}}
                                 @foreach($item->detailHasilProduksi as $hasil)
+                                <div style="margin-bottom:4px;">
                                     <span class="badge-produk">{{ $hasil->jenisProduk->nama ?? '-' }}</span>
+                                    @php
+                                        $bahanProduk = $item->detailBahanProduksi->filter(fn($b) => $b->detail_hasil_produksi_id == $hasil->id);
+                                    @endphp
+                                    @foreach($bahanProduk->take(2) as $bahan)
+                                        <span class="badge-bahan">{{ Str::limit($bahan->jenisPlastik->nama ?? '-', 6) }}: {{ number_format($bahan->berat_kg, 1, ',', '.') }}</span>
+                                    @endforeach
+                                    @if($bahanProduk->count() > 2)
+                                        <span class="badge-bahan">+{{ $bahanProduk->count() - 2 }}</span>
+                                    @endif
+                                </div>
                                 @endforeach
                             </td>
                             <td class="text-center">
@@ -203,11 +207,16 @@
                                     <div style="font-size:11px;">{{ number_format($hasil->total_berat_kg ?? 0, 2, ',', '.') }} Kg</div>
                                 @endforeach
                             </td>
+                            <td class="text-end fw-semibold" style="font-size:11px;">
+                                {{ number_format($item->detailBahanProduksi->sum('berat_kg'), 2, ',', '.') }} Kg
+                            </td>
                             <td class="text-center" onclick="event.stopPropagation()">
-                                <a href="{{ route('produksi.show', $item->id) }}" class="btn-action text-info" title="Detail"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('produksi.edit', $item->id) }}" class="btn-action text-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                <button type="button" class="btn-action text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus"><i class="fas fa-trash"></i></button>
-                                <form id="deleteForm{{ $item->id }}" action="{{ route('produksi.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{{ route('produksi.show', $item->id) }}" class="btn-action text-info" title="Detail"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('produksi.edit', $item->id) }}" class="btn-action text-warning" title="Edit"><i class="fas fa-edit"></i></a>
+                                    <button type="button" class="btn-action text-danger btn-delete" data-id="{{ $item->id }}" title="Hapus"><i class="fas fa-trash"></i></button>
+                                    <form id="deleteForm{{ $item->id }}" action="{{ route('produksi.destroy', $item->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -218,7 +227,10 @@
             </div>
         </div>
         @if($produksi->hasPages())
-        <div class="card-footer bg-white">{{ $produksi->appends(request()->query())->links('pagination::bootstrap-5') }}</div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ $produksi->firstItem() }}-{{ $produksi->lastItem() }} dari {{ $produksi->total() }}</small>
+            {{ $produksi->appends(request()->query())->links('pagination::bootstrap-5') }}
+        </div>
         @endif
     </div>
 
@@ -238,17 +250,24 @@
                     @endforeach
                 </div>
             </div>
+            @foreach($item->detailHasilProduksi as $hasil)
+            @php $bahanProduk = $item->detailBahanProduksi->filter(fn($b) => $b->detail_hasil_produksi_id == $hasil->id); @endphp
             <div class="info-row-mob">
-                <span class="info-label-mob">Bahan</span>
-                <span class="info-value-mob">{{ number_format($item->detailBahanProduksi->sum('berat_kg'), 1, ',', '.') }} Kg</span>
+                <span class="info-label-mob">📦 {{ $hasil->jenisProduk->nama ?? '-' }}</span>
+                <span class="info-value-mob">{{ $hasil->jumlah_sak }} sak | {{ number_format($hasil->total_berat_kg, 2, ',', '.') }} Kg</span>
             </div>
             <div class="info-row-mob">
-                <span class="info-label-mob">Sak</span>
-                <span class="info-value-mob">{{ $item->detailHasilProduksi->sum('jumlah_sak') }}</span>
+                <span class="info-label-mob">🧱 Bahan</span>
+                <span class="info-value-mob" style="font-size:10px;">
+                    @foreach($bahanProduk as $bahan)
+                        {{ $bahan->jenisPlastik->nama ?? '-' }}: {{ number_format($bahan->berat_kg, 1, ',', '.') }} Kg<br>
+                    @endforeach
+                </span>
             </div>
-            <div class="info-row-mob">
-                <span class="info-label-mob">Berat</span>
-                <span class="info-value-mob">{{ number_format($item->detailHasilProduksi->sum('total_berat_kg'), 2, ',', '.') }} Kg</span>
+            @endforeach
+            <div class="info-row-mob" style="border-top:1px solid #f0f0f0;margin-top:4px;padding-top:4px;">
+                <span class="info-label-mob">📊 Total</span>
+                <span class="info-value-mob">{{ number_format($item->detailBahanProduksi->sum('berat_kg'), 1, ',', '.') }} Kg → {{ number_format($item->detailHasilProduksi->sum('total_berat_kg'), 2, ',', '.') }} Kg</span>
             </div>
             <div class="d-flex gap-2 mt-2 pt-2 border-top" onclick="event.stopPropagation()">
                 <a href="{{ route('produksi.show', $item->id) }}" class="btn btn-outline-info btn-sm flex-fill rounded-pill"><i class="fas fa-eye"></i></a>
@@ -271,78 +290,25 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto submit filter
+    document.querySelectorAll('.filter-auto').forEach(s => s.addEventListener('change', () => document.getElementById('filterForm').submit()));
     
-    // ========== KONFIRMASI HAPUS ==========
+    // Konfirmasi hapus
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             const id = this.getAttribute('data-id');
-            
             Swal.fire({
                 title: 'Konfirmasi Hapus',
-                html: `
-                    <div style="font-size:14px;">
-                        <p class="mb-2">⚠️ Anda akan menghapus data produksi ini.</p>
-                        <p class="mb-0 text-success"><strong>Stok bahan akan dikembalikan</strong> secara otomatis.</p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-trash me-1"></i> Ya, Hapus!',
-                cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
-                reverseButtons: true,
-                focusCancel: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Menghapus...',
-                        text: 'Mohon tunggu',
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
-                    document.getElementById('deleteForm' + id).submit();
-                }
-            });
+                html: '<div style="font-size:14px;"><p class="mb-2">⚠️ Anda akan menghapus data produksi ini.</p><p class="mb-0 text-success"><strong>Stok bahan akan dikembalikan</strong> secara otomatis.</p></div>',
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
+            }).then(r => { if (r.isConfirmed) { Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); document.getElementById('deleteForm' + id).submit(); } });
         });
     });
     
-    // ========== NOTIFIKASI SESSION ==========
-    @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            confirmButtonColor: '#2e7d32'
-        });
-    @endif
-
-    @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: '{{ session('error') }}',
-            timer: 4000,
-            timerProgressBar: true,
-            confirmButtonColor: '#dc3545'
-        });
-    @endif
-
-    @if(session('warning'))
-        Swal.fire({
-            icon: 'warning',
-            title: 'Perhatian!',
-            text: '{{ session('warning') }}',
-            timer: 3500,
-            timerProgressBar: true,
-            confirmButtonColor: '#f59e0b'
-        });
-    @endif
-    
+    @if(session('success')) Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000, confirmButtonColor: '#2e7d32' }); @endif
+    @if(session('error')) Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('error') }}', timer: 4000, confirmButtonColor: '#dc3545' }); @endif
 });
 </script>
 @endpush
