@@ -52,12 +52,23 @@
         padding: 5px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s; min-height: 32px;
     }
     .btn-batal:hover { background: #dc3545; color: #fff; }
+    .btn-edit-sm {
+        background: #fff; color: #f59e0b; border: 1px solid #f59e0b; font-size: 0.62rem;
+        padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 2px;
+    }
+    .btn-edit-sm:hover { background: #f59e0b; color: #fff; }
     .empty-state { text-align: center; padding: 2.5rem 1rem; }
     .empty-state i { opacity: 0.2; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
     .page-header h6 { font-size: 0.88rem; font-weight: 700; color: #333; margin: 0; }
 
-    /* Pagination */
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+    .detail-tag {
+        background: #ecfdf5; color: #064e3b; font-size: 9px; padding: 2px 7px;
+        border-radius: 10px; white-space: nowrap; border: 1px solid #d1fae5;
+    }
+
     .pagination-simple {
         display: flex; justify-content: center; align-items: center; gap: 4px;
         padding: 10px 0; flex-wrap: wrap;
@@ -101,60 +112,26 @@
 
     {{-- STATISTIK --}}
     <div class="stat-row">
-        <div class="stat-box warning">
-            <div class="stat-label">⚖️ Stok Kotor (Sisa)</div>
-            <div class="stat-value">{{ number_format($totalBeratKotor,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">Penerimaan - Sortir</div>
-        </div>
-        <div class="stat-box success">
-            <div class="stat-label">✅ Sudah Sortir</div>
-            <div class="stat-value">{{ number_format($totalSudahSortir,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">{{ $totalKarungSortir }} kali sortir</div>
-        </div>
-        <div class="stat-box primary">
-            <div class="stat-label">🏭 Stok Bersih</div>
-            <div class="stat-value">{{ number_format($totalBeratBersih,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div>
-            <div class="stat-sub">Siap produksi</div>
-        </div>
+        <div class="stat-box warning"><div class="stat-label">⚖️ Stok Kotor (Sisa)</div><div class="stat-value">{{ number_format($totalBeratKotor,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div><div class="stat-sub">Penerimaan - Sortir</div></div>
+        <div class="stat-box success"><div class="stat-label">✅ Sudah Sortir</div><div class="stat-value">{{ number_format($totalSudahSortir,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div><div class="stat-sub">{{ $totalKarungSortir }} kali sortir</div></div>
+        <div class="stat-box primary"><div class="stat-label">🏭 Stok Bersih</div><div class="stat-value">{{ number_format($totalBeratBersih,0,',','.') }} <small style="font-size:0.6rem;">Kg</small></div><div class="stat-sub">Siap produksi</div></div>
     </div>
 
     {{-- FILTER --}}
     <div class="filter-bar">
         <form method="GET" action="{{ route('gudang.sortir.index') }}" id="filterForm">
             <div class="row g-2 align-items-end">
-                <div class="col-6 col-sm-4 col-md-3">
-                    <label class="form-label">Jenis Plastik</label>
-                    <select name="jenis_plastik_id" class="form-select form-select-sm filter-auto">
-                        <option value="">Semua</option>
-                        @foreach($jenisPlastik as $jp)
-                            <option value="{{ $jp->id }}" {{ request('jenis_plastik_id')==$jp->id?'selected':'' }}>{{ $jp->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-6 col-sm-3 col-md-2">
-                    <label class="form-label">Dari</label>
-                    <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ request('dari_tanggal') }}">
-                </div>
-                <div class="col-6 col-sm-3 col-md-2">
-                    <label class="form-label">Sampai</label>
-                    <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ request('sampai_tanggal') }}">
-                </div>
-                <div class="col-6 col-sm-2 col-md-2">
-                    <button type="submit" class="btn btn-success btn-sm w-100"><i class="fas fa-search me-1"></i>Filter</button>
-                </div>
-                <div class="col-6 col-sm-2 col-md-1">
-                    <a href="{{ route('gudang.sortir.index') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="fas fa-redo"></i></a>
-                </div>
+                <div class="col-6 col-sm-4 col-md-3"><label class="form-label">Jenis Plastik</label><select name="jenis_plastik_id" class="form-select form-select-sm filter-auto"><option value="">Semua</option>@foreach($jenisPlastik as $jp)<option value="{{ $jp->id }}" {{ request('jenis_plastik_id')==$jp->id?'selected':'' }}>{{ $jp->nama }}</option>@endforeach</select></div>
+                <div class="col-6 col-sm-3 col-md-2"><label class="form-label">Dari</label><input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ request('dari_tanggal') }}"></div>
+                <div class="col-6 col-sm-3 col-md-2"><label class="form-label">Sampai</label><input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ request('sampai_tanggal') }}"></div>
+                <div class="col-6 col-sm-2 col-md-2"><button type="submit" class="btn btn-success btn-sm w-100"><i class="fas fa-search me-1"></i>Filter</button></div>
+                <div class="col-6 col-sm-2 col-md-1"><a href="{{ route('gudang.sortir.index') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="fas fa-redo"></i></a></div>
             </div>
             @if(request('jenis_plastik_id')||request('dari_tanggal')||request('sampai_tanggal'))
             <div class="mt-2 d-flex flex-wrap align-items-center gap-1">
                 <small class="text-muted me-1" style="font-size:0.6rem;">Filter aktif:</small>
-                @if(request('jenis_plastik_id'))
-                    <span class="filter-badge">{{ $jenisPlastik->where('id',request('jenis_plastik_id'))->first()->nama??'' }}<a href="{{ route('gudang.sortir.index',request()->except('jenis_plastik_id')) }}" class="text-muted">&times;</a></span>
-                @endif
-                @if(request('dari_tanggal')||request('sampai_tanggal'))
-                    <span class="filter-badge"><i class="far fa-calendar me-1"></i>{{ request('dari_tanggal','∞') }} - {{ request('sampai_tanggal','∞') }}<a href="{{ route('gudang.sortir.index',request()->except(['dari_tanggal','sampai_tanggal'])) }}" class="text-muted">&times;</a></span>
-                @endif
+                @if(request('jenis_plastik_id'))<span class="filter-badge">{{ $jenisPlastik->where('id',request('jenis_plastik_id'))->first()->nama??'' }}<a href="{{ route('gudang.sortir.index',request()->except('jenis_plastik_id')) }}" class="text-muted">&times;</a></span>@endif
+                @if(request('dari_tanggal')||request('sampai_tanggal'))<span class="filter-badge"><i class="far fa-calendar me-1"></i>{{ request('dari_tanggal','∞') }} - {{ request('sampai_tanggal','∞') }}<a href="{{ route('gudang.sortir.index',request()->except(['dari_tanggal','sampai_tanggal'])) }}" class="text-muted">&times;</a></span>@endif
             </div>
             @endif
         </form>
@@ -171,58 +148,61 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th style="width:40px;">#</th>
-                            <th>Tanggal</th>
-                            <th>Jenis Plastik</th>
-                            <th class="text-end" style="width:120px;">Berat Bersih</th>
-                            <th class="d-none d-md-table-cell">Catatan</th>
-                            <th class="text-center" style="width:90px;">Aksi</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="width:40px;">#</th><th>Tanggal</th><th>Detail Sortir</th><th class="text-end" style="width:100px;">Total Berat</th><th class="d-none d-md-table-cell">Catatan</th><th class="text-center" style="width:110px;">Aksi</th></tr></thead>
                     <tbody>
                         @forelse($riwayatSortir as $i => $r)
+                        @php
+                            $detailSortir = $r->detail_sortir ?? [];
+                            if (is_string($detailSortir)) $detailSortir = json_decode($detailSortir, true) ?? [];
+                            if (empty($detailSortir) && $r->jenis_plastik_id) {
+                                $detailSortir = [['jenis_plastik_id' => $r->jenis_plastik_id, 'jenis_nama' => $r->jenisPlastik->nama ?? '-', 'berat_bersih' => $r->berat_bersih_kg]];
+                            }
+                            // ✅ Kelompokkan per jenis untuk tampilan ringkas
+                            $groupedDetail = [];
+                            foreach ($detailSortir as $d) {
+                                $key = $d['jenis_nama'];
+                                if (!isset($groupedDetail[$key])) {
+                                    $groupedDetail[$key] = ['nama' => $key, 'total' => 0, 'karung' => 0, 'rincian' => []];
+                                }
+                                $groupedDetail[$key]['total'] += $d['berat_bersih'];
+                                $groupedDetail[$key]['karung']++;
+                                $groupedDetail[$key]['rincian'][] = number_format($d['berat_bersih'], 2, ',', '.');
+                            }
+                        @endphp
                         <tr>
                             <td class="text-muted small">{{ $riwayatSortir->firstItem()+$i }}</td>
+                            <td><div class="fw-semibold">{{ $r->created_at->format('d/m/Y') }}</div><small class="text-muted" style="font-size:0.62rem;">{{ $r->created_at->format('H:i') }}</small></td>
                             <td>
-                                <div class="fw-semibold">{{ $r->created_at->format('d/m/Y') }}</div>
-                                <small class="text-muted" style="font-size:0.62rem;">{{ $r->created_at->format('H:i') }}</small>
+                                <div class="detail-tags">
+                                    @foreach($groupedDetail as $g)
+                                    <span class="detail-tag" title="{{ $g['karung'] }} karung: {{ implode(', ', $g['rincian']) }} Kg">
+                                        <strong>{{ $g['nama'] }}</strong>: {{ number_format($g['total'], 2, ',', '.') }} Kg
+                                        <small style="opacity:0.7;">({{ $g['karung'] }}x)</small>
+                                    </span>
+                                    @endforeach
+                                </div>
                             </td>
-                            <td><span class="fw-semibold">{{ $r->jenisPlastik->nama??'-' }}</span></td>
-                            <td class="text-end">
-                                <span class="fw-bold text-success">{{ number_format($r->berat_bersih_kg,2,',','.') }} Kg</span>
-                            </td>
-                            <td class="d-none d-md-table-cell">
-                                <small class="text-muted">{{ $r->catatan?:'-' }}</small>
-                            </td>
+                            <td class="text-end"><span class="fw-bold text-success">{{ number_format($r->berat_bersih_kg,2,',','.') }} Kg</span></td>
+                            <td class="d-none d-md-table-cell"><small class="text-muted">{{ $r->catatan?:'-' }}</small></td>
                             <td class="text-center">
-                                <button type="button" class="btn-batal btn-batal-sortir" 
-                                    data-id="{{ $r->id }}" 
-                                    data-berat="{{ number_format($r->berat_bersih_kg,2,',','.') }}" 
-                                    data-jenis="{{ $r->jenisPlastik->nama??'-' }}">
-                                    Batalkan
-                                </button>
-                                <form id="deleteForm{{ $r->id }}" action="{{ route('gudang.sortir.destroy',$r->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6">
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox fa-3x mb-2 d-block"></i>
-                                    <p class="fw-semibold text-muted mb-1">Belum ada riwayat sortir</p>
-                                    <small class="text-muted">Klik "Sortir Baru" untuk memulai proses sortir</small>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{{ route('gudang.sortir.edit', $r->id) }}" class="btn-edit-sm" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn-batal btn-batal-sortir" data-id="{{ $r->id }}" data-berat="{{ number_format($r->berat_bersih_kg,2,',','.') }}">Batalkan</button>
+                                    <form id="deleteForm{{ $r->id }}" action="{{ route('gudang.sortir.destroy',$r->id) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
                                 </div>
                             </td>
                         </tr>
+                        @empty
+                        <tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox fa-3x mb-2 d-block"></i><p class="fw-semibold text-muted mb-1">Belum ada riwayat sortir</p><small class="text-muted">Klik "Sortir Baru" untuk memulai</small></div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
 
-        {{-- PAGINATION --}}
+       {{-- PAGINATION --}}
         @if($riwayatSortir->hasPages())
         <div class="card-footer bg-white border-0 py-2">
             <div class="pagination-info">
@@ -244,7 +224,9 @@
 
                 @if($start > 1)
                     <a class="page-link" href="{{ $riwayatSortir->url(1) }}">1</a>
-                    @if($start > 2)<span class="page-link" style="border:none;background:transparent;">...</span>@endif
+                    @if($start > 2)
+                        <span class="page-link" style="border:none;background:transparent;">...</span>
+                    @endif
                 @endif
 
                 @for($i = $start; $i <= $end; $i++)
@@ -256,7 +238,9 @@
                 @endfor
 
                 @if($end < $lastPage)
-                    @if($end < $lastPage - 1)<span class="page-link" style="border:none;background:transparent;">...</span>@endif
+                    @if($end < $lastPage - 1)
+                        <span class="page-link" style="border:none;background:transparent;">...</span>
+                    @endif
                     <a class="page-link" href="{{ $riwayatSortir->url($lastPage) }}">{{ $lastPage }}</a>
                 @endif
 
@@ -276,36 +260,18 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
-    // Auto submit filter
     document.querySelectorAll('.filter-auto').forEach(s=>s.addEventListener('change',()=>document.getElementById('filterForm').submit()));
-    
-    // Konfirmasi batalkan sortir
     document.querySelectorAll('.btn-batal-sortir').forEach(btn=>{
         btn.addEventListener('click',function(){
-            const id=this.dataset.id,berat=this.dataset.berat,jenis=this.dataset.jenis;
+            const id=this.dataset.id,berat=this.dataset.berat;
             Swal.fire({
-                title:'Batalkan Sortir?',
-                html:`<div style="font-size:13px;text-align:left;">
-                    <p class="mb-2">Anda akan membatalkan hasil sortir:</p>
-                    <table><tr><td>Jenis Plastik</td><td>: <strong>${jenis}</strong></td></tr>
-                    <tr><td>Berat Bersih</td><td>: <strong>${berat} Kg</strong></td></tr></table>
-                    <p class="mt-2 mb-0 text-danger"><small>⚠️ Stok bersih akan dikurangi dan stok kotor dikembalikan.</small></p>
-                </div>`,
-                icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',cancelButtonColor:'#6c757d',
-                confirmButtonText:'<i class="fas fa-undo me-1"></i> Ya, Batalkan!',cancelButtonText:'Tutup',reverseButtons:true
-            }).then(r=>{
-                if(r.isConfirmed){
-                    Swal.fire({title:'Membatalkan...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
-                    document.getElementById('deleteForm'+id).submit();
-                }
-            });
+                title:'Batalkan Sortir?',html:`<div style="font-size:13px;text-align:left;"><p class="mb-2">Anda akan membatalkan hasil sortir:</p><p><strong>Total Berat: ${berat} Kg</strong></p><p class="mt-2 mb-0 text-danger"><small>⚠️ Stok bersih akan dikurangi.</small></p></div>`,
+                icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',cancelButtonColor:'#6c757d',confirmButtonText:'Ya, Batalkan!',cancelButtonText:'Tutup',reverseButtons:true
+            }).then(r=>{if(r.isConfirmed){Swal.fire({title:'Membatalkan...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});document.getElementById('deleteForm'+id).submit();}});
         });
     });
-    
-    // Notifikasi
     @if(session('success'))Swal.fire({icon:'success',title:'Berhasil!',text:'{{session('success')}}',timer:3000,confirmButtonColor:'#2e7d32'});@endif
     @if(session('error'))Swal.fire({icon:'error',title:'Gagal!',text:'{{session('error')}}',timer:4000,confirmButtonColor:'#ef4444'});@endif
-    @if(session('warning'))Swal.fire({icon:'warning',title:'Perhatian!',text:'{{session('warning')}}',timer:3500,confirmButtonColor:'#f59e0b'});@endif
 });
 </script>
 @endpush

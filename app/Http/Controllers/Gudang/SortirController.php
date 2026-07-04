@@ -13,101 +13,39 @@ use Illuminate\Support\Facades\DB;
 
 class SortirController extends Controller
 {
-    /**
-     * HALAMAN INDEX - Riwayat Sortir
-     */
     public function index(Request $request)
     {
-        // ✅ Stok kotor = total penerimaan Belum - total hasil sortir
-        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')
-            ->sum('total_berat_kotor_kg');
-        
-        // ✅ PERBAIKAN: Pastikan query benar
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
         $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
-        
-        // DEBUG: Jika masih 0, coba query langsung
-        if ($totalSudahSortir == 0) {
-            $totalSudahSortir = DB::table('hasil_sortir')->sum('berat_bersih_kg');
-        }
-        
-        // Stok kotor real-time
+        if ($totalSudahSortir == 0) $totalSudahSortir = DB::table('hasil_sortir')->sum('berat_bersih_kg');
         $totalBeratKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
         
-        // ✅ Total karung kotor (sisa)
-        $totalKarungKotor = DB::table('detail_penerimaan AS dp')
-            ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
-            ->where('p.status_sortir', 'Belum')
-            ->sum('dp.jumlah_karung');
-        
-        if ($totalKarungKotor == 0) {
-            $totalKarungKotor = DB::table('detail_penerimaan AS dp')
-                ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
-                ->where('p.status_sortir', 'Belum')
-                ->count();
-        }
-        
-        // ✅ Total karung sudah disortir (jumlah record)
         $totalKarungSortir = HasilSortir::count();
-        
-        // ✅ Total berat bersih di stok
         $totalBeratBersih = Stok::sum('total_berat');
         $estimasiBersih = $totalBeratKotor * 0.85;
         
-        // Query riwayat
         $query = HasilSortir::with(['jenisPlastik', 'penerimaan']);
-        
-        if ($request->filled('jenis_plastik_id')) {
-            $query->where('jenis_plastik_id', $request->jenis_plastik_id);
-        }
-        if ($request->filled('dari_tanggal')) {
-            $query->whereDate('created_at', '>=', $request->dari_tanggal);
-        }
-        if ($request->filled('sampai_tanggal')) {
-            $query->whereDate('created_at', '<=', $request->sampai_tanggal);
-        }
+        if ($request->filled('jenis_plastik_id')) $query->where('jenis_plastik_id', $request->jenis_plastik_id);
+        if ($request->filled('dari_tanggal')) $query->whereDate('created_at', '>=', $request->dari_tanggal);
+        if ($request->filled('sampai_tanggal')) $query->whereDate('created_at', '<=', $request->sampai_tanggal);
         
         $riwayatSortir = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
         return view('dashboard.gudang.sortir.index', compact(
-            'totalBeratKotor', 
-            'totalBeratBersih', 
-            'estimasiBersih',
-            'totalKarungKotor',
-            'totalKarungSortir',
-            'totalSudahSortir', // ✅ Tambahkan ini
-            'riwayatSortir', 
-            'jenisPlastik'
+            'totalBeratKotor', 'totalBeratBersih', 'estimasiBersih',
+            'totalKarungSortir', 'totalSudahSortir', 'riwayatSortir', 'jenisPlastik'
         ));
     }
 
-    /**
-     * HALAMAN CREATE - Form Proses Sortir
-     */
     public function create()
     {
-        // Stok kotor real-time
-        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')
-            ->sum('total_berat_kotor_kg');
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
         $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
         $totalBeratKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
         
         if ($totalBeratKotor <= 0) {
-            return redirect()->route('gudang.sortir.index')
-                ->with('error', 'Stok kotor kosong! Tidak ada yang bisa disortir.');
-        }
-        
-        // Karung kotor
-        $totalKarungKotor = DB::table('detail_penerimaan AS dp')
-            ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
-            ->where('p.status_sortir', 'Belum')
-            ->sum('dp.jumlah_karung');
-        
-        if ($totalKarungKotor == 0) {
-            $totalKarungKotor = DB::table('detail_penerimaan AS dp')
-                ->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')
-                ->where('p.status_sortir', 'Belum')
-                ->count();
+            return redirect()->route('gudang.sortir.index')->with('error', 'Stok kotor kosong!');
         }
         
         $totalBeratBersih = Stok::sum('total_berat');
@@ -115,18 +53,40 @@ class SortirController extends Controller
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
         return view('dashboard.gudang.sortir.create', compact(
-            'totalBeratKotor',
-            'totalBeratBersih',
-            'estimasiBersih',
-            'totalKarungKotor',
-            'jenisPlastik'
+            'totalBeratKotor', 'totalBeratBersih', 'estimasiBersih', 'jenisPlastik'
         ));
     }
 
     /**
-     * STORE - Simpan Hasil Sortir
+     * EDIT - Tampilkan form edit
      */
-    public function store(Request $request)
+    public function edit($id)
+    {
+        $sortir = HasilSortir::findOrFail($id);
+        
+        // Decode detail_sortir
+        $detailSortir = $sortir->detail_sortir ?? [];
+        if (is_string($detailSortir)) $detailSortir = json_decode($detailSortir, true) ?? [];
+        
+        // Hitung stok kotor real-time + kembalikan berat yang sudah disortir di transaksi ini
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
+        $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
+        // Kembalikan berat transaksi ini agar bisa diedit
+        $stokEfektif = max(0, $totalPenerimaanKotor - $totalSudahSortir + $sortir->berat_bersih_kg);
+        
+        $totalBeratBersih = Stok::sum('total_berat');
+        $estimasiBersih = $stokEfektif * 0.85;
+        $jenisPlastik = JenisPlastik::orderBy('nama')->get();
+        
+        return view('dashboard.gudang.sortir.edit', compact(
+            'sortir', 'detailSortir', 'stokEfektif', 'totalBeratBersih', 'estimasiBersih', 'jenisPlastik'
+        ));
+    }
+
+    /**
+     * UPDATE - Simpan perubahan sortir
+     */
+    public function update(Request $request, $id)
     {
         $request->validate([
             'hasil' => 'required|array|min:1',
@@ -136,118 +96,208 @@ class SortirController extends Controller
         ]);
 
         DB::beginTransaction();
-        
         try {
-            // Hitung stok kotor real-time
-            $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')
-                ->sum('total_berat_kotor_kg');
-            $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
+            $sortir = HasilSortir::findOrFail($id);
+            
+            // Rollback stok lama
+            $detailLama = $sortir->detail_sortir ?? [];
+            if (is_string($detailLama)) $detailLama = json_decode($detailLama, true) ?? [];
+            
+            if (!empty($detailLama)) {
+                foreach ($detailLama as $d) {
+                    $stok = Stok::where('jenis_plastik_id', $d['jenis_plastik_id'])->first();
+                    if ($stok) {
+                        $stok->decrement('total_berat', $d['berat_bersih']);
+                        if ($stok->total_berat <= 0) $stok->delete();
+                    }
+                }
+            } else {
+                // Format lama
+                $stok = Stok::where('jenis_plastik_id', $sortir->jenis_plastik_id)->first();
+                if ($stok) {
+                    $stok->decrement('total_berat', $sortir->berat_bersih_kg);
+                    if ($stok->total_berat <= 0) $stok->delete();
+                }
+            }
+            
+            // Validasi stok baru
+            $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
+            $totalSudahSortir = HasilSortir::where('id', '!=', $id)->sum('berat_bersih_kg');
             $sisaStokKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
             
+            // Kumpulkan detail baru
+            $detailSortir = [];
             $totalBersih = 0;
-            foreach ($request->hasil as $item) {
-                $totalBersih += floatval($item['berat_bersih']);
-            }
             
-            // Validasi
-            if ($totalBersih > $sisaStokKotor && $sisaStokKotor > 0) {
-                throw new \Exception('Total berat bersih (' . number_format($totalBersih, 2) . ' Kg) melebihi sisa stok kotor (' . number_format($sisaStokKotor, 2) . ' Kg)!');
-            }
-            
-            // Simpan hasil sortir
             foreach ($request->hasil as $item) {
                 $berat = floatval($item['berat_bersih']);
                 if ($berat <= 0) continue;
                 
-                HasilSortir::create([
-                    'penerimaan_id' => null, // Tidak wajib terkait penerimaan
-                    'jenis_plastik_id' => $item['jenis_plastik_id'],
-                    'berat_bersih_kg' => $berat,
-                    'catatan' => $request->catatan
-                ]);
+                $jenisId = $item['jenis_plastik_id'];
+                $jenisNama = JenisPlastik::find($jenisId)->nama ?? 'Unknown';
                 
-                // Update stok bersih
-                $stok = Stok::firstOrCreate(
-                    ['jenis_plastik_id' => $item['jenis_plastik_id']],
-                    ['total_berat' => 0]
-                );
-                $stok->increment('total_berat', $berat);
+                $detailSortir[] = [
+                    'jenis_plastik_id' => $jenisId,
+                    'jenis_nama' => $jenisNama,
+                    'berat_bersih' => $berat,
+                ];
+                
+                $totalBersih += $berat;
             }
             
-            // Update status penerimaan jika stok kotor habis
-            $this->updateStatusPenerimaan();
+            if ($totalBersih > $sisaStokKotor && $sisaStokKotor > 0) {
+                throw new \Exception('Total melebihi sisa stok kotor! Tersedia: ' . number_format($sisaStokKotor, 2) . ' Kg');
+            }
             
+            // Update record
+            $sortir->update([
+                'jenis_plastik_id' => $detailSortir[0]['jenis_plastik_id'] ?? null,
+                'berat_bersih_kg' => $totalBersih,
+                'catatan' => $request->catatan,
+                'detail_sortir' => json_encode($detailSortir),
+            ]);
+            
+            // Tambah stok baru
+            foreach ($detailSortir as $d) {
+                $stok = Stok::firstOrCreate(
+                    ['jenis_plastik_id' => $d['jenis_plastik_id']],
+                    ['total_berat' => 0]
+                );
+                $stok->increment('total_berat', $d['berat_bersih']);
+            }
+            
+            $this->updateStatusPenerimaan();
             DB::commit();
             
-            // Hitung ulang sisa
-            $totalSudahSortirBaru = HasilSortir::sum('berat_bersih_kg');
-            $sisaSekarang = max(0, $totalPenerimaanKotor - $totalSudahSortirBaru);
-            
-            return redirect()->route('gudang.sortir.index')
-                ->with('success', 'Sortir berhasil! Total bersih: ' . number_format($totalBersih, 2, ',', '.') . ' Kg. Sisa stok kotor: ' . number_format($sisaSekarang, 2, ',', '.') . ' Kg');
-                
+            return redirect()->route('gudang.sortir.index')->with('success', 'Sortir berhasil diperbarui! Total: ' . number_format($totalBersih, 2, ',', '.') . ' Kg');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage())->withInput();
         }
     }
 
-    /**
-     * DESTROY - Batalkan Sortir
-     */
+   public function store(Request $request)
+{
+    $request->validate([
+        'hasil' => 'required|array|min:1',
+        'hasil.*.jenis_plastik_id' => 'required|exists:jenis_plastik,id',
+        'hasil.*.berat_bersih' => 'required|numeric|min:0.01',
+        'catatan' => 'nullable|string|max:255'
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
+        $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
+        $sisaStokKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
+        
+        // ✅ Kumpulkan detail per karung (bukan per jenis)
+        $detailSortir = [];  // Format: [{jenis_plastik_id, jenis_nama, berat_bersih}, ...]
+        $totalBersih = 0;
+        
+        foreach ($request->hasil as $item) {
+            $berat = floatval($item['berat_bersih']);
+            if ($berat <= 0) continue;
+            
+            $jenisId = $item['jenis_plastik_id'];
+            $jenisNama = JenisPlastik::find($jenisId)->nama ?? 'Unknown';
+            
+            // ✅ Simpan per karung (1 item = 1 karung)
+            $detailSortir[] = [
+                'jenis_plastik_id' => $jenisId,
+                'jenis_nama' => $jenisNama,
+                'berat_bersih' => $berat,
+            ];
+            
+            $totalBersih += $berat;
+        }
+        
+        if ($totalBersih > $sisaStokKotor && $sisaStokKotor > 0) {
+            throw new \Exception('Total melebihi sisa stok kotor!');
+        }
+        
+        // Hitung total per jenis untuk update stok
+        $stokMerge = [];
+        foreach ($detailSortir as $d) {
+            $key = $d['jenis_plastik_id'];
+            if (!isset($stokMerge[$key])) $stokMerge[$key] = 0;
+            $stokMerge[$key] += $d['berat_bersih'];
+        }
+        
+        // Ambil jenis pertama sebagai referensi (untuk kompatibilitas)
+        $jenisPertama = $detailSortir[0]['jenis_plastik_id'] ?? null;
+        
+        HasilSortir::create([
+            'penerimaan_id' => null,
+            'jenis_plastik_id' => $jenisPertama,
+            'berat_bersih_kg' => $totalBersih,
+            'catatan' => $request->catatan,
+            'detail_sortir' => json_encode($detailSortir), // ✅ Simpan per karung
+        ]);
+        
+        // Update stok per jenis
+        foreach ($stokMerge as $jenisId => $beratTotal) {
+            $stok = Stok::firstOrCreate(
+                ['jenis_plastik_id' => $jenisId],
+                ['total_berat' => 0]
+            );
+            $stok->increment('total_berat', $beratTotal);
+        }
+        
+        $this->updateStatusPenerimaan();
+        DB::commit();
+        
+        return redirect()->route('gudang.sortir.index')->with('success', 'Sortir berhasil! Total: ' . number_format($totalBersih, 2, ',', '.') . ' Kg');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', $e->getMessage())->withInput();
+    }
+}
+
     public function destroy($id)
     {
         DB::beginTransaction();
-        
         try {
             $hasil = HasilSortir::findOrFail($id);
             
-            // Kurangi stok bersih
-            $stok = Stok::where('jenis_plastik_id', $hasil->jenis_plastik_id)->first();
-            if ($stok) {
-                $stok->decrement('total_berat', $hasil->berat_bersih_kg);
-                
-                if ($stok->total_berat <= 0) {
-                    $stok->delete();
+            $detailSortir = $hasil->detail_sortir ?? [];
+            if (is_string($detailSortir)) $detailSortir = json_decode($detailSortir, true) ?? [];
+            
+            if (!empty($detailSortir)) {
+                foreach ($detailSortir as $d) {
+                    $stok = Stok::where('jenis_plastik_id', $d['jenis_plastik_id'])->first();
+                    if ($stok) {
+                        $stok->decrement('total_berat', $d['berat_bersih']);
+                        if ($stok->total_berat <= 0) $stok->delete();
+                    }
+                }
+            } else {
+                $stok = Stok::where('jenis_plastik_id', $hasil->jenis_plastik_id)->first();
+                if ($stok) {
+                    $stok->decrement('total_berat', $hasil->berat_bersih_kg);
+                    if ($stok->total_berat <= 0) $stok->delete();
                 }
             }
             
             $hasil->delete();
-            
-            // Kembalikan status penerimaan jika perlu
             $this->updateStatusPenerimaan();
-            
             DB::commit();
             
-            return redirect()->route('gudang.sortir.index')
-                ->with('success', 'Sortir dibatalkan. Stok dikembalikan.');
-                
+            return redirect()->route('gudang.sortir.index')->with('success', 'Sortir dibatalkan.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
     
-    /**
-     * Update status penerimaan dari Belum -> Sudah jika stok kotor habis
-     */
     private function updateStatusPenerimaan()
     {
         $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
-        
-        $penerimaanBelum = Penerimaan::where('status_sortir', 'Belum')
-            ->orderBy('tanggal', 'asc')
-            ->get();
-        
+        $penerimaanBelum = Penerimaan::where('status_sortir', 'Belum')->orderBy('tanggal', 'asc')->get();
         $akumulasi = 0;
-        
         foreach ($penerimaanBelum as $p) {
             $akumulasi += $p->total_berat_kotor_kg;
-            
-            if ($akumulasi <= $totalSudahSortir) {
-                // Penerimaan ini sudah habis disortir
-                $p->update(['status_sortir' => 'Sudah']);
-            }
+            if ($akumulasi <= $totalSudahSortir) $p->update(['status_sortir' => 'Sudah']);
         }
     }
 }

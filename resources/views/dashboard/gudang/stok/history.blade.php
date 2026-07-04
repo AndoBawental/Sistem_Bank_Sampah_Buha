@@ -238,7 +238,9 @@
                     </div>
                     <div class="tl-body">
                         <span class="tl-badge {{ $badgeClass }}">{{ $badgeText }}</span>
-                        <div class="tl-title" title="{{ $r['keterangan'] }}">{{ $r['keterangan'] }}</div>
+                       <div class="tl-title" title="{{ $r['keterangan'] }}" style="max-width:none;white-space:normal;word-break:break-word;">
+    {{ $r['keterangan'] }}
+</div>
                         <div class="tl-date">
                             {{ \Carbon\Carbon::parse($r['tanggal'])->format('d/m/Y H:i') }} 
                             • {{ \Carbon\Carbon::parse($r['tanggal'])->diffForHumans() }}

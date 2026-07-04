@@ -99,6 +99,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SortirController::class, 'index'])->name('index');
     Route::get('/create', [SortirController::class, 'create'])->name('create');
     Route::post('/store', [SortirController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [SortirController::class, 'edit'])->name('edit');       
+    Route::put('/{id}', [SortirController::class, 'update'])->name('update');
     Route::delete('/destroy/{id}', [SortirController::class, 'destroy'])->name('destroy');
         });
 

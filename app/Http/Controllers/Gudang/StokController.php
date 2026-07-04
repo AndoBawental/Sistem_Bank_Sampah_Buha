@@ -30,27 +30,23 @@ class StokController extends Controller
         
         $stok = $query->orderBy('total_berat', 'desc')->paginate(10)->withQueryString();
         
-        // Statistik
         $totalStok = Stok::sum('total_berat');
         $jenisPlastikCount = JenisPlastik::count();
         $stokMenipis = Stok::where('total_berat', '<', 100)->where('total_berat', '>', 0)->count();
         $stokHabis = Stok::where('total_berat', '<=', 0)->count();
         
-        // Stok masuk dari penerimaan langsung (status Sudah)
         $stokMasukPenerimaan = DetailPenerimaan::whereHas('penerimaan', function($q) {
             $q->where('status_sortir', 'Sudah')
               ->whereMonth('tanggal', now()->month)
               ->whereYear('tanggal', now()->year);
         })->sum('berat_datang_kg');
         
-        // Stok masuk dari hasil sortir
         $stokMasukSortir = HasilSortir::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('berat_bersih_kg');
         
         $stokMasukBulanIni = $stokMasukPenerimaan + $stokMasukSortir;
         
-        // Stok keluar ke produksi
         $stokKeluarBulanIni = DetailBahanProduksi::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->sum('berat_kg');
@@ -65,92 +61,138 @@ class StokController extends Controller
         ));
     }
 
-  public function history(Request $request, $id)
-{
-    $stok = Stok::with('jenisPlastik')->findOrFail($id);
-    
-    // 1. Riwayat dari Penerimaan Langsung
-    $riwayatPenerimaan = DetailPenerimaan::with(['penerimaan.supplier'])
-        ->where('jenis_plastik_id', $stok->jenis_plastik_id)
-        ->whereHas('penerimaan', fn($q) => $q->where('status_sortir', 'Sudah'))
-        ->when($request->filled('dari_tanggal'), fn($q) => 
-            $q->whereHas('penerimaan', fn($sq) => $sq->whereDate('tanggal', '>=', $request->dari_tanggal))
-        )
-        ->when($request->filled('sampai_tanggal'), fn($q) => 
-            $q->whereHas('penerimaan', fn($sq) => $sq->whereDate('tanggal', '<=', $request->sampai_tanggal))
-        )
-        ->get()->map(fn($item) => [
-            'tanggal' => $item->penerimaan->tanggal ?? $item->created_at,
-            'berat' => $item->berat_datang_kg,
-            'keterangan' => 'Penerimaan dari ' . ($item->penerimaan->supplier->nama ?? 'Supplier'),
-            'tipe' => 'masuk', 'sumber' => 'Penerimaan', 'ref_id' => $item->penerimaan_id
-        ]);
-    
-    // 2. Riwayat dari Hasil Sortir
-    $riwayatSortir = HasilSortir::where('jenis_plastik_id', $stok->jenis_plastik_id)
-        ->when($request->filled('dari_tanggal'), fn($q) => $q->whereDate('created_at', '>=', $request->dari_tanggal))
-        ->when($request->filled('sampai_tanggal'), fn($q) => $q->whereDate('created_at', '<=', $request->sampai_tanggal))
-        ->get()->map(fn($item) => [
-            'tanggal' => $item->created_at,
-            'berat' => $item->berat_bersih_kg,
-            'keterangan' => 'Hasil sortir dari stok kotor gudang',
-            'tipe' => 'masuk', 'sumber' => 'Sortir', 'ref_id' => $item->id
-        ]);
-    
-    // 3. Riwayat Keluar (Produksi) - dari detail_bahan_produksi
-    $riwayatKeluar = DetailBahanProduksi::with(['produksi', 'jenisPlastik'])
-        ->where('jenis_plastik_id', $stok->jenis_plastik_id)
-        ->when($request->filled('dari_tanggal'), fn($q) => $q->whereDate('created_at', '>=', $request->dari_tanggal))
-        ->when($request->filled('sampai_tanggal'), fn($q) => $q->whereDate('created_at', '<=', $request->sampai_tanggal))
-        ->get()->map(fn($item) => [
-            'tanggal' => $item->created_at,
-            'berat' => $item->berat_kg,
-            'keterangan' => 'Produksi #' . ($item->produksi->id ?? '-'),
-            'tipe' => 'keluar', 'sumber' => 'Produksi', 'ref_id' => $item->produksi_id
-        ]);
-    
-   // 4. Riwayat Adjustment (HANYA tipe 'tambah' atau 'kurang' = manual)
-$riwayatAdjustment = StokAdjustmentLog::with(['user'])
-    ->where('stok_id', $stok->id)
-    ->whereIn('tipe', ['tambah', 'kurang']) // ⬅️ HANYA adjustment manual
-    ->when($request->filled('dari_tanggal'), fn($q) => $q->whereDate('created_at', '>=', $request->dari_tanggal))
-    ->when($request->filled('sampai_tanggal'), fn($q) => $q->whereDate('created_at', '<=', $request->sampai_tanggal))
-    ->get()->map(fn($item) => [
-        'tanggal' => $item->created_at,
-        'berat' => $item->berat,
-        'keterangan' => $item->keterangan ?? 'Adjustment oleh ' . ($item->user->name ?? 'User'),
-        'tipe' => $item->tipe == 'tambah' ? 'adjustment_tambah' : 'adjustment_kurang',
-        'sumber' => 'Adjustment', 'ref_id' => $item->id
-    ]);
-    
-    // Gabungkan
-    $riwayatGabungan = $riwayatPenerimaan->concat($riwayatSortir)
-        ->concat($riwayatKeluar)->concat($riwayatAdjustment)
-        ->sortByDesc('tanggal')->values();
-    
-    // Filter
-    if ($request->filled('tipe')) {
-        $riwayatGabungan = match($request->tipe) {
-            'masuk' => $riwayatGabungan->where('tipe', 'masuk'),
-            'keluar' => $riwayatGabungan->where('tipe', 'keluar'),
-            'adjustment' => $riwayatGabungan->filter(fn($i) => str_starts_with($i['tipe'], 'adjustment')),
-            default => $riwayatGabungan
-        };
+    public function history(Request $request, $id)
+    {
+        $stok = Stok::with('jenisPlastik')->findOrFail($id);
+        $jenisPlastikId = $stok->jenis_plastik_id;
+        
+        // 1. Riwayat dari Penerimaan Langsung
+        $riwayatPenerimaan = DetailPenerimaan::with(['penerimaan.supplier'])
+            ->where('jenis_plastik_id', $jenisPlastikId)
+            ->whereHas('penerimaan', fn($q) => $q->where('status_sortir', 'Sudah'))
+            ->when($request->filled('dari_tanggal'), fn($q) => 
+                $q->whereHas('penerimaan', fn($sq) => $sq->whereDate('tanggal', '>=', $request->dari_tanggal))
+            )
+            ->when($request->filled('sampai_tanggal'), fn($q) => 
+                $q->whereHas('penerimaan', fn($sq) => $sq->whereDate('tanggal', '<=', $request->sampai_tanggal))
+            )
+            ->get()->map(fn($item) => [
+                'tanggal' => $item->penerimaan->tanggal ?? $item->created_at,
+                'berat' => $item->berat_datang_kg,
+                'keterangan' => 'Penerimaan dari ' . ($item->penerimaan->supplier->nama ?? 'Supplier'),
+                'tipe' => 'masuk', 'sumber' => 'Penerimaan', 'ref_id' => $item->penerimaan_id
+            ]);
+        
+        // 2. Riwayat dari Hasil Sortir (✅ DIPERBAIKI)
+        $riwayatSortir = collect();
+        
+        // Ambil semua hasil sortir
+        $semuaSortir = HasilSortir::when($request->filled('dari_tanggal'), fn($q) => 
+                $q->whereDate('created_at', '>=', $request->dari_tanggal))
+            ->when($request->filled('sampai_tanggal'), fn($q) => 
+                $q->whereDate('created_at', '<=', $request->sampai_tanggal))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        foreach ($semuaSortir as $sortir) {
+            $detailSortir = $sortir->detail_sortir ?? [];
+            if (is_string($detailSortir)) $detailSortir = json_decode($detailSortir, true) ?? [];
+            
+            if (!empty($detailSortir)) {
+                // ✅ Format baru: cari hanya jenis plastik yang sesuai
+                $beratUntukJenisIni = 0;
+                $namaJenisIni = $stok->jenisPlastik->nama;
+                
+                foreach ($detailSortir as $d) {
+                    if ($d['jenis_plastik_id'] == $jenisPlastikId) {
+                        $beratUntukJenisIni += $d['berat_bersih'];
+                    }
+                }
+                
+                // Hanya tambahkan jika ada berat untuk jenis ini
+                if ($beratUntukJenisIni > 0) {
+                    // Buat keterangan hanya untuk jenis ini
+                    $keterangan = 'Hasil sortir: ' . $namaJenisIni . ' ' . number_format($beratUntukJenisIni, 2, ',', '.') . ' Kg';
+                    
+                    $riwayatSortir->push([
+                        'tanggal' => $sortir->created_at,
+                        'berat' => $beratUntukJenisIni,
+                        'keterangan' => $keterangan,
+                        'tipe' => 'masuk', 
+                        'sumber' => 'Sortir', 
+                        'ref_id' => $sortir->id
+                    ]);
+                }
+            } else {
+                // Format lama: cocokkan dengan jenis_plastik_id
+                if ($sortir->jenis_plastik_id == $jenisPlastikId) {
+                    $riwayatSortir->push([
+                        'tanggal' => $sortir->created_at,
+                        'berat' => $sortir->berat_bersih_kg,
+                        'keterangan' => 'Hasil sortir dari stok kotor gudang',
+                        'tipe' => 'masuk', 
+                        'sumber' => 'Sortir', 
+                        'ref_id' => $sortir->id
+                    ]);
+                }
+            }
+        }
+        
+        // 3. Riwayat Keluar (Produksi)
+        $riwayatKeluar = DetailBahanProduksi::with(['produksi', 'jenisPlastik'])
+            ->where('jenis_plastik_id', $jenisPlastikId)
+            ->when($request->filled('dari_tanggal'), fn($q) => $q->whereDate('created_at', '>=', $request->dari_tanggal))
+            ->when($request->filled('sampai_tanggal'), fn($q) => $q->whereDate('created_at', '<=', $request->sampai_tanggal))
+            ->get()->map(fn($item) => [
+                'tanggal' => $item->created_at,
+                'berat' => $item->berat_kg,
+                'keterangan' => 'Produksi #' . ($item->produksi->id ?? '-'),
+                'tipe' => 'keluar', 'sumber' => 'Produksi', 'ref_id' => $item->produksi_id
+            ]);
+        
+        // 4. Riwayat Adjustment
+        $riwayatAdjustment = StokAdjustmentLog::with(['user'])
+            ->where('stok_id', $stok->id)
+            ->whereIn('tipe', ['tambah', 'kurang'])
+            ->when($request->filled('dari_tanggal'), fn($q) => $q->whereDate('created_at', '>=', $request->dari_tanggal))
+            ->when($request->filled('sampai_tanggal'), fn($q) => $q->whereDate('created_at', '<=', $request->sampai_tanggal))
+            ->get()->map(fn($item) => [
+                'tanggal' => $item->created_at,
+                'berat' => $item->berat,
+                'keterangan' => $item->keterangan ?? 'Adjustment oleh ' . ($item->user->name ?? 'User'),
+                'tipe' => $item->tipe == 'tambah' ? 'adjustment_tambah' : 'adjustment_kurang',
+                'sumber' => 'Adjustment', 'ref_id' => $item->id
+            ]);
+        
+        // Gabungkan
+        $riwayatGabungan = $riwayatPenerimaan->concat($riwayatSortir)
+            ->concat($riwayatKeluar)->concat($riwayatAdjustment)
+            ->sortByDesc('tanggal')->values();
+        
+        // Filter
+        if ($request->filled('tipe')) {
+            $riwayatGabungan = match($request->tipe) {
+                'masuk' => $riwayatGabungan->where('tipe', 'masuk'),
+                'keluar' => $riwayatGabungan->where('tipe', 'keluar'),
+                'adjustment' => $riwayatGabungan->filter(fn($i) => str_starts_with($i['tipe'], 'adjustment')),
+                default => $riwayatGabungan
+            };
+        }
+        if ($request->filled('search')) {
+            $s = strtolower($request->search);
+            $riwayatGabungan = $riwayatGabungan->filter(fn($i) => str_contains(strtolower($i['keterangan']), $s));
+        }
+        
+        // ✅ Hitung statistik yang benar (hanya untuk jenis ini)
+        $totalMasuk = $riwayatPenerimaan->sum('berat') + $riwayatSortir->sum('berat');
+        $totalKeluar = $riwayatKeluar->sum('berat');
+        $countMasuk = $riwayatPenerimaan->count() + $riwayatSortir->count();
+        $countKeluar = $riwayatKeluar->count();
+        
+        return view('dashboard.gudang.stok.history', compact(
+            'stok', 'riwayatGabungan', 'totalMasuk', 'totalKeluar', 'countMasuk', 'countKeluar'
+        ));
     }
-    if ($request->filled('search')) {
-        $s = strtolower($request->search);
-        $riwayatGabungan = $riwayatGabungan->filter(fn($i) => str_contains(strtolower($i['keterangan']), $s));
-    }
-    
-    $totalMasuk = $riwayatPenerimaan->sum('berat') + $riwayatSortir->sum('berat');
-    $totalKeluar = $riwayatKeluar->sum('berat');
-    $countMasuk = $riwayatPenerimaan->count() + $riwayatSortir->count();
-    $countKeluar = $riwayatKeluar->count();
-    
-    return view('dashboard.gudang.stok.history', compact(
-        'stok', 'riwayatGabungan', 'totalMasuk', 'totalKeluar', 'countMasuk', 'countKeluar'
-    ));
-}
 
     public function edit($id)
     {
@@ -167,15 +209,12 @@ $riwayatAdjustment = StokAdjustmentLog::with(['user'])
         ]);
 
         $stok = Stok::findOrFail($id);
-        $beratLama = $stok->total_berat;
         $stok->update([
             'jenis_plastik_id' => $request->jenis_plastik_id,
             'total_berat' => $request->total_berat
         ]);
-        $stok->refresh();
 
-        return redirect()->route('gudang.stok.index')
-            ->with('success', 'Stok berhasil diperbarui.');
+        return redirect()->route('gudang.stok.index')->with('success', 'Stok berhasil diperbarui.');
     }
 
     public function adjustment($id)
@@ -219,12 +258,7 @@ $riwayatAdjustment = StokAdjustmentLog::with(['user'])
         ]);
 
         return redirect()->route('gudang.stok.index')
-            ->with('success', sprintf(
-                'Stok %s berhasil %s %s Kg.',
-                $stok->jenisPlastik->nama,
-                $message,
-                number_format($request->berat, 2, ',', '.')
-            ));
+            ->with('success', sprintf('Stok %s berhasil %s %s Kg.', $stok->jenisPlastik->nama, $message, number_format($request->berat, 2, ',', '.')));
     }
 
     public function destroy($id)
@@ -238,14 +272,11 @@ $riwayatAdjustment = StokAdjustmentLog::with(['user'])
         $hasHistory = HasilSortir::where('jenis_plastik_id', $stok->jenis_plastik_id)->exists() ||
                       DetailBahanProduksi::where('jenis_plastik_id', $stok->jenis_plastik_id)->exists();
         
-        if ($hasHistory) {
-            return back()->with('error', 'Tidak dapat menghapus stok dengan riwayat transaksi.');
-        }
+        if ($hasHistory) return back()->with('error', 'Tidak dapat menghapus stok dengan riwayat transaksi.');
         
         $namaJenis = $stok->jenisPlastik->nama;
         $stok->delete();
 
-        return redirect()->route('gudang.stok.index')
-            ->with('success', 'Data stok ' . $namaJenis . ' berhasil dihapus.');
+        return redirect()->route('gudang.stok.index')->with('success', 'Data stok ' . $namaJenis . ' berhasil dihapus.');
     }
 }

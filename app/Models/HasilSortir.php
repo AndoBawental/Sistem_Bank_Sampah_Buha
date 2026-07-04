@@ -14,14 +14,16 @@ class HasilSortir extends Model
     protected $table = 'hasil_sortir';
     
     protected $fillable = [
-        'penerimaan_id',    // NULLABLE - tidak wajib terikat penerimaan
-        'jenis_plastik_id',
-        'berat_bersih_kg',
-        'catatan'
+        'penerimaan_id',
+        'jenis_plastik_id',    // Jadi nullable karena detail ada di JSON
+        'berat_bersih_kg',     // Total berat bersih
+        'catatan',
+        'detail_sortir',       // JSON detail per jenis
     ];
 
     protected $casts = [
-        'berat_bersih_kg' => 'float'
+        'berat_bersih_kg' => 'float',
+        'detail_sortir' => 'array',  // Auto decode JSON
     ];
 
     public function penerimaan(): BelongsTo
