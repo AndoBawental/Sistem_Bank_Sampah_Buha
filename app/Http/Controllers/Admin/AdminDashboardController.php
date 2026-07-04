@@ -85,14 +85,6 @@ class AdminDashboardController extends Controller
             ->join('penjualan', 'detail_penjualan.penjualan_id', '=', 'penjualan.id')
             ->whereMonth('penjualan.tanggal', now()->month)->whereYear('penjualan.tanggal', now()->year)
             ->sum('detail_penjualan.berat_nett_kg');
-        $totalBeratKirimBulanIni = DB::table('detail_penjualan')
-            ->join('penjualan', 'detail_penjualan.penjualan_id', '=', 'penjualan.id')
-            ->whereMonth('penjualan.tanggal', now()->month)->whereYear('penjualan.tanggal', now()->year)
-            ->sum('detail_penjualan.berat_kirim_kg');
-        $totalPotonganBulanIni = DB::table('detail_penjualan')
-            ->join('penjualan', 'detail_penjualan.penjualan_id', '=', 'penjualan.id')
-            ->whereMonth('penjualan.tanggal', now()->month)->whereYear('penjualan.tanggal', now()->year)
-            ->sum('detail_penjualan.berat_potongan_kg');
         $totalPenjualanBulanLalu = Penjualan::whereMonth('tanggal', now()->subMonth()->month)->whereYear('tanggal', now()->subMonth()->year)->sum('total_harga');
         $persenPenjualan = $totalPenjualanBulanLalu > 0 ? (($totalPenjualanBulanIni - $totalPenjualanBulanLalu) / $totalPenjualanBulanLalu) * 100 : ($totalPenjualanBulanIni > 0 ? 100 : 0);
         $pembeliTerbanyak = DB::table('penjualan')
@@ -119,8 +111,6 @@ class AdminDashboardController extends Controller
         if ($karungBelumSortir == 0) { $karungBelumSortir = DB::table('detail_penerimaan AS dp')->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')->where('p.status_sortir', 'Belum')->count(); }
         if ($karungSudahSortir == 0) { $karungSudahSortir = DB::table('detail_penerimaan AS dp')->join('penerimaan AS p', 'dp.penerimaan_id', '=', 'p.id')->where('p.status_sortir', 'Sudah')->count(); }
         $totalKarung = $karungBelumSortir + $karungSudahSortir;
-        $penerimaanStats = DB::table('penerimaan')->select('tipe', DB::raw('COUNT(*) as total_transaksi'), DB::raw('SUM(total_berat_kotor_kg) as total_berat'), DB::raw('SUM(total_bayar) as total_nilai'))->where('tanggal', '>=', Carbon::now()->subDays(30))->groupBy('tipe')->get();
-        $sortirPending = Penerimaan::whereIn('status_sortir', ['Belum', 'Proses'])->count();
 
         // ==================== STOK PER JENIS ====================
         $stokPerJenis = Stok::with('jenisPlastik')->where('total_berat', '>', 0)->orderBy('total_berat', 'desc')->get();
@@ -138,7 +128,7 @@ class AdminDashboardController extends Controller
         // ==================== TOP SUPPLIER ====================
         $topSuppliers = DB::table('supplier')->join('penerimaan', 'supplier.id', '=', 'penerimaan.supplier_id')->join('detail_penerimaan', 'penerimaan.id', '=', 'detail_penerimaan.penerimaan_id')->select('supplier.nama', DB::raw('SUM(detail_penerimaan.berat_datang_kg) as total_berat'))->groupBy('supplier.id', 'supplier.nama')->orderBy('total_berat', 'desc')->limit(5)->get();
 
-        // ==================== STOK PRODUK (FIX) ====================
+        // ==================== STOK PRODUK ====================
         $stokProduk = JenisProduk::select(
             'jenis_produk.id',
             'jenis_produk.nama',
@@ -149,6 +139,7 @@ class AdminDashboardController extends Controller
             DB::raw('COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0) as total_adjustment'),
             DB::raw('GREATEST(0, 
                 COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                - COALESCE((SELECT SUM(dp.berat_nett_kg) FROM detail_penjualan dp JOIN penjualan p ON dp.penjualan_id = p.id WHERE dp.jenis_produk_id = jenis_produk.id), 0)
                 + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
             ) as stok_aktual')
         )->get()->map(function($item) {
@@ -160,6 +151,7 @@ class AdminDashboardController extends Controller
             return $item;
         });
 
+        // ✅ Hitung total & status stok produk
         $totalStokProduk = $stokProduk->sum('stok_aktual');
         $jenisProdukCount = $stokProduk->count();
         $stokProdukMenipis = $stokProduk->where('stok_aktual', '<', 100)->where('stok_aktual', '>', 0)->count();
@@ -197,19 +189,20 @@ class AdminDashboardController extends Controller
             return (object) ['name' => ucfirst($role->name), 'count' => $role->users_count, 'color' => $colors[$role->name] ?? '#6c757d'];
         })->filter(fn($role) => $role->count > 0);
 
+        // ✅ Semua variabel sudah didefinisikan sebelum compact
         return view('dashboard.admin.admin', compact(
             'totalSampahMasuk', 'persenMasuk', 'totalStok', 'jenisPlastikCount',
             'totalProduksi', 'totalSak', 'totalBeratProduksi', 'totalPenjualan',
             'totalProduksiBulanIni', 'totalSakBulanIni', 'totalBeratHasilBulanIni', 'totalBahanBulanIni', 'produkTerbanyak',
             'totalPenjualanBulanIni', 'totalTransaksiPenjualanBulanIni', 'totalSakTerjualBulanIni', 'totalBeratTerjualBulanIni',
-            'totalBeratKirimBulanIni', 'totalPotonganBulanIni', 'totalPenjualanBulanLalu', 'persenPenjualan', 'pembeliTerbanyak',
+            'totalPenjualanBulanLalu', 'persenPenjualan', 'pembeliTerbanyak',
             'penerimaanBulanIni', 'penerimaanBulanLalu', 'persenPenerimaan',
             'totalBeliBulanIni', 'totalBeliTransaksi', 'totalDonasiBulanIni', 'totalDonasiTransaksi',
             'totalTransaksiPenerimaan', 'supplierAktif', 'beratKotor', 'beratBersih',
             'totalKarung', 'karungBelumSortir', 'karungSudahSortir',
             'stokPerJenis', 'last7Days', 'topSuppliers',
             'stokMenipis', 'recentActivities', 'userCount', 'newUsersThisMonth', 
-            'userRoles', 'penerimaanStats', 'sortirPending',
+            'userRoles',
             'stokProduk', 'totalStokProduk', 'jenisProdukCount', 'stokProdukMenipis', 'stokProdukHabis', 'stokProdukPerluPerhatian'
         ));
     }
