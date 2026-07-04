@@ -21,7 +21,7 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = Produksi::with(['user', 'detailBahanProduksi.jenisPlastik', 'detailHasilProduksi.jenisProduk']);
+        $query = Produksi::with(['user', 'detailBahanProduksi.jenisPlastik', 'detailHasilProduksi.jenisProduk', 'detailHasilProduksi.sakProduksi']);
         
         if (!empty($this->filters['dari_tanggal']) && !empty($this->filters['sampai_tanggal'])) {
             $query->whereBetween('tanggal', [
@@ -38,35 +38,63 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
 
     public function headings(): array
     {
-        return ['TANGGAL', 'PRODUK', 'BAHAN BAKU', 'BERAT BAHAN (Kg)', 'SAK', 'HASIL (Kg)', 'PETUGAS', 'KETERANGAN'];
+        return [
+            'TANGGAL', 
+            'PRODUK', 
+            'BAHAN BAKU', 
+            'BERAT BAHAN (Kg)', 
+            'SAK', 
+            'RINCIAN SAK (Kg)', 
+            'HASIL (Kg)', 
+            'PETUGAS', 
+            'KETERANGAN'
+        ];
     }
 
     public function map($produksi): array
     {
         $rows = [];
-        $totalBahan = $produksi->detailBahanProduksi->sum('berat_kg');
-        $totalSak = $produksi->detailHasilProduksi->sum('jumlah_sak');
-        $totalHasil = $produksi->detailHasilProduksi->sum('total_berat_kg');
         $produkList = $produksi->detailHasilProduksi->map(fn($d) => $d->jenisProduk->nama ?? '-')->implode(', ');
         
-        foreach ($produksi->detailBahanProduksi as $i => $b) {
-            $rows[] = [
-                $i === 0 ? $produksi->tanggal->format('d/m/Y') : '',
-                $i === 0 ? $produkList : '',
-                $b->jenisPlastik->nama ?? '-',
-                $b->berat_kg,
-                $i === 0 ? $totalSak : '',
-                $i === 0 ? $totalHasil : '',
-                $i === 0 ? ($produksi->user->name ?? '-') : '',
-                $i === 0 ? ($produksi->keterangan ?: '-') : '',
-            ];
-        }
-        
-        if ($produksi->detailBahanProduksi->isEmpty()) {
-            $rows[] = [
-                $produksi->tanggal->format('d/m/Y'), $produkList, '-', 0, $totalSak, $totalHasil,
-                $produksi->user->name ?? '-', $produksi->keterangan ?: '-'
-            ];
+        // ✅ Tampilkan per produk dengan bahan masing-masing
+        foreach ($produksi->detailHasilProduksi as $hasil) {
+            // ✅ Filter bahan untuk produk ini
+            $bahanUntukProdukIni = $produksi->detailBahanProduksi->filter(fn($b) => $b->detail_hasil_produksi_id == $hasil->id);
+            
+            // Rincian sak
+            $rincianSak = $hasil->sakProduksi->map(fn($s) => number_format($s->berat_kg, 1, ',', '.'))->implode(', ');
+            
+            $firstBahan = true;
+            
+            if ($bahanUntukProdukIni->count() > 0) {
+                foreach ($bahanUntukProdukIni as $b) {
+                    $rows[] = [
+                        $firstBahan ? $produksi->tanggal->format('d/m/Y') : '',
+                        $firstBahan ? ($hasil->jenisProduk->nama ?? '-') : '',
+                        $b->jenisPlastik->nama ?? '-',
+                        $b->berat_kg,
+                        $firstBahan ? $hasil->jumlah_sak : '',
+                        $firstBahan ? $rincianSak : '',
+                        $firstBahan ? $hasil->total_berat_kg : '',
+                        $firstBahan ? ($produksi->user->name ?? '-') : '',
+                        $firstBahan ? ($produksi->keterangan ?: '-') : '',
+                    ];
+                    $firstBahan = false;
+                }
+            } else {
+                // Tidak ada bahan
+                $rows[] = [
+                    $produksi->tanggal->format('d/m/Y'),
+                    $hasil->jenisProduk->nama ?? '-',
+                    '-',
+                    0,
+                    $hasil->jumlah_sak,
+                    $rincianSak,
+                    $hasil->total_berat_kg,
+                    $produksi->user->name ?? '-',
+                    $produksi->keterangan ?: '-',
+                ];
+            }
         }
         
         return $rows;
@@ -76,17 +104,17 @@ class LaporanProduksiExport implements FromCollection, WithHeadings, WithMapping
     {
         $lastRow = $sheet->getHighestRow();
         
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
             'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '28A745']],
             'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        $sheet->getStyle('A1:H' . $lastRow)->applyFromArray([
+        $sheet->getStyle('A1:I' . $lastRow)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
         
-        $sheet->getStyle('D2:F' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('D2:G' . $lastRow)->getAlignment()->setHorizontal('right');
         $sheet->freezePane('A2');
         
         return [];

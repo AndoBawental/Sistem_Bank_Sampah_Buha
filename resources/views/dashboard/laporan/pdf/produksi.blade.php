@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/laporan/pdf/produksi.blade.php --}}
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,6 +21,7 @@
         .text-center { text-align: center; }
         
         .total-row td { background: #d4edda; font-weight: bold; font-size: 8px; }
+        .subtotal-row td { background: #f5f5f5; font-weight: bold; font-size: 7px; }
         
         .footer { margin-top: 15px; font-size: 7px; }
         .footer table { width: 100%; border: none; }
@@ -47,64 +47,82 @@
         <thead>
             <tr>
                 <th width="7%">Tanggal</th>
-                <th width="11%">Produk</th>
-                <th width="11%">Bahan Baku</th>
+                <th width="12%">Produk</th>
+                <th width="12%">Bahan Baku</th>
                 <th width="8%" class="text-end">Berat (Kg)</th>
                 <th width="5%" class="text-center">Sak</th>
+                <th width="18%">Rincian Sak</th>
                 <th width="8%" class="text-end">Hasil (Kg)</th>
                 <th width="8%">Petugas</th>
-                <th width="42%">Keterangan</th>
+                <th width="12%">Keterangan</th>
             </tr>
         </thead>
         <tbody>
             @php $totalBahan = $totalSak = $totalHasil = 0; @endphp
             
             @foreach($data as $p)
-                @php
-                    $sak = $p->detailHasilProduksi->sum('jumlah_sak');
-                    $hasil = $p->detailHasilProduksi->sum('total_berat_kg');
-                    $totalSak += $sak;
-                    $totalHasil += $hasil;
-                    $produkList = $p->detailHasilProduksi->map(fn($d) => $d->jenisProduk->nama ?? '-')->implode(', ');
-                @endphp
-                
-                @foreach($p->detailBahanProduksi as $i => $b)
-                    @php $totalBahan += $b->berat_kg; @endphp
-                    <tr>
-                        @if($i === 0)
-                            <td rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ date('d/m/Y', strtotime($p->tanggal)) }}</td>
-                            <td rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ $produkList }}</td>
-                        @endif
-                        <td>{{ $b->jenisPlastik->nama ?? '-' }}</td>
-                        <td class="text-end">{{ number_format($b->berat_kg, 1, ',', '.') }}</td>
-                        @if($i === 0)
-                            <td class="text-center" rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ $sak }}</td>
-                            <td class="text-end" rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ number_format($hasil, 1, ',', '.') }}</td>
-                            <td rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ $p->user->name ?? '-' }}</td>
-                            <td rowspan="{{ max(1, $p->detailBahanProduksi->count()) }}">{{ \Str::limit($p->keterangan, 30) ?: '-' }}</td>
-                        @endif
-                    </tr>
+                @foreach($p->detailHasilProduksi as $hasil)
+                    @php
+                        // ✅ Filter bahan untuk produk ini
+                        $bahanUntukProdukIni = $p->detailBahanProduksi->filter(fn($b) => $b->detail_hasil_produksi_id == $hasil->id);
+                        $bahanCount = $bahanUntukProdukIni->count();
+                        $rincianSak = $hasil->sakProduksi->map(fn($s) => number_format($s->berat_kg, 1, ',', '.'))->implode(', ');
+                        $firstBahan = true;
+                        
+                        $totalSak += $hasil->jumlah_sak;
+                        $totalHasil += $hasil->total_berat_kg;
+                    @endphp
+                    
+                    @if($bahanCount > 0)
+                        @foreach($bahanUntukProdukIni as $b)
+                            @php $totalBahan += $b->berat_kg; @endphp
+                            <tr>
+                                @if($firstBahan)
+                                    <td rowspan="{{ $bahanCount }}">{{ date('d/m/Y', strtotime($p->tanggal)) }}</td>
+                                    <td rowspan="{{ $bahanCount }}">{{ $hasil->jenisProduk->nama ?? '-' }}</td>
+                                @endif
+                                <td>{{ $b->jenisPlastik->nama ?? '-' }}</td>
+                                <td class="text-end">{{ number_format($b->berat_kg, 1, ',', '.') }}</td>
+                                @if($firstBahan)
+                                    <td class="text-center" rowspan="{{ $bahanCount }}">{{ $hasil->jumlah_sak }}</td>
+                                    <td rowspan="{{ $bahanCount }}" style="font-size:6px;">{{ $rincianSak }} Kg</td>
+                                    <td class="text-end" rowspan="{{ $bahanCount }}">{{ number_format($hasil->total_berat_kg, 1, ',', '.') }}</td>
+                                    <td rowspan="{{ $bahanCount }}">{{ $p->user->name ?? '-' }}</td>
+                                    <td rowspan="{{ $bahanCount }}">{{ \Str::limit($p->keterangan, 20) ?: '-' }}</td>
+                                @endif
+                            </tr>
+                            @php $firstBahan = false; @endphp
+                        @endforeach
+                    @else
+                        <tr>
+                            <td>{{ date('d/m/Y', strtotime($p->tanggal)) }}</td>
+                            <td>{{ $hasil->jenisProduk->nama ?? '-' }}</td>
+                            <td>-</td><td class="text-end">0</td>
+                            <td class="text-center">{{ $hasil->jumlah_sak }}</td>
+                            <td style="font-size:6px;">{{ $rincianSak }} Kg</td>
+                            <td class="text-end">{{ number_format($hasil->total_berat_kg, 1, ',', '.') }}</td>
+                            <td>{{ $p->user->name ?? '-' }}</td>
+                            <td>{{ \Str::limit($p->keterangan, 20) ?: '-' }}</td>
+                        </tr>
+                    @endif
                 @endforeach
                 
-                @if($p->detailBahanProduksi->isEmpty())
-                    <tr>
-                        <td>{{ date('d/m/Y', strtotime($p->tanggal)) }}</td>
-                        <td>{{ $produkList }}</td>
-                        <td>-</td><td class="text-end">0</td>
-                        <td class="text-center">{{ $sak }}</td>
-                        <td class="text-end">{{ number_format($hasil, 1, ',', '.') }}</td>
-                        <td>{{ $p->user->name ?? '-' }}</td>
-                        <td>{{ \Str::limit($p->keterangan, 30) ?: '-' }}</td>
-                    </tr>
-                @endif
+                {{-- Subtotal per batch --}}
+                <tr class="subtotal-row">
+                    <td colspan="4" class="text-end">Subtotal Batch #{{ $p->id }}</td>
+                    <td class="text-center">{{ $p->detailHasilProduksi->sum('jumlah_sak') }}</td>
+                    <td></td>
+                    <td class="text-end">{{ number_format($p->detailHasilProduksi->sum('total_berat_kg'), 1, ',', '.') }} Kg</td>
+                    <td colspan="2"></td>
+                </tr>
             @endforeach
             
             <tr class="total-row">
-                <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
-                <td class="text-end"><strong>{{ number_format($totalBahan, 1, ',', '.') }} Kg</strong></td>
+                <td colspan="4" class="text-end"><strong>TOTAL KESELURUHAN</strong></td>
                 <td class="text-center"><strong>{{ $totalSak }}</strong></td>
+                <td></td>
                 <td class="text-end"><strong>{{ number_format($totalHasil, 1, ',', '.') }} Kg</strong></td>
-                <td colspan="2"></td>
+                <td colspan="2"><strong>Bahan: {{ number_format($totalBahan, 1, ',', '.') }} Kg</strong></td>
             </tr>
         </tbody>
     </table>

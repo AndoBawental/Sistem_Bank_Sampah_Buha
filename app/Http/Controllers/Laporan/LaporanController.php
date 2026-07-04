@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Penerimaan;
 use App\Models\Produksi;
 use App\Models\Penjualan;
-use App\Models\Stok;
-use App\Models\JenisPlastik;
 use App\Models\Supplier;      
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -160,27 +158,27 @@ class LaporanController extends Controller
     }
 
     // ==================== EXPORT PDF ====================
-    public function exportPenerimaanPdf(Request $request)
-    {
-        $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
-        $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
-        $dariTanggalFull = $dariTanggal . ' 00:00:00';
-        $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
+   public function exportPenerimaanPdf(Request $request)
+{
+    $dariTanggal = $request->input('dari_tanggal', now()->startOfMonth()->format('Y-m-d'));
+    $sampaiTanggal = $request->input('sampai_tanggal', now()->format('Y-m-d'));
+    $dariTanggalFull = $dariTanggal . ' 00:00:00';
+    $sampaiTanggalFull = $sampaiTanggal . ' 23:59:59';
 
-        $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaan.jenisPlastik'])
-            ->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
-        
-        if ($request->filled('supplier_id')) $query->where('supplier_id', $request->supplier_id);
-        if ($request->filled('tipe')) $query->where('tipe', $request->tipe);
-        if ($request->filled('status_sortir')) $query->where('status_sortir', $request->status_sortir);
+    $query = Penerimaan::with(['supplier', 'user', 'detailPenerimaan.jenisPlastik'])
+        ->whereBetween('tanggal', [$dariTanggalFull, $sampaiTanggalFull]);
+    
+    if ($request->filled('supplier_id')) $query->where('supplier_id', $request->supplier_id);
+    if ($request->filled('tipe')) $query->where('tipe', $request->tipe);
+    if ($request->filled('status_sortir')) $query->where('status_sortir', $request->status_sortir);
 
-        $data = $query->orderBy('tanggal', 'desc')->get();
+    $data = $query->orderBy('tanggal', 'desc')->get();
 
-        $pdf = Pdf::loadView('dashboard.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
-        $pdf->setPaper('A4', 'landscape');
-        
-        return $pdf->stream('laporan-penerimaan-' . date('Y-m-d') . '.pdf');
-    }
+    $pdf = Pdf::loadView('dashboard.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
+    $pdf->setPaper('A4', 'landscape');
+    
+    return $pdf->stream('laporan-penerimaan-' . date('Y-m-d') . '.pdf');
+}
 
     public function exportProduksiPdf(Request $request)
     {

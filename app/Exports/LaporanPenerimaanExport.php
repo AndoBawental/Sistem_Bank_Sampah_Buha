@@ -38,27 +38,100 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
 
     public function headings(): array
     {
-        return ['TANGGAL', 'SUPPLIER', 'TIPE', 'JENIS PLASTIK', 'KARUNG', 'BERAT (Kg)', 'STATUS', 'BAYAR (Rp)', 'PETUGAS'];
+        return [
+            'TANGGAL', 
+            'SUPPLIER', 
+            'TIPE', 
+            'JENIS PLASTIK', 
+            'KARUNG', 
+            'BERAT (Kg)', 
+            'STATUS', 
+            'HARGA/Kg (Rp)', 
+            'SUBTOTAL (Rp)', 
+            'PETUGAS'
+        ];
     }
 
     public function map($p): array
     {
         $rows = [];
-        $bayar = $p->tipe == 'Beli' ? $p->total_bayar : 0;
         
-        foreach ($p->detailPenerimaan as $i => $d) {
-            $rows[] = [
-                $i === 0 ? $p->tanggal->format('d/m/Y') : '',
-                $i === 0 ? ($p->supplier->nama ?? '-') : '',
-                $i === 0 ? ($p->tipe == 'Beli' ? 'Pembelian' : 'Donasi') : '',
-                $d->jenisPlastik->nama ?? 'Belum Dipilah',
-                $d->jumlah_karung ?: 1,
-                $d->berat_datang_kg,
-                $i === 0 ? ($p->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor') : '',
-                $i === 0 ? $bayar : '',
-                $i === 0 ? ($p->user->name ?? '-') : '',
-            ];
+        // ✅ Cek apakah ada detail_karung (JSON)
+        $karungData = $p->detail_karung ?? [];
+        if (is_string($karungData)) $karungData = json_decode($karungData, true) ?? [];
+        
+        if (!empty($karungData) && $p->status_sortir == 'Belum') {
+            // ✅ Format baru: Belum Sortir - tampilkan per karung
+            foreach ($karungData as $i => $k) {
+                $rows[] = [
+                    $i === 0 ? $p->tanggal->format('d/m/Y') : '',
+                    $i === 0 ? ($p->supplier->nama ?? '-') : '',
+                    $i === 0 ? ($p->tipe == 'Beli' ? 'Pembelian' : 'Donasi') : '',
+                    'Karung #' . ($i + 1) . ' (Belum Dipilah)',
+                    1,
+                    $k['berat'],
+                    $i === 0 ? 'Kotor' : '',
+                    $i === 0 && $p->tipe == 'Beli' ? ($k['harga_per_kg'] ?? 0) : '',
+                    $i === 0 && $p->tipe == 'Beli' ? ($k['subtotal'] ?? 0) : '',
+                    $i === 0 ? ($p->user->name ?? '-') : '',
+                ];
+            }
+        } elseif (!empty($karungData) && $p->status_sortir == 'Sudah') {
+            // ✅ Format baru: Sudah Sortir - kelompokkan per jenis
+            $grouped = [];
+            foreach ($karungData as $k) {
+                $key = $k['jenis_plastik_id'];
+                if (!isset($grouped[$key])) {
+                    $jenisNama = \App\Models\JenisPlastik::find($key)->nama ?? 'Unknown';
+                    $grouped[$key] = [
+                        'nama' => $jenisNama,
+                        'karung' => 0,
+                        'berat' => 0,
+                        'harga' => $k['harga_per_kg'] ?? 0,
+                        'subtotal' => 0,
+                    ];
+                }
+                $grouped[$key]['karung']++;
+                $grouped[$key]['berat'] += $k['berat'];
+                $grouped[$key]['subtotal'] += $k['subtotal'] ?? 0;
+            }
+            
+            $first = true;
+            foreach ($grouped as $g) {
+                $rows[] = [
+                    $first ? $p->tanggal->format('d/m/Y') : '',
+                    $first ? ($p->supplier->nama ?? '-') : '',
+                    $first ? ($p->tipe == 'Beli' ? 'Pembelian' : 'Donasi') : '',
+                    $g['nama'],
+                    $g['karung'],
+                    $g['berat'],
+                    $first ? 'Bersih' : '',
+                    $first && $p->tipe == 'Beli' ? $g['harga'] : '',
+                    $first && $p->tipe == 'Beli' ? $g['subtotal'] : '',
+                    $first ? ($p->user->name ?? '-') : '',
+                ];
+                $first = false;
+            }
+        } else {
+            // ✅ Fallback: data lama dari detailPenerimaan
+            $bayar = $p->tipe == 'Beli' ? $p->total_bayar : 0;
+            
+            foreach ($p->detailPenerimaan as $i => $d) {
+                $rows[] = [
+                    $i === 0 ? $p->tanggal->format('d/m/Y') : '',
+                    $i === 0 ? ($p->supplier->nama ?? '-') : '',
+                    $i === 0 ? ($p->tipe == 'Beli' ? 'Pembelian' : 'Donasi') : '',
+                    $d->jenisPlastik->nama ?? 'Belum Dipilah',
+                    $d->jumlah_karung ?: 1,
+                    $d->berat_datang_kg,
+                    $i === 0 ? ($p->status_sortir == 'Sudah' ? 'Bersih' : 'Kotor') : '',
+                    $i === 0 && $p->tipe == 'Beli' ? $d->harga_per_kg : '',
+                    $i === 0 && $p->tipe == 'Beli' ? $d->subtotal : '',
+                    $i === 0 ? ($p->user->name ?? '-') : '',
+                ];
+            }
         }
+        
         return $rows;
     }
 
@@ -66,18 +139,18 @@ class LaporanPenerimaanExport implements FromCollection, WithHeadings, WithMappi
     {
         $lastRow = $sheet->getHighestRow();
         
-        $sheet->getStyle('A1:I1')->applyFromArray([
+        $sheet->getStyle('A1:J1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
             'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D6EFD']],
             'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        $sheet->getStyle('A1:I' . $lastRow)->applyFromArray([
+        $sheet->getStyle('A1:J' . $lastRow)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
         
         $sheet->getStyle('E2:F' . $lastRow)->getAlignment()->setHorizontal('right');
-        $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('H2:J' . $lastRow)->getAlignment()->setHorizontal('right');
         $sheet->freezePane('A2');
         
         return [];

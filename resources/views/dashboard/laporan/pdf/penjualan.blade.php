@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/laporan/pdf/penjualan.blade.php --}}
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,6 +21,7 @@
         .text-center { text-align: center; }
         
         .total-row td { background: #fff3cd; font-weight: bold; font-size: 8px; }
+        .subtotal-row td { background: #f5f5f5; font-weight: bold; font-size: 7px; }
         
         .footer { margin-top: 15px; font-size: 7px; }
         .footer table { width: 100%; border: none; }
@@ -49,18 +49,20 @@
                 <th width="8%">Invoice</th>
                 <th width="7%">Tanggal</th>
                 <th width="10%">Pembeli</th>
-                <th width="13%">Produk</th>
+                <th width="14%">Produk</th>
                 <th width="5%">Sak</th>
                 <th width="8%">Kirim (Kg)</th>
-                <th width="6%">Pot (%)</th>
+                <th width="7%">Pot (%)</th>
                 <th width="8%">Nett (Kg)</th>
-                <th width="8%">Harga/Kg</th>
+                <th width="9%">Harga/Kg</th>
                 <th width="10%">Subtotal</th>
-                <th width="8%">Kasir</th>
+                <th width="7%">Kasir</th>
             </tr>
         </thead>
         <tbody>
-            @php $totalSak = $totalKirim = $totalNett = $totalHarga = 0; @endphp
+            @php 
+                $totalSak = $totalKirim = $totalPotongan = $totalNett = $totalHarga = 0; 
+            @endphp
             
             @foreach($data as $p)
                 @foreach($p->detailPenjualan as $i => $d)
@@ -68,8 +70,14 @@
                         $potonganPersen = $d->berat_kirim_kg > 0 ? round(($d->berat_potongan_kg / $d->berat_kirim_kg) * 100, 1) : 0;
                         $totalSak += $d->jumlah_sak;
                         $totalKirim += $d->berat_kirim_kg;
+                        $totalPotongan += $d->berat_potongan_kg;
                         $totalNett += $d->berat_nett_kg;
                         $totalHarga += $d->subtotal;
+                        
+                        // ✅ Detail sak
+                        $detailSak = $d->detail_sak ?? [];
+                        if (is_string($detailSak)) $detailSak = json_decode($detailSak, true) ?? [];
+                        $rincianSak = !empty($detailSak) ? 'Sak: ' . implode(', ', array_map(fn($s) => number_format($s['berat_kg'], 1, ',', '.'), $detailSak)) . ' Kg' : '';
                     @endphp
                     <tr>
                         @if($i === 0)
@@ -79,7 +87,10 @@
                         @else
                             <td></td><td></td><td></td>
                         @endif
-                        <td>{{ $d->jenisProduk->nama ?? '-' }}</td>
+                        <td>
+                            {{ $d->jenisProduk->nama ?? '-' }}
+                            @if($rincianSak)<br><small>{{ $rincianSak }}</small>@endif
+                        </td>
                         <td class="text-center">{{ $d->jumlah_sak }}</td>
                         <td class="text-end">{{ number_format($d->berat_kirim_kg, 1, ',', '.') }}</td>
                         <td class="text-center">{{ $potonganPersen }}%</td>
@@ -93,10 +104,21 @@
                         @endif
                     </tr>
                 @endforeach
+                {{-- Subtotal per transaksi --}}
+                <tr class="subtotal-row">
+                    <td colspan="4" class="text-end">Subtotal</td>
+                    <td class="text-center">{{ $p->detailPenjualan->sum('jumlah_sak') }}</td>
+                    <td class="text-end">{{ number_format($p->detailPenjualan->sum('berat_kirim_kg'), 1, ',', '.') }}</td>
+                    <td></td>
+                    <td class="text-end">{{ number_format($p->detailPenjualan->sum('berat_nett_kg'), 1, ',', '.') }}</td>
+                    <td></td>
+                    <td class="text-end">Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
+                    <td></td>
+                </tr>
             @endforeach
             
             <tr class="total-row">
-                <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
+                <td colspan="4" class="text-end"><strong>TOTAL KESELURUHAN</strong></td>
                 <td class="text-center"><strong>{{ $totalSak }}</strong></td>
                 <td class="text-end"><strong>{{ number_format($totalKirim, 1, ',', '.') }}</strong></td>
                 <td></td>

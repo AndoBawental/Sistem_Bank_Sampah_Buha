@@ -38,7 +38,20 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
 
     public function headings(): array
     {
-        return ['INVOICE', 'TANGGAL', 'PEMBELI', 'PRODUK', 'SAK', 'BERAT KIRIM (Kg)', 'POTONGAN (%)', 'BERAT NETT (Kg)', 'HARGA/Kg', 'SUBTOTAL (Rp)', 'KASIR'];
+        return [
+            'INVOICE', 
+            'TANGGAL', 
+            'PEMBELI', 
+            'PRODUK', 
+            'SAK', 
+            'BERAT KIRIM (Kg)', 
+            'POTONGAN (Kg)', 
+            'POTONGAN (%)', 
+            'BERAT NETT (Kg)', 
+            'HARGA/Kg (Rp)', 
+            'SUBTOTAL (Rp)', 
+            'KASIR'
+        ];
     }
 
     public function map($penjualan): array
@@ -48,6 +61,11 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
         foreach ($penjualan->detailPenjualan as $i => $d) {
             $potonganPersen = $d->berat_kirim_kg > 0 ? round(($d->berat_potongan_kg / $d->berat_kirim_kg) * 100, 1) : 0;
             
+            // ✅ Decode detail_sak untuk info tambahan
+            $detailSak = $d->detail_sak ?? [];
+            if (is_string($detailSak)) $detailSak = json_decode($detailSak, true) ?? [];
+            $rincianSak = !empty($detailSak) ? implode(', ', array_map(fn($s) => number_format($s['berat_kg'], 1, ',', '.'), $detailSak)) . ' Kg' : '-';
+            
             $rows[] = [
                 $i === 0 ? 'INV-' . str_pad($penjualan->id, 5, '0', STR_PAD_LEFT) : '',
                 $i === 0 ? $penjualan->tanggal->format('d/m/Y') : '',
@@ -55,6 +73,7 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
                 $d->jenisProduk->nama ?? '-',
                 $d->jumlah_sak,
                 $d->berat_kirim_kg,
+                $d->berat_potongan_kg,
                 $potonganPersen,
                 $d->berat_nett_kg,
                 $d->harga_per_kg,
@@ -69,17 +88,18 @@ class LaporanPenjualanExport implements FromCollection, WithHeadings, WithMappin
     {
         $lastRow = $sheet->getHighestRow();
         
-        $sheet->getStyle('A1:K1')->applyFromArray([
+        $sheet->getStyle('A1:L1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => '333333'], 'size' => 10],
             'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFC107']],
             'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
         
-        $sheet->getStyle('A1:K' . $lastRow)->applyFromArray([
+        $sheet->getStyle('A1:L' . $lastRow)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
         
-        $sheet->getStyle('D2:K' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('E2:L' . $lastRow)->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('K2:K' . $lastRow)->getNumberFormat()->setFormatCode('#,##0');
         $sheet->getStyle('J2:J' . $lastRow)->getNumberFormat()->setFormatCode('#,##0');
         $sheet->freezePane('A2');
         
