@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Penerimaan;
 use App\Models\Stok;
 use App\Models\Supplier;
+use App\Models\HasilSortir;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -14,15 +15,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Statistik utama
         $totalPenerimaanHariIni = Penerimaan::whereDate('tanggal', Carbon::today())->count();
         $totalStok = Stok::sum('total_berat');
         $totalSupplier = Supplier::count();
+        $totalJenisStok = Stok::count();
 
-        // Total karung dari semua penerimaan
-        $totalKarung = DB::table('detail_penerimaan')->sum('jumlah_karung');
-        if ($totalKarung == 0) {
-            $totalKarung = DB::table('detail_penerimaan')->count();
-        }
+        // Stok kotor (sisa yang belum disortir)
+        $totalPenerimaanKotor = Penerimaan::where('status_sortir', 'Belum')->sum('total_berat_kotor_kg');
+        $totalSudahSortir = HasilSortir::sum('berat_bersih_kg');
+        $stokKotor = max(0, $totalPenerimaanKotor - $totalSudahSortir);
 
         // Karung belum sortir
         $karungBelumSortir = DB::table('detail_penerimaan AS dp')
@@ -33,23 +35,40 @@ class DashboardController extends Controller
             $karungBelumSortir = Penerimaan::where('status_sortir', 'Belum')->count();
         }
 
+        // Penerimaan terbaru
         $penerimaanTerbaru = Penerimaan::with(['supplier', 'detailPenerimaan'])
             ->orderBy('tanggal', 'desc')
             ->limit(5)
             ->get();
 
+        // Stok menipis
+        $stokMenipisList = Stok::with('jenisPlastik')
+            ->where('total_berat', '<', 100)
+            ->orderBy('total_berat', 'asc')
+            ->limit(5)
+            ->get();
+        
         $stokMenipis = Stok::where('total_berat', '<', 100)
             ->where('total_berat', '>', 0)
             ->count();
+
+        // Sortir terbaru
+        $sortirTerbaru = HasilSortir::with('jenisPlastik')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         return view('dashboard.gudang.index', compact(
             'totalPenerimaanHariIni',
             'totalStok',
             'totalSupplier',
-            'totalKarung',
+            'totalJenisStok',
+            'stokKotor',
             'karungBelumSortir',
             'penerimaanTerbaru',
-            'stokMenipis'
+            'stokMenipis',
+            'stokMenipisList',
+            'sortirTerbaru'
         ));
     }
 }

@@ -9,6 +9,7 @@ use App\Models\DetailBahanProduksi;
 use App\Models\DetailHasilProduksi;
 use App\Models\DetailPenjualan;
 use App\Models\Stok;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -23,13 +24,13 @@ class DashboardController extends Controller
         $totalBahan = DetailBahanProduksi::whereHas('produksi', function ($q) {
             $q->whereMonth('tanggal', now()->month)
               ->whereYear('tanggal', now()->year);
-        })->sum('berat_kg'); // ⬅️ GANTI 'berat' → 'berat_kg'
+        })->sum('berat_kg');
 
         // Total hasil produksi bulan ini (Kg)
         $totalHasil = DetailHasilProduksi::whereHas('produksi', function ($q) {
             $q->whereMonth('tanggal', now()->month)
               ->whereYear('tanggal', now()->year);
-        })->sum('total_berat_kg'); // ⬅️ GANTI 'jumlah' → 'total_berat_kg'
+        })->sum('total_berat_kg');
 
         // Total sak bulan ini
         $totalSak = DetailHasilProduksi::whereHas('produksi', function ($q) {
@@ -37,10 +38,22 @@ class DashboardController extends Controller
               ->whereYear('tanggal', now()->year);
         })->sum('jumlah_sak');
 
-        // Total stok produk (masuk - keluar)
+        // ✅ Total stok produk (masuk - keluar + adjustment) - SAMA DENGAN StokProdukController
         $totalStokMasuk = DetailHasilProduksi::sum('total_berat_kg') ?? 0;
         $totalStokKeluar = DetailPenjualan::sum('berat_nett_kg') ?? 0;
-        $totalStokProduk = max(0, $totalStokMasuk - $totalStokKeluar);
+        
+        $adjustmentTotal = DB::table('stok_produk_adjustment_logs')
+            ->sum(DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')) ?? 0;
+        
+        $totalStokProduk = max(0, $totalStokMasuk - $totalStokKeluar + $adjustmentTotal);
+
+        // DEBUG: Log untuk cek nilai
+        \Log::info('Dashboard Produksi Debug', [
+            'totalStokMasuk' => $totalStokMasuk,
+            'totalStokKeluar' => $totalStokKeluar,
+            'adjustmentTotal' => $adjustmentTotal,
+            'totalStokProduk' => $totalStokProduk,
+        ]);
 
         // Produksi terbaru
         $produksiTerbaru = Produksi::with(['detailBahanProduksi.jenisPlastik', 'detailHasilProduksi.jenisProduk'])

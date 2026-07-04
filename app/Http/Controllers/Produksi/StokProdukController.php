@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class StokProdukController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $stokQuery = JenisProduk::select(
                 'jenis_produk.id as jenis_produk_id',
@@ -42,9 +42,10 @@ class StokProdukController extends Controller
                     FROM detail_penjualan dp
                     WHERE dp.jenis_produk_id = jenis_produk.id
                 ), 0) as stok_keluar_berat'),
-                // Stok akhir
+                // ✅ PERBAIKAN: Stok akhir = Masuk - Keluar + Adjustment
                 DB::raw('GREATEST(0, 
                     COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                    - COALESCE((SELECT SUM(dp.berat_nett_kg) FROM detail_penjualan dp WHERE dp.jenis_produk_id = jenis_produk.id), 0)
                     + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
                 ) as total_berat')
             );
@@ -65,12 +66,12 @@ class StokProdukController extends Controller
 
         // Statistik
         $totalStokMasuk = DetailHasilProduksi::sum('total_berat_kg') ?? 0;
-        $totalStokKeluar = DetailPenjualan::sum('jumlah_sak') ?? 0;
+        $totalStokKeluar = DetailPenjualan::sum('berat_nett_kg') ?? 0;
         
-        $adjustmentTotal = \App\Models\StokProdukAdjustmentLog::sum(
-            DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')
-        ) ?? 0;
-        $totalStok = max(0, $totalStokMasuk + $adjustmentTotal);
+        $adjustmentTotal = DB::table('stok_produk_adjustment_logs')
+            ->sum(DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')) ?? 0;
+        
+        $totalStok = max(0, $totalStokMasuk - $totalStokKeluar + $adjustmentTotal);
         $jenisProdukCount = JenisProduk::count();
 
         // Masuk bulan ini (Kg)
@@ -93,6 +94,7 @@ class StokProdukController extends Controller
                 'jenis_produk.id',
                 DB::raw('GREATEST(0, 
                     COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                    - COALESCE((SELECT SUM(dp.berat_nett_kg) FROM detail_penjualan dp WHERE dp.jenis_produk_id = jenis_produk.id), 0)
                     + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
                 ) as total')
             )->get();

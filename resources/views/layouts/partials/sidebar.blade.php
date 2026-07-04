@@ -55,7 +55,7 @@
         </a>
     </li>
 
-    {{-- ==================== GUDANG ==================== --}}
+       {{-- ==================== GUDANG ==================== --}}
     @hasanyrole('admin|gudang')
     <div class="sidebar-heading text-white-50 small px-4 mt-3 mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
         <i class="fas fa-warehouse me-1"></i> <span>Gudang</span>
@@ -68,14 +68,13 @@
         </a>
     </li>
 
-    {{-- Sortir Sampah --}}
-<li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
-    <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
-       href="{{ route('gudang.sortir.index') }}">
-        <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
-        <span>Sortir Sampah</span>
-    </a>
-</li>
+    <li class="nav-item {{ request()->routeIs('gudang.sortir*') ? 'active' : '' }}">
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" 
+           href="{{ route('gudang.sortir.index') }}">
+            <div class="icon-box me-3"><i class="fas fa-filter"></i></div>
+            <span>Sortir Sampah</span>
+        </a>
+    </li>
 
     <li class="nav-item {{ request()->routeIs('gudang.stok*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.stok.index') }}">
@@ -83,16 +82,15 @@
             <span>Stok Plastik Gudang</span>
         </a>
     </li>
-    @endhasanyrole
 
-    @role('admin')
+    {{-- ✅ UBAH: Supplier bisa diakses admin & gudang --}}
     <li class="nav-item {{ request()->routeIs('gudang.supplier*') ? 'active' : '' }}">
         <a class="nav-link d-flex align-items-center py-2 px-3 rounded mx-3 mb-1 custom-hover" href="{{ route('gudang.supplier.index') }}">
             <div class="icon-box me-3"><i class="fas fa-truck"></i></div>
             <span>Data Supplier</span>
         </a>
     </li>
-    @endrole
+    @endhasanyrole
 
     {{-- ==================== PRODUKSI ==================== --}}
     @hasanyrole('admin|produksi')

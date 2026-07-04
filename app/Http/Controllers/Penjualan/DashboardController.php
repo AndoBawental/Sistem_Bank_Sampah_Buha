@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Penjualan;
 use App\Models\Pembeli;
 use App\Models\DetailPenjualan;
+use App\Models\DetailHasilProduksi;
+use App\Models\JenisProduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -40,14 +42,15 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Produk Terlaris Bulan Ini (pakai field baru)
+        // Produk Terlaris Bulan Ini
         $produkTerlaris = DB::table('detail_penjualan')
             ->join('penjualan', 'detail_penjualan.penjualan_id', '=', 'penjualan.id')
             ->join('jenis_produk', 'detail_penjualan.jenis_produk_id', '=', 'jenis_produk.id')
             ->select(
+                'jenis_produk.id',
                 'jenis_produk.nama',
-                DB::raw('SUM(detail_penjualan.jumlah_sak) as total_sak'),           // ⬅️ jumlah_sak
-                DB::raw('SUM(detail_penjualan.berat_nett_kg) as total_berat'),      // ⬅️ berat_nett_kg
+                DB::raw('SUM(detail_penjualan.jumlah_sak) as total_sak'),
+                DB::raw('SUM(detail_penjualan.berat_nett_kg) as total_berat'),
                 DB::raw('SUM(detail_penjualan.subtotal) as total_pendapatan')
             )
             ->whereMonth('penjualan.tanggal', now()->month)
@@ -55,6 +58,21 @@ class DashboardController extends Controller
             ->groupBy('jenis_produk.id', 'jenis_produk.nama')
             ->orderByDesc('total_berat')
             ->limit(5)
+            ->get();
+
+        // ✅ Stok Produk Gudang (untuk informasi penjualan)
+        $stokProduk = JenisProduk::select(
+                'jenis_produk.id',
+                'jenis_produk.nama',
+                DB::raw('COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0) as stok_masuk'),
+                DB::raw('COALESCE((SELECT SUM(dp.berat_nett_kg) FROM detail_penjualan dp WHERE dp.jenis_produk_id = jenis_produk.id), 0) as stok_keluar'),
+                DB::raw('GREATEST(0, 
+                    COALESCE((SELECT SUM(dhp.total_berat_kg) FROM detail_hasil_produksi dhp WHERE dhp.jenis_produk_id = jenis_produk.id), 0)
+                    - COALESCE((SELECT SUM(dp.berat_nett_kg) FROM detail_penjualan dp WHERE dp.jenis_produk_id = jenis_produk.id), 0)
+                    + COALESCE((SELECT SUM(CASE WHEN tipe="tambah" THEN berat ELSE -berat END) FROM stok_produk_adjustment_logs WHERE jenis_produk_id = jenis_produk.id), 0)
+                ) as total_stok')
+            )
+            ->orderBy('jenis_produk.nama')
             ->get();
 
         return view('dashboard.penjualan.index', compact(
@@ -67,7 +85,8 @@ class DashboardController extends Controller
             'totalPembeli',
             'rataRataTransaksi',
             'transaksiTerbaru',
-            'produkTerlaris'
+            'produkTerlaris',
+            'stokProduk'
         ));
     }
 }
