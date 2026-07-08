@@ -147,9 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorNama.classList.add('show');
             inputNama.focus();
             isValid = false;
-        } else if (nama.length < 3) {
+        } else if (nama.length < 2) {
             inputNama.classList.add('is-invalid');
-            errorNama.innerHTML = '<i class="fas fa-exclamation-circle"></i> Nama minimal 3 karakter';
+            errorNama.innerHTML = '<i class="fas fa-exclamation-circle"></i> Nama minimal 2 karakter';
             errorNama.classList.add('show');
             inputNama.focus();
             isValid = false;
