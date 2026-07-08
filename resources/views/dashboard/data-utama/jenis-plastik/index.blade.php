@@ -109,14 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     @endif
 
-    @if(session('error'))
-    Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: '{{ session('success') }}',
-        confirmButtonColor: '#e53935'
-    });
-    @endif
+  @if(session('error'))
+Swal.fire({
+    icon: 'error',
+    title: 'Gagal!',
+    text: '{{ session('error') }}',  // Pastikan pakai 'error' bukan 'success'
+    confirmButtonColor: '#e53935'
+});
+@endif
 });
 </script>
 @endpush

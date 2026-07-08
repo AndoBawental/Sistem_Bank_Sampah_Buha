@@ -63,24 +63,47 @@ class JenisPlastikController extends Controller
             ->with('success', 'Jenis plastik berhasil diperbarui!');
     }
 
-   public function destroy($id)
+ public function destroy($id)
 {
     $jenisPlastik = JenisPlastik::findOrFail($id);
 
-    // Cek relasi
-    $hasStok = DB::table('stok')->where('jenis_plastik_id', $id)->exists();
-    $hasPenerimaan = DB::table('detail_penerimaan')->where('jenis_plastik_id', $id)->exists();
-    $hasSortir = DB::table('hasil_sortir')->where('jenis_plastik_id', $id)->exists();
-    $hasProduksi = DB::table('detail_bahan_produksi')->where('jenis_plastik_id', $id)->exists();
+    // Cek relasi dengan pengecekan yang lebih spesifik
+    $hasStok = DB::table('stok')
+        ->where('jenis_plastik_id', $id)
+        ->where('total_berat', '>', 0)  // Hanya cek yang beratnya > 0
+        ->exists();
+        
+    $hasPenerimaan = DB::table('detail_penerimaan')
+        ->where('jenis_plastik_id', $id)
+        ->exists();
+        
+    $hasSortir = DB::table('hasil_sortir')
+        ->where('jenis_plastik_id', $id)
+        ->exists();
+        
+    $hasProduksi = DB::table('detail_bahan_produksi')
+        ->where('jenis_plastik_id', $id)
+        ->exists();
 
     if ($hasStok || $hasPenerimaan || $hasSortir || $hasProduksi) {
-        return back()->with('error', 'Gagal menghapus! Data ini masih digunakan di transaksi.');
+        $pesanError = 'Gagal menghapus! Data ini masih digunakan di:';
+        if ($hasStok) $pesanError .= ' Stok Gudang (berat > 0),';
+        if ($hasPenerimaan) $pesanError .= ' Penerimaan,';
+        if ($hasSortir) $pesanError .= ' Hasil Sortir,';
+        if ($hasProduksi) $pesanError .= ' Produksi,';
+        $pesanError = rtrim($pesanError, ',') . '.';
+        
+        return redirect()->route('data-utama.jenis-plastik.index')
+            ->with('error', $pesanError);
     }
 
+    // Optional: Hapus juga record stok yang beratnya 0 sebelum hapus jenis plastik
+    DB::table('stok')->where('jenis_plastik_id', $id)->where('total_berat', 0)->delete();
+    
     $nama = $jenisPlastik->nama;
     $jenisPlastik->delete();
 
     return redirect()->route('data-utama.jenis-plastik.index')
-        ->with('success', 'Data berhasil dihapus!');
+        ->with('success', "Jenis plastik '$nama' berhasil dihapus!");
 }
 }
