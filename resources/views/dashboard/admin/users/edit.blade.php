@@ -59,12 +59,18 @@
                                     <label class="form-label small fw-semibold">
                                         Password Baru <small class="text-muted fw-normal">(opsional)</small>
                                     </label>
-                                    <input type="password" 
-                                           class="form-control @error('password') is-invalid @enderror" 
-                                           name="password" 
-                                           placeholder="Kosongkan jika tidak diubah">
+                                    <div class="input-group">
+                                        <input type="password" 
+                                               class="form-control @error('password') is-invalid @enderror" 
+                                               name="password" 
+                                               placeholder="Kosongkan jika tidak diubah"
+                                               aria-label="Password baru">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1" aria-label="Lihat password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                     <small class="text-muted">Minimal 6 karakter</small>
-                                    @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
@@ -72,10 +78,16 @@
                                     <label class="form-label small fw-semibold">
                                         Konfirmasi Password
                                     </label>
-                                    <input type="password" 
-                                           class="form-control" 
-                                           name="password_confirmation" 
-                                           placeholder="Ulangi password baru">
+                                    <div class="input-group">
+                                        <input type="password" 
+                                               class="form-control" 
+                                               name="password_confirmation" 
+                                               placeholder="Ulangi password baru"
+                                               aria-label="Konfirmasi password baru">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1" aria-label="Lihat password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -140,11 +152,37 @@
         border-color: #86b7fe;
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
     }
+
+    /* Agar tombol mata tetap sejajar */
+    .input-group .btn {
+        border-color: #ced4da;
+    }
+    .input-group .btn:hover {
+        background-color: #e9ecef;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+
+    // Konfirmasi sebelum update
     function confirmSubmit() {
         Swal.fire({
             title: 'Update Pengguna?',
