@@ -32,7 +32,7 @@ class LaporanController extends Controller
         $produksiBulanan = $this->getDataBulanan('produksi');
         $penjualanBulanan = $this->getDataBulanan('penjualan');
 
-        return view('dashboard.laporan.index', compact(
+        return view('pages.laporan.index', compact(
             'totalPenerimaan', 'totalProduksi', 'totalPenjualan',
             'totalBeratPenerimaan', 'totalBeratProduksi', 'totalBeratPenjualan',
             'penerimaanBulanan', 'produksiBulanan', 'penjualanBulanan'
@@ -70,7 +70,7 @@ class LaporanController extends Controller
         $totalBayar = (clone $statsQuery)->where('tipe', 'Beli')->sum('total_bayar');
         $totalBeratBersih = (clone $statsQuery)->where('status_sortir', 'Sudah')->sum('total_berat_kotor_kg');
 
-        return view('dashboard.laporan.penerimaan', compact(
+        return view('pages.laporan.penerimaan', compact(
             'penerimaan', 'suppliers', 'dariTanggal', 'sampaiTanggal',
             'totalTransaksi', 'totalBeli', 'totalDonasi',
             'totalBeratKotor', 'totalBeratBersih', 'totalBayar'
@@ -110,7 +110,7 @@ class LaporanController extends Controller
 
         $totalTransaksi = (clone $query)->count();
 
-        return view('dashboard.laporan.produksi', compact(
+        return view('pages.laporan.produksi', compact(
             'produksi', 'jenisProduk', 'dariTanggal', 'sampaiTanggal',
             'totalBerat', 'totalSak', 'totalTransaksi'
         ));
@@ -151,7 +151,7 @@ class LaporanController extends Controller
         $totalHarga = (clone $query)->sum('total_harga');
         $totalTransaksi = (clone $query)->count();
 
-        return view('dashboard.laporan.penjualan', compact(
+        return view('pages.laporan.penjualan', compact(
             'penjualan', 'pembeliList', 'dariTanggal', 'sampaiTanggal',
             'totalBerat', 'totalSak', 'totalHarga', 'totalTransaksi'
         ));
@@ -174,7 +174,7 @@ class LaporanController extends Controller
 
     $data = $query->orderBy('tanggal', 'desc')->get();
 
-    $pdf = Pdf::loadView('dashboard.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
+    $pdf = Pdf::loadView('pages.laporan.pdf.penerimaan', compact('data', 'dariTanggal', 'sampaiTanggal'));
     $pdf->setPaper('A4', 'landscape');
     
     return $pdf->stream('laporan-penerimaan-' . date('Y-m-d') . '.pdf');
@@ -196,7 +196,7 @@ class LaporanController extends Controller
 
         $data = $query->orderBy('tanggal', 'desc')->get();
 
-        $pdf = Pdf::loadView('dashboard.laporan.pdf.produksi', compact('data', 'dariTanggal', 'sampaiTanggal'));
+        $pdf = Pdf::loadView('pages.laporan.pdf.produksi', compact('data', 'dariTanggal', 'sampaiTanggal'));
         $pdf->setPaper('A4', 'landscape');
         
         return $pdf->stream('laporan-produksi-' . date('Y-m-d') . '.pdf');
@@ -218,7 +218,7 @@ class LaporanController extends Controller
         $totalBerat = $data->sum(fn($p) => $p->detailPenjualan->sum('berat_nett_kg'));
         $totalHarga = $data->sum('total_harga');
 
-        $pdf = Pdf::loadView('dashboard.laporan.pdf.penjualan', compact('data', 'dariTanggal', 'sampaiTanggal', 'totalBerat', 'totalHarga'));
+        $pdf = Pdf::loadView('pages.laporan.pdf.penjualan', compact('data', 'dariTanggal', 'sampaiTanggal', 'totalBerat', 'totalHarga'));
         $pdf->setPaper('A4', 'landscape');
         
         return $pdf->stream('laporan-penjualan-' . date('Y-m-d') . '.pdf');

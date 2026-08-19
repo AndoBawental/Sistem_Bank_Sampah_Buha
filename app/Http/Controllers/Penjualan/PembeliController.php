@@ -30,7 +30,7 @@ class PembeliController extends Controller
         
         $pembeli = $query->orderBy('nama')->paginate(10);
         
-        return view('dashboard.penjualan.pembeli.index', compact('pembeli'));
+        return view('pages.penjualan.pembeli.index', compact('pembeli'));
     }
 
     /**
@@ -38,7 +38,7 @@ class PembeliController extends Controller
      */
     public function create()
     {
-        return view('dashboard.penjualan.pembeli.create');
+        return view('pages.penjualan.pembeli.create');
     }
 
     /**
@@ -64,7 +64,7 @@ class PembeliController extends Controller
     public function edit($id)
     {
         $pembeli = Pembeli::findOrFail($id);
-        return view('dashboard.penjualan.pembeli.edit', compact('pembeli'));
+        return view('pages.penjualan.pembeli.edit', compact('pembeli'));
     }
 
     /**

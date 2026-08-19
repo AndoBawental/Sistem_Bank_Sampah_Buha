@@ -58,7 +58,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('dashboard.gudang.index', compact(
+        return view('pages.gudang.index', compact(
             'totalPenerimaanHariIni',
             'totalStok',
             'totalSupplier',

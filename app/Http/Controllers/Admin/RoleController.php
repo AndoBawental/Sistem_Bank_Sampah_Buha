@@ -20,6 +20,6 @@ class RoleController extends Controller
         
         $roles = Role::with(['permissions', 'users'])->get();
         
-        return view('dashboard.admin.roles.index', compact('roles'));
+        return view('pages.admin.roles.index', compact('roles'));
     }
 }

@@ -12,12 +12,12 @@ class JenisProdukController extends Controller
     public function index()
     {
         $jenisProduk = JenisProduk::orderBy('nama')->paginate(10);
-        return view('dashboard.data-utama.jenis-produk.index', compact('jenisProduk'));
+        return view('pages.data-utama.jenis-produk.index', compact('jenisProduk'));
     }
 
     public function create()
     {
-        return view('dashboard.data-utama.jenis-produk.create');
+        return view('pages.data-utama.jenis-produk.create');
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class JenisProdukController extends Controller
     public function edit($id)
     {
         $jenisProduk = JenisProduk::findOrFail($id);
-        return view('dashboard.data-utama.jenis-produk.edit', compact('jenisProduk'));
+        return view('pages.data-utama.jenis-produk.edit', compact('jenisProduk'));
     }
 
     public function update(Request $request, $id)

@@ -29,7 +29,7 @@ class ProduksiController extends Controller
         $totalHasil = DetailHasilProduksi::whereHas('produksi', fn($q) => $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year))->sum('total_berat_kg');
         $totalSak = DetailHasilProduksi::whereHas('produksi', fn($q) => $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year))->sum('jumlah_sak');
         $jenisProduk = JenisProduk::orderBy('nama')->get();
-        return view('dashboard.produksi.produksi', compact('produksi', 'produksiBulanIni', 'totalBahan', 'totalHasil', 'totalSak', 'jenisProduk'));
+        return view('pages.produksi.produksi', compact('produksi', 'produksiBulanIni', 'totalBahan', 'totalHasil', 'totalSak', 'jenisProduk'));
     }
 
     public function create()
@@ -37,7 +37,7 @@ class ProduksiController extends Controller
         $jenisProduk = JenisProduk::orderBy('nama')->get();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         $stok = Stok::with('jenisPlastik')->where('total_berat', '>', 0)->orderBy('total_berat', 'desc')->get();
-        return view('dashboard.produksi.create', compact('jenisProduk', 'jenisPlastik', 'stok'));
+        return view('pages.produksi.create', compact('jenisProduk', 'jenisPlastik', 'stok'));
     }
 
     public function store(Request $request)
@@ -127,7 +127,7 @@ class ProduksiController extends Controller
     public function show($id)
     {
         $produksi = Produksi::with(['user', 'detailBahanProduksi.jenisPlastik', 'detailHasilProduksi.jenisProduk', 'detailHasilProduksi.sakProduksi'])->findOrFail($id);
-        return view('dashboard.produksi.show', compact('produksi'));
+        return view('pages.produksi.show', compact('produksi'));
     }
 
     public function edit($id)
@@ -136,7 +136,7 @@ class ProduksiController extends Controller
         $jenisProduk = JenisProduk::orderBy('nama')->get();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         $stok = Stok::with('jenisPlastik')->orderBy('total_berat', 'desc')->get();
-        return view('dashboard.produksi.edit', compact('produksi', 'jenisProduk', 'jenisPlastik', 'stok'));
+        return view('pages.produksi.edit', compact('produksi', 'jenisProduk', 'jenisPlastik', 'stok'));
     }
 
     public function update(Request $request, $id)

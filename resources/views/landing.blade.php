@@ -966,16 +966,9 @@
                     />
                     <div class="tentang-badge" aria-label="Melayani Manado sejak berdiri">
                         <div class="tentang-badge-icon" aria-hidden="true">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                                <path d="M21 3v5h-5"/>
-                                <path d="M12 16v-4h-2"/>
-                                <path d="M12 16h2"/>
-                            </svg>
                         </div>
                         <div>
-                            <div class="tentang-badge-title">Sejak Tahun</div>
-                            <div class="tentang-badge-sub">Melayani Manado</div>
+                           
                         </div>
                     </div>
                 </div>

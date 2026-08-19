@@ -33,7 +33,7 @@ class SupplierController extends Controller
         // Total penerimaan
         $totalPenerimaan = Penerimaan::count();
         
-        return view('dashboard.gudang.supplier.index', compact('suppliers', 'totalPenerimaan'));
+        return view('pages.gudang.supplier.index', compact('suppliers', 'totalPenerimaan'));
     }
 
     /**
@@ -41,7 +41,7 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        return view('dashboard.gudang.supplier.create');
+        return view('pages.gudang.supplier.create');
     }
 
     /**
@@ -69,7 +69,7 @@ class SupplierController extends Controller
     public function edit($id)
     {
         $supplier = Supplier::findOrFail($id);
-        return view('dashboard.gudang.supplier.edit', compact('supplier'));
+        return view('pages.gudang.supplier.edit', compact('supplier'));
     }
 
     /**

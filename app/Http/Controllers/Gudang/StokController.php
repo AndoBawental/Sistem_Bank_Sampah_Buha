@@ -53,7 +53,7 @@ class StokController extends Controller
         
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
-        return view('dashboard.gudang.stok.index', compact(
+        return view('pages.gudang.stok.index', compact(
             'stok', 'totalStok', 'jenisPlastikCount',
             'stokMenipis', 'stokHabis',
             'stokMasukBulanIni', 'stokMasukPenerimaan', 'stokMasukSortir',
@@ -189,7 +189,7 @@ class StokController extends Controller
         $countMasuk = $riwayatPenerimaan->count() + $riwayatSortir->count();
         $countKeluar = $riwayatKeluar->count();
         
-        return view('dashboard.gudang.stok.history', compact(
+        return view('pages.gudang.stok.history', compact(
             'stok', 'riwayatGabungan', 'totalMasuk', 'totalKeluar', 'countMasuk', 'countKeluar'
         ));
     }
@@ -198,7 +198,7 @@ class StokController extends Controller
     {
         $stok = Stok::with('jenisPlastik')->findOrFail($id);
         $jenisPlastik = JenisPlastik::all();
-        return view('dashboard.gudang.stok.edit', compact('stok', 'jenisPlastik'));
+        return view('pages.gudang.stok.edit', compact('stok', 'jenisPlastik'));
     }
 
     public function update(Request $request, $id)
@@ -220,7 +220,7 @@ class StokController extends Controller
     public function adjustment($id)
     {
         $stok = Stok::with('jenisPlastik')->findOrFail($id);
-        return view('dashboard.gudang.stok.adjustment', compact('stok'));
+        return view('pages.gudang.stok.adjustment', compact('stok'));
     }
 
     public function storeAdjustment(Request $request, $id)

@@ -32,7 +32,7 @@ class PenjualanController extends Controller
         $transaksiBulanIni = Penjualan::whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year)->count();
         $listPembeli = Pembeli::select('id', 'nama')->orderBy('nama')->get();
 
-        return view('dashboard.penjualan.penjualan', compact(
+        return view('pages.penjualan.penjualan', compact(
             'penjualan', 'totalTransaksi', 'totalPenjualan',
             'transaksiHariIni', 'transaksiBulanIni', 'listPembeli'
         ));
@@ -49,7 +49,7 @@ class PenjualanController extends Controller
             return $item;
         });
 
-        return view('dashboard.penjualan.create', compact('pembeli', 'jenisProduk'));
+        return view('pages.penjualan.create', compact('pembeli', 'jenisProduk'));
     }
 
     // ========== STORE ==========
@@ -148,7 +148,7 @@ class PenjualanController extends Controller
             return $item;
         });
 
-        return view('dashboard.penjualan.edit', compact('penjualan', 'pembeli', 'jenisProduk'));
+        return view('pages.penjualan.edit', compact('penjualan', 'pembeli', 'jenisProduk'));
     }
 
     // ========== UPDATE ==========
@@ -236,7 +236,7 @@ class PenjualanController extends Controller
     public function show($id)
     {
         $penjualan = Penjualan::with(['pembeli', 'user', 'detailPenjualan.jenisProduk'])->findOrFail($id);
-        return view('dashboard.penjualan.show', compact('penjualan'));
+        return view('pages.penjualan.show', compact('penjualan'));
     }
 
     // ========== DESTROY ==========
@@ -252,7 +252,7 @@ class PenjualanController extends Controller
     public function nota($id)
     {
         $penjualan = Penjualan::with(['pembeli', 'user', 'detailPenjualan.jenisProduk'])->findOrFail($id);
-        return view('dashboard.penjualan.nota', compact('penjualan'));
+        return view('pages.penjualan.nota', compact('penjualan'));
     }
 
     // ========== HELPER ==========

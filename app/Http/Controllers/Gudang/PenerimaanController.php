@@ -104,7 +104,7 @@ class PenerimaanController extends Controller
         
         $suppliers = Supplier::orderBy('nama')->get();
         
-        return view('dashboard.gudang.penerimaan.index', compact(
+        return view('pages.gudang.penerimaan.index', compact(
             'penerimaan',
             'supplierCount',
             'totalBulanIni',
@@ -128,7 +128,7 @@ class PenerimaanController extends Controller
     {
         $suppliers = Supplier::orderBy('nama')->get();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
-        return view('dashboard.gudang.penerimaan.create', compact('suppliers', 'jenisPlastik'));
+        return view('pages.gudang.penerimaan.create', compact('suppliers', 'jenisPlastik'));
     }
 
     public function store(Request $request)
@@ -277,7 +277,7 @@ class PenerimaanController extends Controller
         // Decode detail_karung untuk ditampilkan
         $penerimaan->detail_karung_decoded = json_decode($penerimaan->detail_karung, true) ?? [];
         
-        return view('dashboard.gudang.penerimaan.show', compact('penerimaan'));
+        return view('pages.gudang.penerimaan.show', compact('penerimaan'));
     }
 
     public function edit($id)
@@ -287,7 +287,7 @@ class PenerimaanController extends Controller
         $suppliers = Supplier::orderBy('nama')->get();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
-        return view('dashboard.gudang.penerimaan.edit', compact('penerimaan', 'suppliers', 'jenisPlastik'));
+        return view('pages.gudang.penerimaan.edit', compact('penerimaan', 'suppliers', 'jenisPlastik'));
     }
 
     public function update(Request $request, $id)
@@ -450,7 +450,7 @@ class PenerimaanController extends Controller
             $totalKarung = $penerimaan->detailPenerimaan->count();
         }
         
-        return view('dashboard.gudang.penerimaan.print', compact('penerimaan', 'totalKarung'));
+        return view('pages.gudang.penerimaan.print', compact('penerimaan', 'totalKarung'));
     }
 
     public function destroy($id)

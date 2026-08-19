@@ -113,7 +113,7 @@ class StokProdukController extends Controller
 
         $jenisProduk = JenisProduk::orderBy('nama')->get();
 
-        return view('dashboard.produksi.stok-produk.index', compact(
+        return view('pages.produksi.stok-produk.index', compact(
             'stok', 'totalStok', 'jenisProdukCount',
             'stokMasukBulanIni', 'stokKeluarBulanIni', 'beratTerjualBulanIni',
             'stokMenipis', 'stokHabis', 'jenisProduk'
@@ -132,7 +132,7 @@ class StokProdukController extends Controller
         
         $totalBerat = max(0, $stokMasuk + $stokAdjustment);
 
-        return view('dashboard.produksi.stok-produk.adjustment', compact('produk', 'totalBerat'));
+        return view('pages.produksi.stok-produk.adjustment', compact('produk', 'totalBerat'));
     }
 
     public function storeAdjustment(Request $request, $jenisProdukId)
@@ -298,7 +298,7 @@ class StokProdukController extends Controller
             ->sum(DB::raw('CASE WHEN tipe = "tambah" THEN berat ELSE -berat END')) ?? 0;
         $stokSekarang = max(0, $stokProduksi + $stokAdjustment);
         
-        return view('dashboard.produksi.stok-produk.riwayat', compact(
+        return view('pages.produksi.stok-produk.riwayat', compact(
             'jenisProduk', 'riwayatPaginate', 'dariTanggal', 'sampaiTanggal',
             'filterTipe', 'perPage', 'totalMasuk', 'totalKeluar',
             'countMasuk', 'countKeluar', 'countTotal', 'stokSekarang'

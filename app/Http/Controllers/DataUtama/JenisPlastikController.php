@@ -12,12 +12,12 @@ class JenisPlastikController extends Controller
     public function index()
     {
         $jenisPlastik = JenisPlastik::orderBy('nama')->paginate(10);
-        return view('dashboard.data-utama.jenis-plastik.index', compact('jenisPlastik'));
+        return view('pages.data-utama.jenis-plastik.index', compact('jenisPlastik'));
     }
 
     public function create()
     {
-        return view('dashboard.data-utama.jenis-plastik.create');
+        return view('pages.data-utama.jenis-plastik.create');
     }
 
     public function store(Request $request)
@@ -41,7 +41,7 @@ class JenisPlastikController extends Controller
     public function edit($id)
     {
         $jenisPlastik = JenisPlastik::findOrFail($id);
-        return view('dashboard.data-utama.jenis-plastik.edit', compact('jenisPlastik'));
+        return view('pages.data-utama.jenis-plastik.edit', compact('jenisPlastik'));
     }
 
     public function update(Request $request, $id)

@@ -32,7 +32,7 @@ class SortirController extends Controller
         $riwayatSortir = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
-        return view('dashboard.gudang.sortir.index', compact(
+        return view('pages.gudang.sortir.index', compact(
             'totalBeratKotor', 'totalBeratBersih', 'estimasiBersih',
             'totalKarungSortir', 'totalSudahSortir', 'riwayatSortir', 'jenisPlastik'
         ));
@@ -52,7 +52,7 @@ class SortirController extends Controller
         $estimasiBersih = $totalBeratKotor * 0.85;
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
-        return view('dashboard.gudang.sortir.create', compact(
+        return view('pages.gudang.sortir.create', compact(
             'totalBeratKotor', 'totalBeratBersih', 'estimasiBersih', 'jenisPlastik'
         ));
     }
@@ -78,7 +78,7 @@ class SortirController extends Controller
         $estimasiBersih = $stokEfektif * 0.85;
         $jenisPlastik = JenisPlastik::orderBy('nama')->get();
         
-        return view('dashboard.gudang.sortir.edit', compact(
+        return view('pages.gudang.sortir.edit', compact(
             'sortir', 'detailSortir', 'stokEfektif', 'totalBeratBersih', 'estimasiBersih', 'jenisPlastik'
         ));
     }

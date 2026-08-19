@@ -22,7 +22,7 @@ class UserController extends Controller
         $this->authorize('viewAny', User::class);
         
         $users = User::with('roles')->latest()->paginate(10);
-        return view('dashboard.admin.users.index', compact('users'));
+        return view('pages.admin.users.index', compact('users'));
     }
 
     /**
@@ -34,7 +34,7 @@ class UserController extends Controller
         
         $roles = Role::all();
         // PERBAIKAN: View yang benar untuk create user
-        return view('dashboard.admin.users.create', compact('roles'));
+        return view('pages.admin.users.create', compact('roles'));
     }
 
     /**
@@ -61,7 +61,7 @@ class UserController extends Controller
     {
         $this->authorize('view', $user);
         
-        return view('dashboard.admin.users.show', compact('user'));
+        return view('pages.admin.users.show', compact('user'));
     }
 
     /**
@@ -75,7 +75,7 @@ class UserController extends Controller
         $userRole = $user->roles->first()?->name;
         
         // PERBAIKAN: View yang benar untuk edit user dan kirim data user
-        return view('dashboard.admin.users.edit', compact('user', 'roles', 'userRole'));
+        return view('pages.admin.users.edit', compact('user', 'roles', 'userRole'));
     }
 
     /**

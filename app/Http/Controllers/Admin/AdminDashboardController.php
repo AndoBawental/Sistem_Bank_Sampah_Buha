@@ -190,7 +190,7 @@ class AdminDashboardController extends Controller
         })->filter(fn($role) => $role->count > 0);
 
         // ✅ Semua variabel sudah didefinisikan sebelum compact
-        return view('dashboard.admin.admin', compact(
+        return view('pages.admin.admin', compact(
             'totalSampahMasuk', 'persenMasuk', 'totalStok', 'jenisPlastikCount',
             'totalProduksi', 'totalSak', 'totalBeratProduksi', 'totalPenjualan',
             'totalProduksiBulanIni', 'totalSakBulanIni', 'totalBeratHasilBulanIni', 'totalBahanBulanIni', 'produkTerbanyak',

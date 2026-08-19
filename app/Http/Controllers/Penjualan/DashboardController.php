@@ -75,7 +75,7 @@ class DashboardController extends Controller
             ->orderBy('jenis_produk.nama')
             ->get();
 
-        return view('dashboard.penjualan.index', compact(
+        return view('pages.penjualan.index', compact(
             'totalTransaksiHariIni',
             'totalPendapatanHariIni',
             'totalTransaksiBulanIni',
